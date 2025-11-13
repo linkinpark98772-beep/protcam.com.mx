@@ -67,12 +67,19 @@
             animation: splash-hide 0.5s forwards;
         }
 
-        /* Estilo del Título en Splash Screen */
+        /* Estilo del Título en Splash Screen (ESCRITORIO) */
         .splash-title {
             font-size: 6rem; /* Large text */
             color: white;
             font-weight: 900;
             margin-bottom: 20px; /* Espacio para el spinner */
+        }
+        
+        /* Ajuste de título para MÓVIL (menos de 640px) */
+        @media (max-width: 640px) {
+            .splash-title {
+                font-size: 3rem; 
+            }
         }
         
         /* SPINNER DE CARGA (SIMILAR A WINDOWS) */
