@@ -97,10 +97,11 @@
             background-color: rgba(33, 33, 33, 0.85); /* Semitransparente */
             border: none;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            max-width: 1200px; 
-            min-height: 800px;
+            /* RESPONSIVE: Ancho máximo grande, pero flexible */
+            max-width: 1400px; 
+            min-height: 80vh; /* Ajuste de altura mínima para ser flexible */
             
-            /* Usamos opacity/visibility y luego la clase content-visible para manejar la transición */
+            /* Transición de visibilidad */
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.5s ease-in, visibility 0.5s ease-in;
@@ -109,7 +110,7 @@
         .content-visible {
             opacity: 1 !important;
             visibility: visible !important;
-            display: flex !important; /* Tailwind usa flex-col, aseguramos que se muestre */
+            display: flex !important; /* Aseguramos que se muestre */
         }
 
         /* Color de acento (Rojo/Rosa - Elementos Interactivos) */
@@ -246,11 +247,12 @@
         <button id="skip-splash-btn" class="mt-8 px-6 py-2 bg-[#E94C5F] text-white font-bold rounded-lg hover:bg-[#CC4053] transition-colors" onclick="showMainContent()">Continuar</button>
     </div>
 
-    <main id="main-content" class="relative z-10 w-full max-w-[1200px] flex flex-col items-center justify-start p-8 rounded-xl flex-grow overflow-y-auto">
+    <!-- Contenedor Principal RESPONSIVO -->
+    <main id="main-content" class="relative z-10 w-full max-w-7xl flex flex-col items-center justify-start p-4 md:p-8 rounded-xl flex-grow overflow-y-auto">
         
         <!-- TÍTULO PRINCIPAL - Estilo Hero Section -->
-        <h1 class="text-7xl main-title mb-2 tracking-normal uppercase text-center">PROTCAM</h1>
-        <p class="text-lg accent-color mb-12 font-semibold text-center">Mérida, Yucatán | Soluciones Digitales y Capacitación</p>
+        <h1 class="text-4xl sm:text-6xl main-title mb-2 tracking-normal uppercase text-center">PROTCAM</h1>
+        <p class="text-sm sm:text-lg accent-color mb-12 font-semibold text-center">Mérida, Yucatán | Soluciones Digitales y Capacitación</p>
 
         <!-- UBICACIÓN FÍSICA -->
         <div class="address-box w-full p-4 md:p-6 mb-12 rounded-lg text-center">
@@ -268,6 +270,7 @@
         <div class="purpose-box w-full p-6 mb-12 rounded-lg text-left">
             <h2 class="text-3xl font-bold accent-color mb-4 text-center border-b border-[#444] pb-2">Propósito Protcam</h2>
             
+            <!-- Layout de Misión/Visión RESPONSIVO -->
             <div class="flex flex-col md:flex-row gap-6">
                 <!-- Misión -->
                 <div class="flex-1">
@@ -297,8 +300,8 @@
             
             <h2 class="text-3xl font-bold text-white mb-8 text-center border-b border-[#444] pb-2">Nuestros Servicios</h2>
 
-            <!-- Contenedor de iconos interactivos (GRID FIJO) -->
-            <div class="grid grid-cols-3 gap-8 justify-center w-full">
+            <!-- Contenedor de iconos interactivos RESPONSIVO: 1 col móvil, 2 col tablet, 3 col desktop -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 justify-center w-full">
                 
                 <!-- Icono 1: Reparación de Computadoras -->
                 <div id="icon-pc" data-service="computadoras" class="interactive-icon flex flex-col items-center p-8 rounded-lg">
@@ -376,8 +379,8 @@
 
             <h2 class="text-4xl text-white font-bold mb-8 border-b border-[#444] pb-2 text-center">Servicios de Diagnóstico PC y Laptop</h2>
 
-            <!-- Grid de Diagnósticos PC (GRID FIJO) -->
-            <div class="grid grid-cols-3 gap-6">
+            <!-- Grid de Diagnósticos PC RESPONSIVO: 1 col móvil, 2 col tablet, 3 col desktop -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- Diagnóstico PC 1: Hardware -->
                 <div class="diagnosis-card p-6 rounded-xl">
@@ -440,8 +443,8 @@
 
             <h2 class="text-4xl text-white font-bold mb-8 border-b border-[#444] pb-2 text-center">Servicios de Diagnóstico Celular</h2>
 
-            <!-- Grid de Diagnósticos (GRID FIJO) -->
-            <div class="grid grid-cols-3 gap-6">
+            <!-- Grid de Diagnósticos Móvil RESPONSIVO: 1 col móvil, 2 col tablet, 3 col desktop -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 <!-- Diagnóstico 1: Hardware y Pantalla -->
                 <div class="diagnosis-card p-6 rounded-xl">
@@ -522,8 +525,8 @@
                 </div>
             </div>
 
-            <!-- Grid de Cursos (Ahora 4 cursos, ajustado a 4 en GRID FIJO) -->
-            <div class="grid grid-cols-4 gap-6">
+            <!-- Grid de Cursos RESPONSIVO: 1 col móvil, 2 col tablet, 4 col desktop -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 
                 <!-- Curso Básico -->
                 <div class="course-card p-6 rounded-xl">
