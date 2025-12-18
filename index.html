@@ -61,7 +61,7 @@
         import { getAnalytics } from "firebase/analytics";
 
         // ------------------------------------------------------------------
-        // CONFIGURACIÓN REAL DE TU PROYECTO
+        // CONFIGURACIÓN DE FIREBASE (Tus Credenciales)
         // ------------------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyBI0r0YoRLZ6E-X7liiDaEPOdUi-bC13nI",
@@ -511,6 +511,10 @@
                         } catch (dbError) {
                             // Rollback si falla DB para evitar "Email already used" en reintento
                             await deleteUser(user);
+                            
+                            if (dbError.code === 'permission-denied') {
+                                throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y permite la escritura.");
+                            }
                             throw new Error("Error guardando datos. Verifica tu conexión.");
                         }
                     }
@@ -545,6 +549,9 @@
                             // Rollback
                             await deleteUser(user);
                             if (err.message === "Código de familia inválido") throw err;
+                            if (err.code === 'permission-denied') {
+                                throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y permite la escritura.");
+                            }
                             throw new Error("Error al unirse. Intenta de nuevo.");
                         }
                     }
@@ -930,6 +937,9 @@
                             }
                         } catch (e) {
                             console.error("Error leyendo miembro:", e);
+                            if (e.code === 'permission-denied') {
+                                alert("Error de permisos: Asegúrate de configurar las reglas en Firestore Database.");
+                            }
                         }
                     } else {
                         setUser(null);
