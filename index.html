@@ -52,7 +52,7 @@
             signInWithEmailAndPassword, 
             signOut, 
             onAuthStateChanged,
-            deleteUser // Importante para borrar usuario si falla DB
+            deleteUser
         } from "firebase/auth";
         import { 
             getFirestore, collection, addDoc, onSnapshot, query, where, 
@@ -61,7 +61,7 @@
         import { getAnalytics } from "firebase/analytics";
 
         // ------------------------------------------------------------------
-        // CONFIGURACIÓN DE FIREBASE (Tus Credenciales)
+        // CONFIGURACIÓN REAL DE TU PROYECTO
         // ------------------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyBI0r0YoRLZ6E-X7liiDaEPOdUi-bC13nI",
