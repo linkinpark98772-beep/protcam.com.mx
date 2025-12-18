@@ -593,11 +593,13 @@
                                 
                                 {/* Campos comunes: Email y Pass */}
                                 <div className="space-y-3">
-                                    <div className="border-b border-gray-200 py-2">
-                                        <input type="email" required value={data.email} onChange={(e) => setData({...data, email: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent text-sm" placeholder="Correo Electrónico" />
+                                    <div className="flex items-center border-b border-gray-200 py-2">
+                                        <Mail className="w-5 h-5 text-gray-400 mr-2" />
+                                        <input type="email" required value={data.email} onChange={(e) => setData({...data, email: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Correo Electrónico" />
                                     </div>
-                                    <div className="border-b border-gray-200 py-2">
-                                        <input type="password" required value={data.password} onChange={(e) => setData({...data, password: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent text-sm" placeholder="Contraseña" />
+                                    <div className="flex items-center border-b border-gray-200 py-2">
+                                        <Lock className="w-5 h-5 text-gray-400 mr-2" />
+                                        <input type="password" required value={data.password} onChange={(e) => setData({...data, password: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Contraseña" />
                                     </div>
                                 </div>
 
@@ -940,8 +942,6 @@
                             } else {
                                 // Caso Raro: Autenticado pero sin perfil (posiblemente borrado manual)
                                 console.warn("Usuario sin perfil de miembro encontrado");
-                                // We don't force logout here to avoid loops in edge cases, just show auth screen
-                                setUser(null); 
                             }
                         } catch (e) {
                             console.error("Error leyendo miembro:", e);
@@ -1031,11 +1031,9 @@
                     setEditingId(t.id); 
                 } else { 
                     const d = date || getLocalDateStr(new Date());
-                    // Define fresh state here to avoid ReferenceError
                     const initialType = date ? 'income' : 'expense';
                     const initialCategory = initialType === 'income' ? 'Salario' : 'Comida';
-                    const freshState = { amount: '', type: initialType, category: initialCategory, date: d, memberId: '' };
-                    setFormData(freshState); 
+                    setFormData({ ...initialFormState, date: d, type: initialType, category: initialCategory, memberId: '' }); 
                     setEditingId(null);
                 }
                 setIsFormOpen(true);
