@@ -117,7 +117,6 @@
         );
 
         // --- WIDGETS FLOTANTES ---
-        // Renombrado de FloatingBalanceCard a FinancialHealthWidget para coincidir con la llamada en App
         const FinancialHealthWidget = ({ transactions, isVisible, onClose, currentYear, isDark }) => {
             const [isMinimized, setIsMinimized] = useState(false);
             if (!isVisible) return null;
@@ -594,13 +593,11 @@
                                 
                                 {/* Campos comunes: Email y Pass */}
                                 <div className="space-y-3">
-                                    <div className="flex items-center border-b border-gray-200 py-2">
-                                        <Mail className="w-5 h-5 text-gray-400 mr-2" />
-                                        <input type="email" required value={data.email} onChange={(e) => setData({...data, email: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Correo Electrónico" />
+                                    <div className="border-b border-gray-200 py-2">
+                                        <input type="email" required value={data.email} onChange={(e) => setData({...data, email: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent text-sm" placeholder="Correo Electrónico" />
                                     </div>
-                                    <div className="flex items-center border-b border-gray-200 py-2">
-                                        <Lock className="w-5 h-5 text-gray-400 mr-2" />
-                                        <input type="password" required value={data.password} onChange={(e) => setData({...data, password: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Contraseña" />
+                                    <div className="border-b border-gray-200 py-2">
+                                        <input type="password" required value={data.password} onChange={(e) => setData({...data, password: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent text-sm" placeholder="Contraseña" />
                                     </div>
                                 </div>
 
@@ -943,6 +940,8 @@
                             } else {
                                 // Caso Raro: Autenticado pero sin perfil (posiblemente borrado manual)
                                 console.warn("Usuario sin perfil de miembro encontrado");
+                                // We don't force logout here to avoid loops in edge cases, just show auth screen
+                                setUser(null); 
                             }
                         } catch (e) {
                             console.error("Error leyendo miembro:", e);
@@ -1027,16 +1026,16 @@
 
             const openForm = (t = null, date = null) => {
                 if (t) { 
-                    // Para editar, prellenamos el ID del miembro si coincide el nombre
-                    // Nota: Idealmente guardaríamos memberID en la transacción, aquí inferimos por nombre para compatibilidad
                     const extraMemberId = familyMembers.find(m => m.name === t.userName)?.id || '';
                     setFormData({ ...t, memberId: extraMemberId }); 
                     setEditingId(t.id); 
                 } else { 
                     const d = date || getLocalDateStr(new Date());
+                    // Define fresh state here to avoid ReferenceError
                     const initialType = date ? 'income' : 'expense';
                     const initialCategory = initialType === 'income' ? 'Salario' : 'Comida';
-                    setFormData({ ...initialFormState, date: d, type: initialType, category: initialCategory, memberId: '' }); 
+                    const freshState = { amount: '', type: initialType, category: initialCategory, date: d, memberId: '' };
+                    setFormData(freshState); 
                     setEditingId(null);
                 }
                 setIsFormOpen(true);
@@ -1174,6 +1173,7 @@
                                 </div>
                                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                                     <div className={`flex p-1 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                                        {/* CORRECCIÓN: Botones actualizan tipo Y categoría por defecto */}
                                         <button type="button" onClick={() => setFormData({...formData, type: 'income', category: 'Salario'})} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${formData.type === 'income' ? 'bg-white text-[#008069] shadow-sm' : 'text-slate-400'}`}>Ingreso</button>
                                         <button type="button" onClick={() => setFormData({...formData, type: 'expense', category: 'Comida'})} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${formData.type === 'expense' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400'}`}>Gasto</button>
                                     </div>
@@ -1182,7 +1182,7 @@
                                         <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className={`w-full text-center text-4xl font-bold bg-transparent border-b-2 outline-none pb-2 ${isDarkMode ? 'text-white border-slate-600' : 'text-slate-800 border-slate-100'}`} placeholder="0.00" autoFocus />
                                     </div>
                                     
-                                    {/* Selector de Miembro */}
+                                    {/* Selector de Miembro (Solo extra members) */}
                                     <div className="text-center text-xs text-slate-400">
                                         Registrando como: <span className="font-bold text-[#008069]">{memberProfile.name}</span>
                                     </div>
