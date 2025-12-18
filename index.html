@@ -61,7 +61,7 @@
         import { getAnalytics } from "firebase/analytics";
 
         // ------------------------------------------------------------------
-        // CONFIGURACIÓN DE FIREBASE (Tus Credenciales)
+        // CONFIGURACIÓN DE FIREBASE
         // ------------------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyBI0r0YoRLZ6E-X7liiDaEPOdUi-bC13nI",
@@ -637,6 +637,9 @@
                 const q = query(collection(db, 'budgets'), where('familyId', '==', family.id));
                 const unsubscribe = onSnapshot(q, (snapshot) => {
                     setBudgets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                }, (error) => {
+                     console.error("Error loading budgets", error);
+                     if (error.code === 'permission-denied') alert("Error: No tienes permiso para ver presupuestos.");
                 });
                 return () => unsubscribe();
             }, [family.id]);
@@ -957,6 +960,9 @@
 
                 const unsubFamily = onSnapshot(doc(db, 'families', memberProfile.familyId), (doc) => {
                     if(doc.exists()) setFamily({ id: doc.id, ...doc.data() });
+                }, (error) => {
+                    console.error("Family fetch error", error);
+                    if (error.code === 'permission-denied') alert("Error de permisos. Verifica las reglas en Firebase.");
                 });
 
                 const qMembers = query(collection(db, 'members'), where('familyId', '==', memberProfile.familyId));
