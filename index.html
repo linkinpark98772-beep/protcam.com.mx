@@ -61,7 +61,7 @@
         import { getAnalytics } from "firebase/analytics";
 
         // ------------------------------------------------------------------
-        // CONFIGURACIÓN DE FIREBASE
+        // CONFIGURACIÓN DE FIREBASE (Tus Credenciales)
         // ------------------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyBI0r0YoRLZ6E-X7liiDaEPOdUi-bC13nI",
@@ -513,7 +513,7 @@
                             await deleteUser(user);
                             
                             if (dbError.code === 'permission-denied') {
-                                throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y permite la escritura.");
+                                throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y pega las reglas: allow read, write: if request.auth != null;");
                             }
                             throw new Error("Error guardando datos. Verifica tu conexión.");
                         }
@@ -550,7 +550,7 @@
                             await deleteUser(user);
                             if (err.message === "Código de familia inválido") throw err;
                             if (err.code === 'permission-denied') {
-                                throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y permite la escritura.");
+                                throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y pega las reglas: allow read, write: if request.auth != null;");
                             }
                             if (err.code === 'failed-precondition') {
                                 console.error("Missing index:", err);
@@ -564,7 +564,8 @@
                     let msg = "Error de autenticación";
                     if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado";
                     if (err.code === 'auth/wrong-password') msg = "Contraseña incorrecta";
-                    if (err.code === 'auth/user-not-found') msg = "Usuario no encontrado";
+                    if (err.code === 'auth/user-not-found') msg = "Usuario no encontrado. ¿Ya te registraste?";
+                    if (err.code === 'auth/operation-not-allowed') msg = "ERROR: Activa 'Correo/Contraseña' en Firebase Console -> Authentication";
                     if (err.message) msg = err.message;
                     setError(msg);
                     setLoading(false);
@@ -941,6 +942,8 @@
                             } else {
                                 // Caso Raro: Autenticado pero sin perfil (posiblemente borrado manual)
                                 console.warn("Usuario sin perfil de miembro encontrado");
+                                // We don't force logout here to avoid loops in edge cases, just show auth screen
+                                setUser(null); 
                             }
                         } catch (e) {
                             console.error("Error leyendo miembro:", e);
@@ -1183,14 +1186,14 @@
                                     
                                     {/* Selector de Miembro (Solo extra members) */}
                                     <div className="text-center text-xs text-slate-400">
-                                        Registrando como: <span className="font-bold text-[#008069]">{currentUser.username}</span>
+                                        Registrando como: <span className="font-bold text-[#008069]">{memberProfile.name}</span>
                                     </div>
-                                    {familyMembers.filter(m => m.uid !== currentUser.uid).length > 0 && (
+                                    {familyMembers.filter(m => m.uid !== user.uid).length > 0 && (
                                          <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'} p-2 rounded-lg border`}>
                                             <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">¿O es para alguien más?</label>
                                             <select value={formData.memberId || ''} onChange={e => setFormData({...formData, memberId: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                                                <option value="" className={isDarkMode ? 'text-black' : ''}>{currentUser.username} (Yo)</option>
-                                                {familyMembers.filter(m => m.uid !== currentUser.uid).map(m => (
+                                                <option value="" className={isDarkMode ? 'text-black' : ''}>{memberProfile.name} (Yo)</option>
+                                                {familyMembers.filter(m => m.uid !== user.uid).map(m => (
                                                     <option key={m.id} value={m.id} className={isDarkMode ? 'text-black' : ''}>{m.name}</option>
                                                 ))}
                                             </select>
