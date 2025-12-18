@@ -72,7 +72,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        // const appId = 'control-familiar-app'; // Ya no es necesario con rutas simples
+        const appId = 'control-familiar-app'; 
 
         // --- TEMAS ---
         const THEME = {
@@ -110,234 +110,7 @@
             </div>
         );
 
-        // --- VISTAS ESPECÍFICAS ---
-
-        // 1. MIEMBROS & INVITACIÓN
-        const MembersView = ({ family, familyMembers, isDark }) => {
-            const [newMemberName, setNewMemberName] = useState('');
-            
-            const addVirtualMember = async (e) => {
-                e.preventDefault();
-                if (!newMemberName.trim()) return;
-                const colors = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                await addDoc(collection(db, 'members'), {
-                    familyId: family.id,
-                    name: newMemberName.trim(),
-                    color: randomColor,
-                    isVirtual: true // Marca como miembro sin login (ej. Bebé, Mascota)
-                });
-                setNewMemberName('');
-            };
-
-            const copyCode = () => {
-                navigator.clipboard.writeText(family.joinCode);
-                alert("¡Código copiado! Compártelo con tu familia.");
-            };
-
-            return (
-                <div className="space-y-6 pb-24 animate-fade-in">
-                    {/* Tarjeta de Invitación */}
-                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-2xl shadow-lg text-white">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-lg font-bold flex items-center gap-2"><Share2 className="w-5 h-5"/> Invitar Familiares</h3>
-                                <p className="text-blue-100 text-xs mt-1">Comparte este código para que se unan a {family.name}</p>
-                            </div>
-                            <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-                                <KeyRound className="w-6 h-6" />
-                            </div>
-                        </div>
-                        <div className="bg-white/10 border border-white/20 rounded-xl p-3 flex items-center justify-between">
-                            <span className="text-2xl font-mono font-bold tracking-widest">{family.joinCode}</span>
-                            <button onClick={copyCode} className="bg-white text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition"><Copy className="w-4 h-4"/></button>
-                        </div>
-                    </div>
-
-                    {/* Lista de Miembros */}
-                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-6 rounded-2xl shadow-sm border transition-colors`}>
-                        <h3 className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-4 flex items-center gap-2`}><Users className="w-5 h-5 text-[#008069]" /> Integrantes Activos</h3>
-                        
-                        <div className="space-y-3 mb-6">
-                            {familyMembers.length > 0 ? (
-                                familyMembers.map(member => (
-                                    <div key={member.id} className={`flex items-center justify-between p-3 ${isDark ? 'bg-slate-700/50 border-slate-700' : 'bg-slate-50 border-slate-100'} rounded-xl border`}>
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-sm" style={{ backgroundColor: member.color }}>{member.name.charAt(0).toUpperCase()}</div>
-                                            <div>
-                                                <span className={`font-medium block ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{member.name}</span>
-                                                <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded ${member.isVirtual ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                                                    {member.isVirtual ? 'Virtual' : 'Usuario App'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : <p className="text-slate-400 text-center text-sm">Cargando miembros...</p>}
-                        </div>
-
-                        {/* Agregar Miembro Virtual */}
-                        <div className={`pt-4 border-t ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
-                            <p className={`text-xs mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Agregar miembro sin cuenta (ej. Hijos pequeños, Mascotas)</p>
-                            <form onSubmit={addVirtualMember} className="flex gap-2">
-                                <input type="text" value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Nombre..." className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`} />
-                                <button type="submit" className="bg-[#008069] text-white p-2 rounded-xl hover:bg-[#005c4b]"><UserPlus className="w-5 h-5" /></button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // 2. AUTH SCREEN (LOGIN/REGISTRO REAL)
-        const AuthScreen = ({ onLogin }) => {
-            const [mode, setMode] = useState('login'); // login, register, join
-            const [data, setData] = useState({ email: '', password: '', familyName: '', joinCode: '', userName: '' });
-            const [error, setError] = useState('');
-            const [loading, setLoading] = useState(false);
-
-            const handleAuth = async (e) => {
-                e.preventDefault();
-                setError('');
-                setLoading(true);
-
-                try {
-                    const auth = getAuth();
-                    const db = getFirestore();
-
-                    if (mode === 'login') {
-                        // 1. Iniciar Sesión Normal
-                        await signInWithEmailAndPassword(auth, data.email, data.password);
-                        // El listener onAuthStateChanged en App manejará el resto
-                    } 
-                    else if (mode === 'register') {
-                        // 2. Crear Familia Nueva
-                        // A. Crear Auth User
-                        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-                        const user = userCredential.user;
-                        
-                        // B. Generar Código de Familia Único (Simple)
-                        const newJoinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                        
-                        // C. Crear Documento Familia
-                        const familyRef = await addDoc(collection(db, 'families'), {
-                            name: data.familyName,
-                            joinCode: newJoinCode,
-                            createdAt: new Date().toISOString()
-                        });
-
-                        // D. Crear Documento Miembro (Vinculado al Auth UID)
-                        await addDoc(collection(db, 'members'), {
-                            uid: user.uid,
-                            familyId: familyRef.id,
-                            name: data.userName,
-                            email: data.email,
-                            role: 'admin',
-                            color: `hsl(${Math.random() * 360}, 70%, 40%)`,
-                            isVirtual: false
-                        });
-                    }
-                    else if (mode === 'join') {
-                        // 3. Unirse a Familia Existente
-                        // A. Buscar familia por código
-                        const q = query(collection(db, 'families'), where('joinCode', '==', data.joinCode));
-                        const snapshot = await getDocs(q);
-                        
-                        if (snapshot.empty) {
-                            throw new Error("Código de familia inválido");
-                        }
-                        const familyDoc = snapshot.docs[0];
-
-                        // B. Crear Auth User
-                        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-                        const user = userCredential.user;
-
-                        // C. Crear Documento Miembro vinculado a esa familia
-                        await addDoc(collection(db, 'members'), {
-                            uid: user.uid,
-                            familyId: familyDoc.id,
-                            name: data.userName,
-                            email: data.email,
-                            role: 'member',
-                            color: `hsl(${Math.random() * 360}, 70%, 40%)`,
-                            isVirtual: false
-                        });
-                    }
-                } catch (err) {
-                    console.error(err);
-                    let msg = "Error de autenticación";
-                    if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado";
-                    if (err.code === 'auth/wrong-password') msg = "Contraseña incorrecta";
-                    if (err.code === 'auth/user-not-found') msg = "Usuario no encontrado";
-                    if (err.message === "Código de familia inválido") msg = "El código de familia no existe";
-                    setError(msg);
-                    setLoading(false);
-                }
-            };
-
-            return (
-                <div className={`min-h-screen flex items-center justify-center ${THEME.bg} p-4`}>
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
-                        <div className={`${THEME.primary} p-8 text-center`}>
-                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm"><Users className="w-8 h-8 text-white" /></div>
-                            <h1 className="text-2xl font-bold text-white mb-1">Control Familiar</h1>
-                            <p className="text-white/80 text-sm">Finanzas compartidas</p>
-                        </div>
-                        
-                        {/* Tabs */}
-                        <div className="flex border-b border-gray-100">
-                            <button onClick={() => {setMode('login'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'login' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Entrar</button>
-                            <button onClick={() => {setMode('register'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'register' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Crear Familia</button>
-                            <button onClick={() => {setMode('join'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'join' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Unirse</button>
-                        </div>
-
-                        <div className="p-8">
-                            <form onSubmit={handleAuth} className="space-y-4">
-                                
-                                {/* Campos comunes: Email y Pass */}
-                                <div className="space-y-3">
-                                    <div className="flex items-center border-b border-gray-200 py-2">
-                                        <Mail className="w-5 h-5 text-gray-400 mr-2" />
-                                        <input type="email" required value={data.email} onChange={(e) => setData({...data, email: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Correo Electrónico" />
-                                    </div>
-                                    <div className="flex items-center border-b border-gray-200 py-2">
-                                        <Lock className="w-5 h-5 text-gray-400 mr-2" />
-                                        <input type="password" required value={data.password} onChange={(e) => setData({...data, password: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Contraseña" />
-                                    </div>
-                                </div>
-
-                                {/* Campos Específicos */}
-                                {mode === 'register' && (
-                                    <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100 animate-fade-in">
-                                        <label className="block text-xs font-bold text-blue-800 uppercase mb-2">Nueva Familia</label>
-                                        <input type="text" required value={data.userName} onChange={(e) => setData({...data, userName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent border-b border-blue-200 py-1 mb-2" placeholder="Tu Nombre (Ej. Papá)" />
-                                        <input type="text" required value={data.familyName} onChange={(e) => setData({...data, familyName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent border-b border-blue-200 py-1" placeholder="Nombre Familia (Ej. Los Pérez)" />
-                                    </div>
-                                )}
-
-                                {mode === 'join' && (
-                                    <div className="mt-4 p-3 bg-orange-50 rounded-xl border border-orange-100 animate-fade-in">
-                                        <label className="block text-xs font-bold text-orange-800 uppercase mb-2">Unirse a Familia</label>
-                                        <input type="text" required value={data.userName} onChange={(e) => setData({...data, userName: e.target.value})} className="w-full outline-none text-orange-900 bg-transparent border-b border-orange-200 py-1 mb-2" placeholder="Tu Nombre (Ej. Mamá)" />
-                                        <input type="text" required value={data.joinCode} onChange={(e) => setData({...data, joinCode: e.target.value.toUpperCase()})} className="w-full outline-none text-orange-900 bg-transparent border-b border-orange-200 py-1 font-mono tracking-widest" placeholder="CÓDIGO DE INVITACIÓN" />
-                                    </div>
-                                )}
-
-                                {error && <p className="text-red-500 text-xs font-medium text-center bg-red-50 p-2 rounded-lg">{error}</p>}
-                                
-                                <button type="submit" disabled={loading} className={`w-full ${THEME.primary} text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition transform active:scale-95 disabled:opacity-50`}>
-                                    {loading ? 'Procesando...' : mode === 'login' ? 'Iniciar Sesión' : mode === 'register' ? 'Crear Familia' : 'Unirse'}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
         // --- WIDGETS FLOTANTES ---
-
         const FinancialHealthWidget = ({ transactions, isVisible, onClose, currentYear, isDark }) => {
             const [isMinimized, setIsMinimized] = useState(false);
             if (!isVisible) return null;
@@ -599,20 +372,512 @@
             );
         };
 
-        // --- APP MAIN COMPONENT ---
+        // --- VISTAS ESPECÍFICAS ---
+
+        // 1. MIEMBROS & INVITACIÓN
+        const MembersView = ({ family, familyMembers, isDark }) => {
+            const [newMemberName, setNewMemberName] = useState('');
+            
+            const addVirtualMember = async (e) => {
+                e.preventDefault();
+                if (!newMemberName.trim()) return;
+                const colors = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                await addDoc(collection(db, 'members'), {
+                    familyId: family.id,
+                    name: newMemberName.trim(),
+                    color: randomColor,
+                    isVirtual: true // Marca como miembro sin login (ej. Bebé, Mascota)
+                });
+                setNewMemberName('');
+            };
+
+            const copyCode = () => {
+                navigator.clipboard.writeText(family.joinCode);
+                alert("¡Código copiado! Compártelo con tu familia.");
+            };
+
+            return (
+                <div className="space-y-6 pb-24 animate-fade-in">
+                    {/* Tarjeta de Invitación */}
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-2xl shadow-lg text-white">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="text-lg font-bold flex items-center gap-2"><Share2 className="w-5 h-5"/> Invitar Familiares</h3>
+                                <p className="text-blue-100 text-xs mt-1">Comparte este código para que se unan a {family.name}</p>
+                            </div>
+                            <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                <KeyRound className="w-6 h-6" />
+                            </div>
+                        </div>
+                        <div className="bg-white/10 border border-white/20 rounded-xl p-3 flex items-center justify-between">
+                            <span className="text-2xl font-mono font-bold tracking-widest">{family.joinCode}</span>
+                            <button onClick={copyCode} className="bg-white text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition"><Copy className="w-4 h-4"/></button>
+                        </div>
+                    </div>
+
+                    {/* Lista de Miembros */}
+                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-6 rounded-2xl shadow-sm border transition-colors`}>
+                        <h3 className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-4 flex items-center gap-2`}><Users className="w-5 h-5 text-[#008069]" /> Integrantes Activos</h3>
+                        
+                        <div className="space-y-3 mb-6">
+                            {familyMembers.length > 0 ? (
+                                familyMembers.map(member => (
+                                    <div key={member.id} className={`flex items-center justify-between p-3 ${isDark ? 'bg-slate-700/50 border-slate-700' : 'bg-slate-50 border-slate-100'} rounded-xl border`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-sm" style={{ backgroundColor: member.color }}>{member.name.charAt(0).toUpperCase()}</div>
+                                            <div>
+                                                <span className={`font-medium block ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{member.name}</span>
+                                                <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded ${member.isVirtual ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                                                    {member.isVirtual ? 'Virtual' : 'Usuario App'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : <p className="text-slate-400 text-center text-sm">Cargando miembros...</p>}
+                        </div>
+
+                        {/* Agregar Miembro Virtual */}
+                        <div className={`pt-4 border-t ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+                            <p className={`text-xs mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Agregar miembro sin cuenta (ej. Hijos pequeños, Mascotas)</p>
+                            <form onSubmit={addVirtualMember} className="flex gap-2">
+                                <input type="text" value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Nombre..." className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`} />
+                                <button type="submit" className="bg-[#008069] text-white p-2 rounded-xl hover:bg-[#005c4b]"><UserPlus className="w-5 h-5" /></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 2. AUTH SCREEN (LOGIN/REGISTRO REAL)
+        const AuthScreen = ({ onLogin }) => {
+            const [mode, setMode] = useState('login'); // login, register, join
+            const [data, setData] = useState({ email: '', password: '', familyName: '', joinCode: '', userName: '' });
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleAuth = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+
+                try {
+                    const auth = getAuth();
+                    const db = getFirestore();
+
+                    if (mode === 'login') {
+                        // 1. Iniciar Sesión Normal
+                        await signInWithEmailAndPassword(auth, data.email, data.password);
+                        // El listener onAuthStateChanged en App manejará el resto
+                    } 
+                    else if (mode === 'register') {
+                        // 2. Crear Familia Nueva
+                        // A. Crear Auth User
+                        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+                        const user = userCredential.user;
+                        
+                        // B. Generar Código de Familia Único (Simple)
+                        const newJoinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                        
+                        // C. Crear Documento Familia
+                        const familyRef = await addDoc(collection(db, 'families'), {
+                            name: data.familyName,
+                            joinCode: newJoinCode,
+                            createdAt: new Date().toISOString()
+                        });
+
+                        // D. Crear Documento Miembro (Vinculado al Auth UID)
+                        await addDoc(collection(db, 'members'), {
+                            uid: user.uid,
+                            familyId: familyRef.id,
+                            name: data.userName,
+                            email: data.email,
+                            role: 'admin',
+                            color: `hsl(${Math.random() * 360}, 70%, 40%)`,
+                            isVirtual: false
+                        });
+                    }
+                    else if (mode === 'join') {
+                        // 3. Unirse a Familia Existente
+                        // A. Buscar familia por código
+                        const q = query(collection(db, 'families'), where('joinCode', '==', data.joinCode));
+                        const snapshot = await getDocs(q);
+                        
+                        if (snapshot.empty) {
+                            throw new Error("Código de familia inválido");
+                        }
+                        const familyDoc = snapshot.docs[0];
+
+                        // B. Crear Auth User
+                        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+                        const user = userCredential.user;
+
+                        // C. Crear Documento Miembro vinculado a esa familia
+                        await addDoc(collection(db, 'members'), {
+                            uid: user.uid,
+                            familyId: familyDoc.id,
+                            name: data.userName,
+                            email: data.email,
+                            role: 'member',
+                            color: `hsl(${Math.random() * 360}, 70%, 40%)`,
+                            isVirtual: false
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    let msg = "Error de autenticación";
+                    if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado";
+                    if (err.code === 'auth/wrong-password') msg = "Contraseña incorrecta";
+                    if (err.code === 'auth/user-not-found') msg = "Usuario no encontrado";
+                    if (err.message === "Código de familia inválido") msg = "El código de familia no existe";
+                    setError(msg);
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className={`min-h-screen flex items-center justify-center ${THEME.bg} p-4`}>
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
+                        <div className={`${THEME.primary} p-8 text-center`}>
+                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm"><Users className="w-8 h-8 text-white" /></div>
+                            <h1 className="text-2xl font-bold text-white mb-1">Control Familiar</h1>
+                            <p className="text-white/80 text-sm">Finanzas compartidas</p>
+                        </div>
+                        
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-100">
+                            <button onClick={() => {setMode('login'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'login' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Entrar</button>
+                            <button onClick={() => {setMode('register'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'register' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Crear Familia</button>
+                            <button onClick={() => {setMode('join'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'join' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Unirse</button>
+                        </div>
+
+                        <div className="p-8">
+                            <form onSubmit={handleAuth} className="space-y-4">
+                                
+                                {/* Campos comunes: Email y Pass */}
+                                <div className="space-y-3">
+                                    <div className="flex items-center border-b border-gray-200 py-2">
+                                        <Mail className="w-5 h-5 text-gray-400 mr-2" />
+                                        <input type="email" required value={data.email} onChange={(e) => setData({...data, email: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Correo Electrónico" />
+                                    </div>
+                                    <div className="flex items-center border-b border-gray-200 py-2">
+                                        <Lock className="w-5 h-5 text-gray-400 mr-2" />
+                                        <input type="password" required value={data.password} onChange={(e) => setData({...data, password: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Contraseña" />
+                                    </div>
+                                </div>
+
+                                {/* Campos Específicos */}
+                                {mode === 'register' && (
+                                    <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100 animate-fade-in">
+                                        <label className="block text-xs font-bold text-blue-800 uppercase mb-2">Nueva Familia</label>
+                                        <input type="text" required value={data.userName} onChange={(e) => setData({...data, userName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent border-b border-blue-200 py-1 mb-2" placeholder="Tu Nombre (Ej. Papá)" />
+                                        <input type="text" required value={data.familyName} onChange={(e) => setData({...data, familyName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent border-b border-blue-200 py-1" placeholder="Nombre Familia (Ej. Los Pérez)" />
+                                    </div>
+                                )}
+
+                                {mode === 'join' && (
+                                    <div className="mt-4 p-3 bg-orange-50 rounded-xl border border-orange-100 animate-fade-in">
+                                        <label className="block text-xs font-bold text-orange-800 uppercase mb-2">Unirse a Familia</label>
+                                        <input type="text" required value={data.userName} onChange={(e) => setData({...data, userName: e.target.value})} className="w-full outline-none text-orange-900 bg-transparent border-b border-orange-200 py-1 mb-2" placeholder="Tu Nombre (Ej. Mamá)" />
+                                        <input type="text" required value={data.joinCode} onChange={(e) => setData({...data, joinCode: e.target.value.toUpperCase()})} className="w-full outline-none text-orange-900 bg-transparent border-b border-orange-200 py-1 font-mono tracking-widest" placeholder="CÓDIGO DE INVITACIÓN" />
+                                    </div>
+                                )}
+
+                                {error && <p className="text-red-500 text-xs font-medium text-center bg-red-50 p-2 rounded-lg">{error}</p>}
+                                
+                                <button type="submit" disabled={loading} className={`w-full ${THEME.primary} text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition transform active:scale-95 disabled:opacity-50`}>
+                                    {loading ? 'Procesando...' : mode === 'login' ? 'Iniciar Sesión' : mode === 'register' ? 'Crear Familia' : 'Unirse'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 4. Presupuestos (Restored)
+        const BudgetsView = ({ transactions, currentYear, family, isDark }) => {
+            const [budgets, setBudgets] = useState([]);
+            const [newBudget, setNewBudget] = useState({ category: '', limit: '' });
+
+            useEffect(() => {
+                const db = getFirestore();
+                const q = query(collection(db, 'budgets'), where('familyId', '==', family.id));
+                const unsubscribe = onSnapshot(q, (snapshot) => {
+                    setBudgets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                });
+                return () => unsubscribe();
+            }, [family.id]);
+
+            const categories = ['Comida', 'Transporte', 'Vivienda', 'Escuela', 'Despensa', 'Tienda', 'Comida a domicilio', 'Servicios', 'Deuda', 'Gastos Hormiga', 'Otros'];
+
+            const currentMonth = new Date().getMonth();
+            const expensesByCategory = {};
+            transactions.forEach(t => {
+                const tDate = new Date(t.date + 'T00:00:00');
+                if (t.type === 'expense' && tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
+                    expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+                }
+            });
+
+            const handleAddBudget = async (e) => {
+                e.preventDefault();
+                if (!newBudget.category || !newBudget.limit) return;
+                const db = getFirestore();
+                // Verificar si ya existe
+                const existing = budgets.find(b => b.category === newBudget.category);
+                if (existing) {
+                     await updateDoc(doc(db, 'budgets', existing.id), { limit: parseFloat(newBudget.limit) });
+                } else {
+                     await addDoc(collection(db, 'budgets'), {
+                        familyId: family.id,
+                        category: newBudget.category,
+                        limit: parseFloat(newBudget.limit)
+                    });
+                }
+                setNewBudget({ category: '', limit: '' });
+            };
+
+            const removeBudget = async (id) => {
+                if(window.confirm('¿Eliminar presupuesto?')) {
+                    const db = getFirestore();
+                    await deleteDoc(doc(db, 'budgets', id));
+                }
+            };
+
+            return (
+                <div className="space-y-6 pb-24 animate-fade-in">
+                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-6 rounded-2xl shadow-sm border transition-colors`}>
+                        <h3 className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-4 flex items-center gap-2`}><PiggyBank className="w-5 h-5 text-[#008069]" /> Presupuestos Mensuales</h3>
+                        
+                        <form onSubmit={handleAddBudget} className="flex gap-2 mb-6 flex-wrap">
+                            <select 
+                                value={newBudget.category} 
+                                onChange={(e) => setNewBudget({...newBudget, category: e.target.value})}
+                                className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`}
+                            >
+                                <option value="">Categoría</option>
+                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <input 
+                                type="number" 
+                                value={newBudget.limit} 
+                                onChange={(e) => setNewBudget({...newBudget, limit: e.target.value})} 
+                                placeholder="Límite $"
+                                className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600 placeholder-slate-400' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`}
+                            />
+                            <button type="submit" className="bg-[#008069] text-white p-2 rounded-xl hover:bg-[#005c4b]"><Plus className="w-5 h-5" /></button>
+                        </form>
+
+                        <div className="space-y-4">
+                            {budgets.length > 0 ? (
+                                budgets.map(b => {
+                                    const spent = expensesByCategory[b.category] || 0;
+                                    const percentage = Math.min((spent / b.limit) * 100, 100);
+                                    const remaining = b.limit - spent;
+                                    let color = 'bg-[#008069]';
+                                    if (percentage > 75) color = 'bg-amber-500';
+                                    if (percentage >= 100) color = 'bg-red-500';
+
+                                    return (
+                                        <div key={b.id} className={`p-4 ${isDark ? 'bg-slate-700/50' : 'bg-slate-50'} rounded-xl`}>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{b.category}</span>
+                                                    {percentage >= 100 && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                                                </div>
+                                                <button onClick={() => removeBudget(b.id)} className="text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                                            </div>
+                                            <div className={`w-full ${isDark ? 'bg-slate-600' : 'bg-slate-200'} h-2.5 rounded-full overflow-hidden mb-2`}>
+                                                <div className={`h-full rounded-full transition-all duration-1000 ${color}`} style={{ width: `${percentage}%` }}></div>
+                                            </div>
+                                            <div className="flex justify-between text-xs">
+                                                <span className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Gastado: {formatCurrency(spent)}</span>
+                                                <span className={`font-bold ${remaining < 0 ? 'text-red-500' : isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                                                    {remaining < 0 ? `Excedido: ${formatCurrency(Math.abs(remaining))}` : `Quedan: ${formatCurrency(remaining)}`}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            ) : (
+                                <p className="text-center text-slate-400 text-sm py-4">No has definido presupuestos.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- VISTAS RESTANTES ---
+        const CalendarView = ({ transactions, selectedYear, onDateClick, isDark }) => {
+            const [date, setDate] = useState(new Date(selectedYear, new Date().getMonth(), 1));
+
+            useEffect(() => {
+                if (date.getFullYear() !== selectedYear) setDate(new Date(selectedYear, 0, 1));
+            }, [selectedYear]);
+
+            const getDaysInMonth = (d) => {
+                const year = d.getFullYear();
+                const month = d.getMonth();
+                const days = new Date(year, month + 1, 0).getDate();
+                const firstDay = new Date(year, month, 1).getDay(); 
+                return { days, firstDay };
+            };
+
+            const { days, firstDay } = getDaysInMonth(date);
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+            const changeMonth = (offset) => {
+                const newDate = new Date(date);
+                newDate.setMonth(newDate.getMonth() + offset);
+                setDate(newDate);
+            };
+
+            const getDayData = (day) => {
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const dateStr = `${date.getFullYear()}-${month}-${String(day).padStart(2, '0')}`;
+                const dayTransactions = transactions.filter(t => t.date === dateStr);
+                const income = dayTransactions.filter(t => t.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
+                const expense = dayTransactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
+                return { income, expense };
+            };
+
+            return (
+                <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-2xl shadow-sm border overflow-hidden animate-fade-in mb-24 transition-colors`}>
+                    <div className={`p-4 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'} flex justify-between items-center border-b`}>
+                        <button onClick={() => changeMonth(-1)} className="p-2 hover:opacity-70 rounded-full text-slate-500"><ChevronLeft className="w-5 h-5"/></button>
+                        <div className="flex items-center gap-2">
+                            <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{monthNames[date.getMonth()]} {date.getFullYear()}</span>
+                            <button onClick={() => setDate(new Date())} className="text-[#008069] bg-[#d9fdd3] p-1 rounded-md text-xs font-bold px-2">Hoy</button>
+                        </div>
+                        <button onClick={() => changeMonth(1)} className="p-2 hover:opacity-70 rounded-full text-slate-500"><ChevronRight className="w-5 h-5"/></button>
+                    </div>
+                    <div className="p-3">
+                        <div className="grid grid-cols-7 mb-2 text-center text-xs font-bold text-slate-400">
+                            {['D','L','M','M','J','V','S'].map((d, i) => <div key={i} className="py-1">{d}</div>)}
+                        </div>
+                        <div className="grid grid-cols-7 gap-1">
+                            {[...Array(firstDay)].map((_, i) => <div key={`empty-${i}`} className="aspect-square"></div>)}
+                            {[...Array(days)].map((_, i) => {
+                                const day = i + 1;
+                                const { income, expense } = getDayData(day);
+                                const balance = income - expense;
+                                const isToday = new Date().toDateString() === new Date(date.getFullYear(), date.getMonth(), day).toDateString();
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const dateStr = `${date.getFullYear()}-${month}-${String(day).padStart(2, '0')}`;
+                                const hasData = income > 0 || expense > 0;
+
+                                return (
+                                    <button key={day} onClick={() => onDateClick(dateStr)} className={`relative min-h-[70px] border rounded-lg p-1 flex flex-col justify-between transition hover:border-[#008069] ${isToday ? 'bg-[#e7f5f2] border-[#008069]' : isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
+                                        <span className={`text-[10px] font-bold ${isToday ? 'text-[#008069]' : 'text-slate-400'}`}>{day}</span>
+                                        {hasData && (
+                                            <div className="w-full text-center">
+                                                <div className="flex justify-center gap-0.5 mb-0.5">
+                                                    {income > 0 && <div className="w-1.5 h-1.5 rounded-full bg-[#008069]"></div>}
+                                                    {expense > 0 && <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>}
+                                                </div>
+                                                <span className={`block text-[9px] font-bold leading-tight ${balance >= 0 ? 'text-[#008069]' : 'text-red-500'}`}>{formatCurrency(Math.abs(balance))}</span>
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const HistoryView = ({ transactions, onEdit, onDelete, isDark }) => {
+            const grouped = {};
+            const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            sorted.forEach(t => { if (!grouped[t.date]) grouped[t.date] = []; grouped[t.date].push(t); });
+
+            return (
+                <div className="space-y-4 pb-24 animate-fade-in">
+                    {Object.keys(grouped).length === 0 && <div className="text-center py-10 text-slate-400 opacity-50"><Layers className="w-12 h-12 mx-auto mb-2" /><p>Sin movimientos</p></div>}
+                    {Object.entries(grouped).map(([date, items]) => (
+                        <div key={date}>
+                            <div className="flex justify-center mb-2"><span className="bg-[#e1f3fb] text-slate-600 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">{new Date(date + 'T00:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</span></div>
+                            <div className="space-y-1.5">
+                                {items.map(t => (
+                                    <div key={t.id} onClick={() => onEdit(t)} className={`relative flex flex-col p-3 rounded-lg shadow-sm border border-transparent hover:border-slate-200 transition cursor-pointer ${t.type === 'income' ? (isDark ? 'bg-slate-800 text-slate-200 ml-0 mr-8 rounded-tl-none' : 'bg-white ml-0 mr-8 rounded-tl-none') : 'bg-[#d9fdd3] ml-8 mr-0 rounded-tr-none'}`}>
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm" style={{ backgroundColor: t.userColor || '#ccc' }}>{t.userName ? t.userName.charAt(0).toUpperCase() : '?'}</div>
+                                                <span className={`text-xs font-bold ${t.type === 'income' ? 'text-[#008069]' : 'text-slate-700'}`}>{t.category}</span>
+                                            </div>
+                                            <span className={`text-sm font-bold ${t.type === 'income' ? (isDark ? 'text-slate-300' : 'text-slate-600') : 'text-slate-800'}`}>{t.type === 'income' ? '+ ' : '- '}{formatCurrency(t.amount)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-end mt-1">
+                                            <p className="text-[10px] text-slate-500 line-clamp-1">{t.userName} • {t.type === 'expense' ? 'Gasto' : 'Ingreso'}</p>
+                                            <div className="flex gap-2"><button onClick={(e) => { e.stopPropagation(); onDelete(t.id); }} className="text-slate-300 hover:text-red-400 transition"><Trash2 className="w-3 h-3" /></button></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        const DashboardView = ({ transactions, isDark }) => {
+            const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const expense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            const monthlyData = Array(12).fill(0).map((_, i) => {
+                const mTrans = transactions.filter(t => new Date(t.date+'T00:00:00').getMonth() === i);
+                return {
+                    label: new Date(2000, i, 1).toLocaleString('es-MX', { month: 'short' }),
+                    income: mTrans.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+                    expense: mTrans.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+                };
+            });
+            const maxVal = Math.max(...monthlyData.map(d => Math.max(d.income, d.expense))) || 100;
+
+            return (
+                <div className="space-y-4 animate-fade-in pb-24">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex flex-col justify-between h-28 relative overflow-hidden`}>
+                            <div className="absolute top-0 right-0 p-3 opacity-10"><Wallet className="w-12 h-12 text-[#008069]" /></div>
+                            <p className="text-xs font-bold text-slate-400 uppercase">Balance Anual</p>
+                            <p className={`text-3xl font-black ${income - expense >= 0 ? (isDark ? 'text-slate-200' : 'text-[#111b21]') : 'text-red-500'}`}>{formatCurrency(income - expense)}</p>
+                        </div>
+                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex items-center justify-between`}>
+                            <div><p className="text-xs text-slate-400 font-bold uppercase">Ingresos</p><p className="text-xl font-bold text-[#008069]">{formatCurrency(income)}</p></div>
+                            <div className="bg-[#d9fdd3] p-2 rounded-full"><TrendingUp className="w-5 h-5 text-[#008069]" /></div>
+                        </div>
+                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex items-center justify-between`}>
+                            <div><p className="text-xs text-slate-400 font-bold uppercase">Gastos</p><p className="text-xl font-bold text-red-500">{formatCurrency(expense)}</p></div>
+                            <div className="bg-red-50 p-2 rounded-full"><TrendingDown className="w-5 h-5 text-red-500" /></div>
+                        </div>
+                    </div>
+                    <div className="h-64">
+                        <BarChartComponent title={`Flujo de Efectivo Anual`} data={monthlyData} maxVal={maxVal} isDark={isDark} />
+                    </div>
+                </div>
+            );
+        };
+
+        // --- APP PRINCIPAL ---
         const App = () => {
-            const [user, setUser] = useState(null); // Auth User
-            const [memberProfile, setMemberProfile] = useState(null); // Firestore Member Data
-            const [family, setFamily] = useState(null); // Firestore Family Data
+            const [user, setUser] = useState(null); 
+            const [memberProfile, setMemberProfile] = useState(null); 
+            const [family, setFamily] = useState(null); 
             
             const [loading, setLoading] = useState(true);
             const [view, setView] = useState('dashboard');
             
-            // Datos
             const [transactions, setTransactions] = useState([]);
             const [familyMembers, setFamilyMembers] = useState([]);
+            
+            // Estado para presupuestos cargados en tiempo real
+            const [budgets, setBudgets] = useState([]);
 
-            // Estado UI
             const [isFormOpen, setIsFormOpen] = useState(false);
             const [formData, setFormData] = useState({ amount: '', type: 'expense', category: 'Comida', date: getLocalDateStr(new Date()) });
             const [editingId, setEditingId] = useState(null);
@@ -621,12 +886,13 @@
             const [isSidebarOpen, setIsSidebarOpen] = useState(false);
             const [widgets, setWidgets] = useState({ health: true, topExpenses: true, savings: true, budgetAlert: true });
 
+            const [deleteModal, setDeleteModal] = useState({ show: false, id: null });
+
             // 1. ESCUCHAR AUTH
             useEffect(() => {
                 const unsubscribe = onAuthStateChanged(auth, async (u) => {
                     if (u) {
                         setUser(u);
-                        // Buscar el perfil de miembro asociado a este UID
                         const q = query(collection(db, 'members'), where('uid', '==', u.uid));
                         const snapshot = await getDocs(q);
                         
@@ -645,41 +911,41 @@
                 return () => unsubscribe();
             }, []);
 
-            // 2. CARGAR DATOS FAMILIARES (Solo si hay miembro logueado)
+            // 2. CARGAR DATOS
             useEffect(() => {
                 if (!memberProfile) return;
 
-                // A. Cargar Familia
                 const unsubFamily = onSnapshot(doc(db, 'families', memberProfile.familyId), (doc) => {
                     if(doc.exists()) setFamily({ id: doc.id, ...doc.data() });
                 });
 
-                // B. Cargar Miembros de la Familia
                 const qMembers = query(collection(db, 'members'), where('familyId', '==', memberProfile.familyId));
                 const unsubMembers = onSnapshot(qMembers, (snapshot) => {
                     setFamilyMembers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
                 });
 
-                // C. Cargar Transacciones
                 const qTrans = query(collection(db, 'transactions'), where('familyId', '==', memberProfile.familyId));
                 const unsubTrans = onSnapshot(qTrans, (snapshot) => {
                     const t = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                     setTransactions(t);
                 });
+                
+                // Cargar Presupuestos
+                const qBudgets = query(collection(db, 'budgets'), where('familyId', '==', memberProfile.familyId));
+                const unsubBudgets = onSnapshot(qBudgets, (snapshot) => {
+                    setBudgets(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+                });
 
-                return () => { unsubFamily(); unsubMembers(); unsubTrans(); };
+                return () => { unsubFamily(); unsubMembers(); unsubTrans(); unsubBudgets(); };
             }, [memberProfile]);
 
-
-            // --- ACTIONS ---
             const handleLogout = async () => { await signOut(auth); };
             
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 if (!formData.amount) return;
 
-                // Definir quién hace el gasto
-                let targetMember = memberProfile; // Por defecto yo
+                let targetMember = memberProfile; 
                 if (formData.memberId) {
                     const found = familyMembers.find(m => m.id === formData.memberId);
                     if (found) targetMember = found;
@@ -689,8 +955,8 @@
                     familyId: family.id,
                     ...formData,
                     amount: parseFloat(formData.amount),
-                    userId: user.uid, // Quien registra (auditoría)
-                    userName: targetMember.name, // Quien gastó
+                    userId: user.uid,
+                    userName: targetMember.name,
                     userColor: targetMember.color,
                     createdAt: new Date().toISOString()
                 };
@@ -707,18 +973,16 @@
                 await deleteDoc(doc(db, 'transactions', id));
             };
 
-            // Helpers UI
             const openForm = (t = null, date = null) => {
                 if (t) { 
-                    // Buscar si el nombre del miembro coincide con alguno para prellenar el select
-                    const mem = familyMembers.find(m => m.name === t.userName);
-                    setFormData({ ...t, memberId: mem ? mem.id : '' }); 
+                    const extraMemberId = familyMembers.find(m => m.name === t.userName)?.id || '';
+                    setFormData({ ...t, memberId: extraMemberId }); 
                     setEditingId(t.id); 
                 } else { 
                     const d = date || getLocalDateStr(new Date());
-                    const type = date ? 'income' : 'expense';
-                    const cat = type === 'income' ? 'Salario' : 'Comida';
-                    setFormData({ amount: '', type, category: cat, date: d, memberId: '' }); 
+                    const initialType = date ? 'income' : 'expense';
+                    const initialCategory = initialType === 'income' ? 'Salario' : 'Comida';
+                    setFormData({ ...initialFormState, date: d, type: initialType, category: initialCategory, memberId: '' }); 
                     setEditingId(null);
                 }
                 setIsFormOpen(true);
@@ -727,12 +991,23 @@
             const toggleWidget = (key) => setWidgets(prev => ({ ...prev, [key]: !prev[key] }));
             const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
+            const exportData = () => {
+                const headers = ["Fecha", "Tipo", "Categoría", "Monto", "Miembro"];
+                const rows = transactions.map(t => [t.date, t.type === 'income' ? 'Ingreso' : 'Gasto', t.category, t.amount, t.userName]);
+                const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `finanzas_${family.name}_${selectedYear}.csv`);
+                document.body.appendChild(link);
+                link.click();
+            };
+
             const currentYearData = transactions.filter(t => new Date(t.date + 'T00:00:00').getFullYear() === selectedYear);
 
             if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#efeae2]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#008069]"></div></div>;
             if (!user || !memberProfile || !family) return <AuthScreen onLogin={() => {}} />;
 
-            // Variables de tema dinámico
             const BgColor = isDarkMode ? 'bg-slate-900' : THEME.bg;
             const TextColor = isDarkMode ? 'text-slate-200' : 'text-slate-800';
             const CardBg = isDarkMode ? 'bg-slate-800' : 'bg-white';
@@ -742,7 +1017,6 @@
                 <div className={`min-h-screen ${BgColor} ${TextColor} font-sans flex overflow-hidden transition-colors duration-300`}>
                     {/* Sidebar */}
                     <aside className={`fixed inset-y-0 left-0 z-50 w-72 ${CardBg} border-r ${BorderColor} transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static flex flex-col`}>
-                        {/* Header Sidebar */}
                         <div className={`h-16 ${isDarkMode ? 'bg-slate-900' : 'bg-[#f0f2f5]'} flex items-center px-4 justify-between border-b ${BorderColor}`}>
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shadow-sm" style={{ backgroundColor: memberProfile.color }}>{memberProfile.name.charAt(0).toUpperCase()}</div>
@@ -764,15 +1038,19 @@
                                     <button onClick={() => { setView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'dashboard' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><PieChart className="w-4 h-4" /> Resumen</button>
                                     <button onClick={() => { setView('calendar'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'calendar' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><CalendarIcon className="w-4 h-4" /> Calendario</button>
                                     <button onClick={() => { setView('history'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'history' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><Layers className="w-4 h-4" /> Historial</button>
+                                    <button onClick={() => { setView('budgets'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'budgets' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><PiggyBank className="w-4 h-4" /> Presupuestos</button>
                                     <button onClick={() => { setView('members'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'members' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><Users className="w-4 h-4" /> Miembros Extra</button>
                                 </nav>
                             </div>
 
                             <div className="mb-6">
-                                <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Configuración</h3>
+                                <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Utilidades</h3>
+                                <button onClick={exportData} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-700 mb-2 ${TextColor}`}><Download className="w-4 h-4" /> Exportar Datos</button>
                                 <button onClick={toggleDarkMode} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-700 ${TextColor}`}>{isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
-                                
-                                <div className={`mt-4 ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-100'} rounded-xl p-3 space-y-3 border`}>
+                            </div>
+                            <div className="mb-6">
+                                <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Widgets</h3>
+                                <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-100'} rounded-xl p-3 space-y-3 border`}>
                                     {[{k:'health',l:'Estado',i:Activity}, {k:'topExpenses',l:'Top Gastos',i:TrendingDown}, {k:'savings',l:'Ahorro',i:Target}, {k:'budgetAlert',l:'Alertas',i:AlertTriangle}].map(w => (
                                         <label key={w.k} className="flex items-center justify-between cursor-pointer group">
                                             <span className={`text-sm flex items-center gap-2 ${TextColor}`}><w.i className="w-4 h-4 opacity-50" /> {w.l}</span>
@@ -803,26 +1081,27 @@
 
                         <main className="flex-1 overflow-y-auto p-4 relative" style={{ backgroundImage: `radial-gradient(${isDarkMode ? '#334155' : '#cbd5e1'} 1px, transparent 1px)`, backgroundSize: '20px 20px' }}>
                             <div className="max-w-4xl mx-auto pb-24">
-                                {view === 'dashboard' && (
-                                    <>
-                                        <DashboardView transactions={currentYearData} isDark={isDarkMode} />
-                                        <div className="fixed bottom-20 right-4 z-30 flex flex-col-reverse gap-3 items-end md:bottom-8 pointer-events-none">
-                                            <FinancialHealthWidget transactions={currentYearData} isVisible={widgets.health} onClose={() => toggleWidget('health')} currentYear={selectedYear} isDark={isDarkMode} />
-                                            <BudgetAlertWidget transactions={currentYearData} budgets={[]} isVisible={widgets.budgetAlert} onClose={() => toggleWidget('budgetAlert')} currentYear={selectedYear} isDark={isDarkMode} />
-                                            <TopExpensesWidget transactions={currentYearData} isVisible={widgets.topExpenses} onClose={() => toggleWidget('topExpenses')} currentYear={selectedYear} isDark={isDarkMode} />
-                                            <SavingsWidget transactions={currentYearData} isVisible={widgets.savings} onClose={() => toggleWidget('savings')} currentYear={selectedYear} isDark={isDarkMode} />
-                                        </div>
-                                    </>
-                                )}
+                                {view === 'dashboard' && <DashboardView transactions={currentYearData} isDark={isDarkMode} />}
                                 {view === 'calendar' && <CalendarView transactions={currentYearData} selectedYear={selectedYear} onDateClick={(d) => openForm(null, d)} isDark={isDarkMode} />}
                                 {view === 'history' && <HistoryView transactions={currentYearData} onEdit={openForm} onDelete={deleteTransaction} isDark={isDarkMode} />}
                                 {view === 'members' && <MembersView family={family} familyMembers={familyMembers} isDark={isDarkMode} />}
+                                {view === 'budgets' && <BudgetsView transactions={currentYearData} currentYear={selectedYear} family={family} isDark={isDarkMode} />}
                             </div>
                         </main>
 
                         <button onClick={() => openForm()} className={`fixed bottom-20 right-4 md:bottom-8 md:right-8 w-14 h-14 ${THEME.primary} hover:bg-[#006e5a] text-white rounded-2xl shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-40`}>
                             <Plus className="w-7 h-7" />
                         </button>
+
+                        {/* Widget Container */}
+                        {view === 'dashboard' && (
+                            <div className="fixed bottom-20 right-4 z-30 flex flex-col-reverse gap-3 items-end md:bottom-8 pointer-events-none">
+                                <FinancialHealthWidget transactions={currentYearData} isVisible={widgets.health} onClose={() => toggleWidget('health')} currentYear={selectedYear} isDark={isDarkMode} />
+                                <BudgetAlertWidget transactions={currentYearData} budgets={budgets} isVisible={widgets.budgetAlert} onClose={() => toggleWidget('budgetAlert')} currentYear={selectedYear} isDark={isDarkMode} />
+                                <TopExpensesWidget transactions={currentYearData} isVisible={widgets.topExpenses} onClose={() => toggleWidget('topExpenses')} currentYear={selectedYear} isDark={isDarkMode} />
+                                <SavingsWidget transactions={currentYearData} isVisible={widgets.savings} onClose={() => toggleWidget('savings')} currentYear={selectedYear} isDark={isDarkMode} />
+                            </div>
+                        )}
 
                         <div className={`md:hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-t h-16 flex justify-around items-center px-2 z-50 fixed bottom-0 left-0 right-0`}>
                             <button onClick={() => setView('dashboard')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'dashboard' ? 'text-[#008069]' : 'text-slate-400'}`}><PieChart className="w-6 h-6" /><span className="text-[10px] font-medium">Estado</span></button>
