@@ -52,7 +52,7 @@
             signInWithEmailAndPassword, 
             signOut, 
             onAuthStateChanged,
-            deleteUser
+            deleteUser // Importante para borrar usuario si falla DB
         } from "firebase/auth";
         import { 
             getFirestore, collection, addDoc, onSnapshot, query, where, 
@@ -486,32 +486,38 @@
                         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
                         const user = userCredential.user;
                         
-                        // B. Generar Código de Familia Único (Simple)
-                        const newJoinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                        
-                        // C. Crear Documento Familia
-                        const familyRef = await addDoc(collection(db, 'families'), {
-                            name: data.familyName,
-                            joinCode: newJoinCode,
-                            createdAt: new Date().toISOString(),
-                            createdBy: user.uid
-                        });
+                        try {
+                            // B. Generar Código de Familia Único (Simple)
+                            const newJoinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                            
+                            // C. Crear Documento Familia
+                            const familyRef = await addDoc(collection(db, 'families'), {
+                                name: data.familyName,
+                                joinCode: newJoinCode,
+                                createdAt: new Date().toISOString(),
+                                createdBy: user.uid
+                            });
 
-                        // D. Crear Documento Miembro (Vinculado al Auth UID)
-                        await addDoc(collection(db, 'members'), {
-                            uid: user.uid,
-                            familyId: familyRef.id,
-                            name: data.userName,
-                            email: data.email,
-                            role: 'admin',
-                            color: `hsl(${Math.random() * 360}, 70%, 40%)`,
-                            isVirtual: false
-                        });
+                            // D. Crear Documento Miembro (Vinculado al Auth UID)
+                            await addDoc(collection(db, 'members'), {
+                                uid: user.uid,
+                                familyId: familyRef.id,
+                                name: data.userName,
+                                email: data.email,
+                                role: 'admin',
+                                color: `hsl(${Math.random() * 360}, 70%, 40%)`,
+                                isVirtual: false
+                            });
+                        } catch (dbError) {
+                            // Rollback si falla DB para evitar "Email already used" en reintento
+                            await deleteUser(user);
+                            throw new Error("Error guardando datos. Verifica tu conexión.");
+                        }
                     }
                     else if (mode === 'join') {
                         // 3. Unirse a Familia Existente
                         
-                        // A. Crear Auth User PRIMERO (Para tener permiso de lectura)
+                        // A. Crear Auth User PRIMERO
                         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
                         const user = userCredential.user;
 
@@ -521,8 +527,6 @@
                             const snapshot = await getDocs(q);
                             
                             if (snapshot.empty) {
-                                // Si falla, borramos el usuario creado
-                                await deleteUser(user); 
                                 throw new Error("Código de familia inválido");
                             }
                             const familyDoc = snapshot.docs[0];
@@ -538,9 +542,10 @@
                                 isVirtual: false
                             });
                         } catch (err) {
-                            // Si algo falla después de crear el usuario, asegurarse de limpiar o manejar el error
-                            console.error("Error uniéndose:", err);
-                            throw err; // Re-lanzar para que lo atrape el catch externo
+                            // Rollback
+                            await deleteUser(user);
+                            if (err.message === "Código de familia inválido") throw err;
+                            throw new Error("Error al unirse. Intenta de nuevo.");
                         }
                     }
                 } catch (err) {
@@ -549,7 +554,7 @@
                     if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado";
                     if (err.code === 'auth/wrong-password') msg = "Contraseña incorrecta";
                     if (err.code === 'auth/user-not-found') msg = "Usuario no encontrado";
-                    if (err.message === "Código de familia inválido") msg = "El código de familia no existe";
+                    if (err.message) msg = err.message;
                     setError(msg);
                     setLoading(false);
                 }
@@ -911,12 +916,19 @@
                     if (u) {
                         setUser(u);
                         const q = query(collection(db, 'members'), where('uid', '==', u.uid));
-                        const snapshot = await getDocs(q);
                         
-                        if (!snapshot.empty) {
-                            const memDoc = snapshot.docs[0];
-                            const memData = { id: memDoc.id, ...memDoc.data() };
-                            setMemberProfile(memData);
+                        try {
+                            const snapshot = await getDocs(q);
+                            if (!snapshot.empty) {
+                                const memDoc = snapshot.docs[0];
+                                const memData = { id: memDoc.id, ...memDoc.data() };
+                                setMemberProfile(memData);
+                            } else {
+                                // Caso Raro: Autenticado pero sin perfil (posiblemente borrado manual)
+                                console.warn("Usuario sin perfil de miembro encontrado");
+                            }
+                        } catch (e) {
+                            console.error("Error leyendo miembro:", e);
                         }
                     } else {
                         setUser(null);
