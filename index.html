@@ -61,7 +61,7 @@
         import { getAnalytics } from "firebase/analytics";
 
         // ------------------------------------------------------------------
-        // CONFIGURACIÓN DE FIREBASE (Tus Credenciales)
+        // CONFIGURACIÓN DE FIREBASE
         // ------------------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyBI0r0YoRLZ6E-X7liiDaEPOdUi-bC13nI",
@@ -1030,9 +1030,11 @@
                     setEditingId(t.id); 
                 } else { 
                     const d = date || getLocalDateStr(new Date());
+                    // Define fresh state here to avoid ReferenceError
                     const initialType = date ? 'income' : 'expense';
                     const initialCategory = initialType === 'income' ? 'Salario' : 'Comida';
-                    setFormData({ ...initialFormState, date: d, type: initialType, category: initialCategory, memberId: '' }); 
+                    const freshState = { amount: '', type: initialType, category: initialCategory, date: d, memberId: '' };
+                    setFormData(freshState); 
                     setEditingId(null);
                 }
                 setIsFormOpen(true);
