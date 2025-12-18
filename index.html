@@ -22,14 +22,11 @@
     </script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        /* Estilos personalizados para scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 20px; }
         .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        .animate-slide-up { animation: slideUp 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body class="bg-[#efeae2]">
@@ -43,16 +40,24 @@
             Edit2, Trash2, Save, X, PieChart, BarChart3, ChevronLeft, ChevronRight, 
             Layers, BarChart2, AlertTriangle, CalendarCheck, Activity, Lock, 
             CheckCircle2, PiggyBank, Minus, LogOut, User, Users, 
-            Menu, Target, Home, KeyRound, UserPlus, Smile, Download, Moon, Sun, CreditCard
+            Menu, Target, Home, KeyRound, UserPlus, Smile, Download, Moon, Sun,
+            Mail, Copy, Share2
         } from 'lucide-react';
         
         // --- FIREBASE IMPORTS ---
         import { initializeApp } from "firebase/app";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-        import { getFirestore, collection, addDoc, onSnapshot, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
-        import { getAnalytics } from "firebase/analytics";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged 
+        } from "firebase/auth";
+        import { 
+            getFirestore, collection, addDoc, onSnapshot, query, where, 
+            deleteDoc, doc, updateDoc, getDocs 
+        } from "firebase/firestore";
 
-        // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyBI0r0YoRLZ6E-X7liiDaEPOdUi-bC13nI",
             authDomain: "mi-dominio-slayer.firebaseapp.com",
@@ -64,26 +69,18 @@
             measurementId: "G-R4WCM2Q6C0"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const analytics = getAnalytics(app);
-
-        // App ID para multitenancy simulado en Firestore (Requerido por reglas de Canvas)
         const appId = 'control-familiar-app'; 
 
-        // --- COLORES Y TEMAS GLOBALES ---
+        // --- TEMAS ---
         const THEME = {
             primary: 'bg-[#008069]', 
-            primaryDark: 'bg-[#005c4b]',
             secondary: 'bg-[#25D366]', 
             bg: 'bg-[#efeae2]', 
             white: 'bg-white',
             textPrimary: 'text-[#111b21]',
-            textSecondary: 'text-[#54656f]',
-            danger: 'text-red-500',
-            success: 'text-[#008069]'
         };
 
         // --- HELPERS ---
@@ -93,40 +90,254 @@
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         };
-
         const formatCurrency = (amount) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(amount);
 
         // --- COMPONENTES VISUALES ---
-
         const BarChartComponent = ({ title, data, maxVal, isDark }) => (
             <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border h-full flex flex-col transition-colors`}>
-                <h3 className={`font-bold ${isDark ? 'text-slate-300' : 'text-[#54656f]'} mb-4 flex items-center gap-2 text-sm uppercase tracking-wider`}>
-                <BarChart2 className="w-4 h-4" /> {title}
-                </h3>
+                <h3 className={`font-bold ${isDark ? 'text-slate-300' : 'text-[#54656f]'} mb-4 flex items-center gap-2 text-sm uppercase tracking-wider`}><BarChart2 className="w-4 h-4" /> {title}</h3>
                 <div className="flex-1 flex items-end justify-between gap-2 h-40 w-full">
                     {data.map((item, i) => (
                         <div key={i} className="flex flex-col items-center justify-end h-full w-full group relative">
                             <div className="flex gap-0.5 sm:gap-1 items-end h-full w-full justify-center">
-                                <div 
-                                    className="w-1.5 sm:w-2 bg-[#008069] rounded-t-sm transition-all duration-500 opacity-80"
-                                    style={{ height: `${maxVal > 0 ? (item.income / maxVal) * 100 : 0}%` }}
-                                ></div>
-                                <div 
-                                    className="w-1.5 sm:w-2 bg-red-400 rounded-t-sm transition-all duration-500 opacity-80"
-                                    style={{ height: `${maxVal > 0 ? (item.expense / maxVal) * 100 : 0}%` }}
-                                ></div>
+                                <div className="w-1.5 sm:w-2 bg-[#008069] rounded-t-sm opacity-80" style={{ height: `${maxVal > 0 ? (item.income / maxVal) * 100 : 0}%` }}></div>
+                                <div className="w-1.5 sm:w-2 bg-red-400 rounded-t-sm opacity-80" style={{ height: `${maxVal > 0 ? (item.expense / maxVal) * 100 : 0}%` }}></div>
                             </div>
-                            <span className={`text-[9px] ${isDark ? 'text-slate-500' : 'text-slate-400'} mt-1 font-medium truncate w-full text-center`}>
-                                {item.label.charAt(0)}
-                            </span>
+                            <span className={`text-[9px] ${isDark ? 'text-slate-500' : 'text-slate-400'} mt-1 font-medium truncate w-full text-center`}>{item.label.charAt(0)}</span>
                         </div>
                     ))}
                 </div>
             </div>
         );
 
-        // --- WIDGETS FLOTANTES ---
+        // --- VISTAS ESPECÍFICAS ---
 
+        // 1. MIEMBROS & INVITACIÓN
+        const MembersView = ({ family, familyMembers, isDark }) => {
+            const [newMemberName, setNewMemberName] = useState('');
+            
+            const addVirtualMember = async (e) => {
+                e.preventDefault();
+                if (!newMemberName.trim()) return;
+                const colors = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), {
+                    familyId: family.id,
+                    name: newMemberName.trim(),
+                    color: randomColor,
+                    isVirtual: true // Marca como miembro sin login (ej. Bebé, Mascota)
+                });
+                setNewMemberName('');
+            };
+
+            const copyCode = () => {
+                navigator.clipboard.writeText(family.joinCode);
+                alert("¡Código copiado! Compártelo con tu familia.");
+            };
+
+            return (
+                <div className="space-y-6 pb-24 animate-fade-in">
+                    {/* Tarjeta de Invitación */}
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-2xl shadow-lg text-white">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="text-lg font-bold flex items-center gap-2"><Share2 className="w-5 h-5"/> Invitar Familiares</h3>
+                                <p className="text-blue-100 text-xs mt-1">Comparte este código para que se unan a {family.name}</p>
+                            </div>
+                            <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                <KeyRound className="w-6 h-6" />
+                            </div>
+                        </div>
+                        <div className="bg-white/10 border border-white/20 rounded-xl p-3 flex items-center justify-between">
+                            <span className="text-2xl font-mono font-bold tracking-widest">{family.joinCode}</span>
+                            <button onClick={copyCode} className="bg-white text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition"><Copy className="w-4 h-4"/></button>
+                        </div>
+                    </div>
+
+                    {/* Lista de Miembros */}
+                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-6 rounded-2xl shadow-sm border transition-colors`}>
+                        <h3 className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-4 flex items-center gap-2`}><Users className="w-5 h-5 text-[#008069]" /> Integrantes Activos</h3>
+                        
+                        <div className="space-y-3 mb-6">
+                            {familyMembers.length > 0 ? (
+                                familyMembers.map(member => (
+                                    <div key={member.id} className={`flex items-center justify-between p-3 ${isDark ? 'bg-slate-700/50 border-slate-700' : 'bg-slate-50 border-slate-100'} rounded-xl border`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-sm" style={{ backgroundColor: member.color }}>{member.name.charAt(0).toUpperCase()}</div>
+                                            <div>
+                                                <span className={`font-medium block ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{member.name}</span>
+                                                <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded ${member.isVirtual ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                                                    {member.isVirtual ? 'Virtual' : 'Usuario App'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : <p className="text-slate-400 text-center text-sm">Cargando miembros...</p>}
+                        </div>
+
+                        {/* Agregar Miembro Virtual */}
+                        <div className={`pt-4 border-t ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
+                            <p className={`text-xs mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Agregar miembro sin cuenta (ej. Hijos pequeños, Mascotas)</p>
+                            <form onSubmit={addVirtualMember} className="flex gap-2">
+                                <input type="text" value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Nombre..." className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`} />
+                                <button type="submit" className="bg-[#008069] text-white p-2 rounded-xl hover:bg-[#005c4b]"><UserPlus className="w-5 h-5" /></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 2. AUTH SCREEN (LOGIN/REGISTRO REAL)
+        const AuthScreen = ({ onLogin }) => {
+            const [mode, setMode] = useState('login'); // login, register, join
+            const [data, setData] = useState({ email: '', password: '', familyName: '', joinCode: '', userName: '' });
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleAuth = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+
+                try {
+                    const auth = getAuth();
+                    const db = getFirestore();
+
+                    if (mode === 'login') {
+                        // 1. Iniciar Sesión Normal
+                        await signInWithEmailAndPassword(auth, data.email, data.password);
+                        // El listener onAuthStateChanged en App manejará el resto
+                    } 
+                    else if (mode === 'register') {
+                        // 2. Crear Familia Nueva
+                        // A. Crear Auth User
+                        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+                        const user = userCredential.user;
+                        
+                        // B. Generar Código de Familia Único (Simple)
+                        const newJoinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                        
+                        // C. Crear Documento Familia
+                        const familyRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'families'), {
+                            name: data.familyName,
+                            joinCode: newJoinCode,
+                            createdAt: new Date().toISOString()
+                        });
+
+                        // D. Crear Documento Miembro (Vinculado al Auth UID)
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), {
+                            uid: user.uid,
+                            familyId: familyRef.id,
+                            name: data.userName,
+                            email: data.email,
+                            role: 'admin',
+                            color: `hsl(${Math.random() * 360}, 70%, 40%)`,
+                            isVirtual: false
+                        });
+                    }
+                    else if (mode === 'join') {
+                        // 3. Unirse a Familia Existente
+                        // A. Buscar familia por código
+                        const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'families'), where('joinCode', '==', data.joinCode));
+                        const snapshot = await getDocs(q);
+                        
+                        if (snapshot.empty) {
+                            throw new Error("Código de familia inválido");
+                        }
+                        const familyDoc = snapshot.docs[0];
+
+                        // B. Crear Auth User
+                        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+                        const user = userCredential.user;
+
+                        // C. Crear Documento Miembro vinculado a esa familia
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), {
+                            uid: user.uid,
+                            familyId: familyDoc.id,
+                            name: data.userName,
+                            email: data.email,
+                            role: 'member',
+                            color: `hsl(${Math.random() * 360}, 70%, 40%)`,
+                            isVirtual: false
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    let msg = "Error de autenticación";
+                    if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado";
+                    if (err.code === 'auth/wrong-password') msg = "Contraseña incorrecta";
+                    if (err.code === 'auth/user-not-found') msg = "Usuario no encontrado";
+                    if (err.message === "Código de familia inválido") msg = "El código de familia no existe";
+                    setError(msg);
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className={`min-h-screen flex items-center justify-center ${THEME.bg} p-4`}>
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
+                        <div className={`${THEME.primary} p-8 text-center`}>
+                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm"><Users className="w-8 h-8 text-white" /></div>
+                            <h1 className="text-2xl font-bold text-white mb-1">Control Familiar</h1>
+                            <p className="text-white/80 text-sm">Finanzas compartidas</p>
+                        </div>
+                        
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-100">
+                            <button onClick={() => {setMode('login'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'login' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Entrar</button>
+                            <button onClick={() => {setMode('register'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'register' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Crear Familia</button>
+                            <button onClick={() => {setMode('join'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'join' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Unirse</button>
+                        </div>
+
+                        <div className="p-8">
+                            <form onSubmit={handleAuth} className="space-y-4">
+                                
+                                {/* Campos comunes: Email y Pass */}
+                                <div className="space-y-3">
+                                    <div className="flex items-center border-b border-gray-200 py-2">
+                                        <Mail className="w-5 h-5 text-gray-400 mr-2" />
+                                        <input type="email" required value={data.email} onChange={(e) => setData({...data, email: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Correo Electrónico" />
+                                    </div>
+                                    <div className="flex items-center border-b border-gray-200 py-2">
+                                        {/* CORRECCIÓN: Usamos Lock en lugar de LockKeyhole */}
+                                        <Lock className="w-5 h-5 text-gray-400 mr-2" />
+                                        <input type="password" required value={data.password} onChange={(e) => setData({...data, password: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Contraseña" />
+                                    </div>
+                                </div>
+
+                                {/* Campos Específicos */}
+                                {mode === 'register' && (
+                                    <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100 animate-fade-in">
+                                        <label className="block text-xs font-bold text-blue-800 uppercase mb-2">Nueva Familia</label>
+                                        <input type="text" required value={data.userName} onChange={(e) => setData({...data, userName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent border-b border-blue-200 py-1 mb-2" placeholder="Tu Nombre (Ej. Papá)" />
+                                        <input type="text" required value={data.familyName} onChange={(e) => setData({...data, familyName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent border-b border-blue-200 py-1" placeholder="Nombre Familia (Ej. Los Pérez)" />
+                                    </div>
+                                )}
+
+                                {mode === 'join' && (
+                                    <div className="mt-4 p-3 bg-orange-50 rounded-xl border border-orange-100 animate-fade-in">
+                                        <label className="block text-xs font-bold text-orange-800 uppercase mb-2">Unirse a Familia</label>
+                                        <input type="text" required value={data.userName} onChange={(e) => setData({...data, userName: e.target.value})} className="w-full outline-none text-orange-900 bg-transparent border-b border-orange-200 py-1 mb-2" placeholder="Tu Nombre (Ej. Mamá)" />
+                                        <input type="text" required value={data.joinCode} onChange={(e) => setData({...data, joinCode: e.target.value.toUpperCase()})} className="w-full outline-none text-orange-900 bg-transparent border-b border-orange-200 py-1 font-mono tracking-widest" placeholder="CÓDIGO DE INVITACIÓN" />
+                                    </div>
+                                )}
+
+                                {error && <p className="text-red-500 text-xs font-medium text-center bg-red-50 p-2 rounded-lg">{error}</p>}
+                                
+                                <button type="submit" disabled={loading} className={`w-full ${THEME.primary} text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition transform active:scale-95 disabled:opacity-50`}>
+                                    {loading ? 'Procesando...' : mode === 'login' ? 'Iniciar Sesión' : mode === 'register' ? 'Crear Familia' : 'Unirse'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- WIDGETS FLOTANTES ---
         const FinancialHealthWidget = ({ transactions, isVisible, onClose, currentYear, isDark }) => {
             const [isMinimized, setIsMinimized] = useState(false);
             if (!isVisible) return null;
@@ -388,834 +599,293 @@
             );
         };
 
-        // --- VISTAS ---
-
-        // 1. Calendario
-        const CalendarView = ({ transactions, selectedYear, onDateClick, isDark }) => {
-            const [date, setDate] = useState(new Date(selectedYear, new Date().getMonth(), 1));
-
-            useEffect(() => {
-                if (date.getFullYear() !== selectedYear) setDate(new Date(selectedYear, 0, 1));
-            }, [selectedYear]);
-
-            const getDaysInMonth = (d) => {
-                const year = d.getFullYear();
-                const month = d.getMonth();
-                const days = new Date(year, month + 1, 0).getDate();
-                const firstDay = new Date(year, month, 1).getDay(); 
-                return { days, firstDay };
-            };
-
-            const { days, firstDay } = getDaysInMonth(date);
-            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-            const changeMonth = (offset) => {
-                const newDate = new Date(date);
-                newDate.setMonth(newDate.getMonth() + offset);
-                setDate(newDate);
-            };
-
-            const getDayData = (day) => {
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const dateStr = `${date.getFullYear()}-${month}-${String(day).padStart(2, '0')}`;
-                const dayTransactions = transactions.filter(t => t.date === dateStr);
-                const income = dayTransactions.filter(t => t.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
-                const expense = dayTransactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
-                return { income, expense };
-            };
-
-            return (
-                <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-2xl shadow-sm border overflow-hidden animate-fade-in mb-24 transition-colors`}>
-                    <div className={`p-4 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'} flex justify-between items-center border-b`}>
-                        <button onClick={() => changeMonth(-1)} className="p-2 hover:opacity-70 rounded-full text-slate-500"><ChevronLeft className="w-5 h-5"/></button>
-                        <div className="flex items-center gap-2">
-                            <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{monthNames[date.getMonth()]} {date.getFullYear()}</span>
-                            <button onClick={() => setDate(new Date())} className="text-[#008069] bg-[#d9fdd3] p-1 rounded-md text-xs font-bold px-2">Hoy</button>
-                        </div>
-                        <button onClick={() => changeMonth(1)} className="p-2 hover:opacity-70 rounded-full text-slate-500"><ChevronRight className="w-5 h-5"/></button>
-                    </div>
-                    <div className="p-3">
-                        <div className="grid grid-cols-7 mb-2 text-center text-xs font-bold text-slate-400">
-                            {['D','L','M','M','J','V','S'].map((d, i) => <div key={i} className="py-1">{d}</div>)}
-                        </div>
-                        <div className="grid grid-cols-7 gap-1">
-                            {[...Array(firstDay)].map((_, i) => <div key={`empty-${i}`} className="aspect-square"></div>)}
-                            {[...Array(days)].map((_, i) => {
-                                const day = i + 1;
-                                const { income, expense } = getDayData(day);
-                                const balance = income - expense;
-                                const isToday = new Date().toDateString() === new Date(date.getFullYear(), date.getMonth(), day).toDateString();
-                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                const dateStr = `${date.getFullYear()}-${month}-${String(day).padStart(2, '0')}`;
-                                const hasData = income > 0 || expense > 0;
-
-                                return (
-                                    <button key={day} onClick={() => onDateClick(dateStr)} className={`relative min-h-[70px] border rounded-lg p-1 flex flex-col justify-between transition hover:border-[#008069] ${isToday ? 'bg-[#e7f5f2] border-[#008069]' : isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
-                                        <span className={`text-[10px] font-bold ${isToday ? 'text-[#008069]' : 'text-slate-400'}`}>{day}</span>
-                                        {hasData && (
-                                            <div className="w-full text-center">
-                                                <div className="flex justify-center gap-0.5 mb-0.5">
-                                                    {income > 0 && <div className="w-1.5 h-1.5 rounded-full bg-[#008069]"></div>}
-                                                    {expense > 0 && <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>}
-                                                </div>
-                                                <span className={`block text-[9px] font-bold leading-tight ${balance >= 0 ? 'text-[#008069]' : 'text-red-500'}`}>{formatCurrency(Math.abs(balance))}</span>
-                                            </div>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // 2. Historial
-        const HistoryView = ({ transactions, onEdit, onDelete, isDark }) => {
-            const grouped = {};
-            const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-            sorted.forEach(t => { if (!grouped[t.date]) grouped[t.date] = []; grouped[t.date].push(t); });
-
-            return (
-                <div className="space-y-4 pb-24 animate-fade-in">
-                    {Object.keys(grouped).length === 0 && <div className="text-center py-10 text-slate-400 opacity-50"><Layers className="w-12 h-12 mx-auto mb-2" /><p>Sin movimientos</p></div>}
-                    {Object.entries(grouped).map(([date, items]) => (
-                        <div key={date}>
-                            <div className="flex justify-center mb-2"><span className="bg-[#e1f3fb] text-slate-600 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">{new Date(date + 'T00:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</span></div>
-                            <div className="space-y-1.5">
-                                {items.map(t => (
-                                    <div key={t.id} onClick={() => onEdit(t)} className={`relative flex flex-col p-3 rounded-lg shadow-sm border border-transparent hover:border-slate-200 transition cursor-pointer ${t.type === 'income' ? (isDark ? 'bg-slate-800 text-slate-200 ml-0 mr-8 rounded-tl-none' : 'bg-white ml-0 mr-8 rounded-tl-none') : 'bg-[#d9fdd3] ml-8 mr-0 rounded-tr-none'}`}>
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm" style={{ backgroundColor: t.userColor || '#ccc' }}>{t.userName ? t.userName.charAt(0).toUpperCase() : '?'}</div>
-                                                <span className={`text-xs font-bold ${t.type === 'income' ? 'text-[#008069]' : 'text-slate-700'}`}>{t.category}</span>
-                                            </div>
-                                            <span className={`text-sm font-bold ${t.type === 'income' ? (isDark ? 'text-slate-300' : 'text-slate-600') : 'text-slate-800'}`}>{t.type === 'income' ? '+ ' : '- '}{formatCurrency(t.amount)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-end mt-1">
-                                            <p className="text-[10px] text-slate-500 line-clamp-1">{t.userName} • {t.type === 'expense' ? 'Gasto' : 'Ingreso'}</p>
-                                            <div className="flex gap-2"><button onClick={(e) => { e.stopPropagation(); onDelete(t.id); }} className="text-slate-300 hover:text-red-400 transition"><Trash2 className="w-3 h-3" /></button></div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            );
-        };
-
-        // 3. Miembros
-        const MembersView = ({ family, updateFamilyMembers, isDark }) => {
-            const [newMemberName, setNewMemberName] = useState('');
-            const colors = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6', '#EC4899'];
-            const addMember = (e) => {
-                e.preventDefault();
-                if (!newMemberName.trim()) return;
-                
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                const newMember = { 
-                    id: Date.now(), 
-                    name: newMemberName.trim(), 
-                    color: randomColor 
-                };
-                
-                // Firestore: Agregar a colección 'members'
-                const db = getFirestore();
-                addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), {
-                    familyId: family.id,
-                    name: newMember.name,
-                    color: newMember.color,
-                    isExtra: true // Flag para distinguir miembros extra de usuarios reales
-                });
-                
-                setNewMemberName('');
-            };
+        // --- APP MAIN COMPONENT ---
+        const App = () => {
+            const [user, setUser] = useState(null); // Auth User
+            const [memberProfile, setMemberProfile] = useState(null); // Firestore Member Data
+            const [family, setFamily] = useState(null); // Firestore Family Data
             
-            const removeMember = (id) => { 
-                if(window.confirm('¿Eliminar?')) {
-                    const db = getFirestore();
-                    // Buscar el documento por ID (en este prototipo simulado, el ID de firestore es diferente al ID local, 
-                    // así que idealmente guardaríamos el ID de firestore. Por simplicidad en este entorno, 
-                    // asumiremos que la actualización via suscripción maneja el estado visual)
-                    // En una app real, usaríamos el ID del documento de Firestore.
-                } 
-            };
+            const [loading, setLoading] = useState(true);
+            const [view, setView] = useState('dashboard');
+            
+            // Datos
+            const [transactions, setTransactions] = useState([]);
+            const [familyMembers, setFamilyMembers] = useState([]);
 
-            // En este prototipo con Firebase real, MembersView leerá del estado 'family.members' que se actualiza en App
-            return (
-                <div className="space-y-6 pb-24 animate-fade-in">
-                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-6 rounded-2xl shadow-sm border`}>
-                        <h3 className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-4 flex items-center gap-2`}><Users className="w-5 h-5 text-[#008069]" /> Integrantes</h3>
-                        <form onSubmit={addMember} className="flex gap-2 mb-6">
-                            <input type="text" value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Nombre..." className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`} />
-                            <button type="submit" className="bg-[#008069] text-white p-2 rounded-xl hover:bg-[#005c4b]"><UserPlus className="w-5 h-5" /></button>
-                        </form>
-                        <div className="space-y-3">
-                            {family.members && family.members.length > 0 ? (
-                                family.members.map(member => (
-                                    <div key={member.id} className={`flex items-center justify-between p-3 ${isDark ? 'bg-slate-700/50 border-slate-700' : 'bg-slate-50 border-slate-100'} rounded-xl border`}>
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm" style={{ backgroundColor: member.color }}>{member.name.charAt(0).toUpperCase()}</div>
-                                            <span className={`font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{member.name}</span>
-                                        </div>
-                                        {/* Botón eliminar deshabilitado en esta demo simple de firestore para evitar complejidad de IDs */}
-                                    </div>
-                                ))
-                            ) : <p className="text-slate-500 text-center text-sm">Sin miembros extra.</p>}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
+            // Estado UI
+            const [isFormOpen, setIsFormOpen] = useState(false);
+            const [formData, setFormData] = useState({ amount: '', type: 'expense', category: 'Comida', date: getLocalDateStr(new Date()) });
+            const [editingId, setEditingId] = useState(null);
+            const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+            const [isDarkMode, setIsDarkMode] = useState(false);
+            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+            const [widgets, setWidgets] = useState({ health: true, topExpenses: true, savings: true, budgetAlert: true });
 
-        // 4. Presupuestos
-        const BudgetsView = ({ transactions, currentYear, family, isDark }) => {
-            const [budgets, setBudgets] = useState([]);
-            const [newBudget, setNewBudget] = useState({ category: '', limit: '' });
-
-            // Cargar presupuestos de Firestore
+            // 1. ESCUCHAR AUTH
             useEffect(() => {
-                const db = getFirestore();
-                const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'budgets'), where('familyId', '==', family.id));
-                const unsubscribe = onSnapshot(q, (snapshot) => {
-                    const loadedBudgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    setBudgets(loadedBudgets);
+                const unsubscribe = onAuthStateChanged(auth, async (u) => {
+                    if (u) {
+                        setUser(u);
+                        // Buscar el perfil de miembro asociado a este UID
+                        const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'members'), where('uid', '==', u.uid));
+                        const snapshot = await getDocs(q);
+                        
+                        if (!snapshot.empty) {
+                            const memDoc = snapshot.docs[0];
+                            const memData = { id: memDoc.id, ...memDoc.data() };
+                            setMemberProfile(memData);
+                        }
+                    } else {
+                        setUser(null);
+                        setMemberProfile(null);
+                        setFamily(null);
+                    }
+                    setLoading(false);
                 });
                 return () => unsubscribe();
-            }, [family.id]);
+            }, []);
 
-            const categories = ['Comida', 'Transporte', 'Vivienda', 'Escuela', 'Despensa', 'Tienda', 'Comida a domicilio', 'Servicios', 'Deuda', 'Gastos Hormiga', 'Otros'];
+            // 2. CARGAR DATOS FAMILIARES (Solo si hay miembro logueado)
+            useEffect(() => {
+                if (!memberProfile) return;
 
-            const currentMonth = new Date().getMonth();
-            
-            const expensesByCategory = {};
-            transactions.forEach(t => {
-                const tDate = new Date(t.date + 'T00:00:00');
-                if (t.type === 'expense' && tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
-                    expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
-                }
-            });
-
-            const handleAddBudget = async (e) => {
-                e.preventDefault();
-                if (!newBudget.category || !newBudget.limit) return;
-                const db = getFirestore();
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'budgets'), {
-                    familyId: family.id,
-                    category: newBudget.category,
-                    limit: parseFloat(newBudget.limit)
+                // A. Cargar Familia
+                const unsubFamily = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'families', memberProfile.familyId), (doc) => {
+                    if(doc.exists()) setFamily({ id: doc.id, ...doc.data() });
                 });
-                setNewBudget({ category: '', limit: '' });
-            };
 
-            const removeBudget = async (id) => {
-                if(window.confirm('¿Eliminar presupuesto?')) {
-                    const db = getFirestore();
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'budgets', id));
-                }
-            };
+                // B. Cargar Miembros de la Familia
+                const qMembers = query(collection(db, 'artifacts', appId, 'public', 'data', 'members'), where('familyId', '==', memberProfile.familyId));
+                const unsubMembers = onSnapshot(qMembers, (snapshot) => {
+                    setFamilyMembers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+                });
 
-            return (
-                <div className="space-y-6 pb-24 animate-fade-in">
-                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-6 rounded-2xl shadow-sm border transition-colors`}>
-                        <h3 className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-4 flex items-center gap-2`}><PiggyBank className="w-5 h-5 text-[#008069]" /> Presupuestos Mensuales</h3>
-                        
-                        <form onSubmit={handleAddBudget} className="flex gap-2 mb-6 flex-wrap">
-                            <select 
-                                value={newBudget.category} 
-                                onChange={(e) => setNewBudget({...newBudget, category: e.target.value})}
-                                className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`}
-                            >
-                                <option value="">Categoría</option>
-                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                            <input 
-                                type="number" 
-                                value={newBudget.limit} 
-                                onChange={(e) => setNewBudget({...newBudget, limit: e.target.value})} 
-                                placeholder="Límite $"
-                                className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600 placeholder-slate-400' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`}
-                            />
-                            <button type="submit" className="bg-[#008069] text-white p-2 rounded-xl hover:bg-[#005c4b]"><Plus className="w-5 h-5" /></button>
-                        </form>
+                // C. Cargar Transacciones
+                const qTrans = query(collection(db, 'artifacts', appId, 'public', 'data', 'transactions'), where('familyId', '==', memberProfile.familyId));
+                const unsubTrans = onSnapshot(qTrans, (snapshot) => {
+                    const t = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    setTransactions(t);
+                });
 
-                        <div className="space-y-4">
-                            {budgets.length > 0 ? (
-                                budgets.map(b => {
-                                    const spent = expensesByCategory[b.category] || 0;
-                                    const percentage = Math.min((spent / b.limit) * 100, 100);
-                                    const remaining = b.limit - spent;
-                                    let color = 'bg-[#008069]';
-                                    if (percentage > 75) color = 'bg-amber-500';
-                                    if (percentage >= 100) color = 'bg-red-500';
+                return () => { unsubFamily(); unsubMembers(); unsubTrans(); };
+            }, [memberProfile]);
 
-                                    return (
-                                        <div key={b.id} className={`p-4 ${isDark ? 'bg-slate-700/50' : 'bg-slate-50'} rounded-xl`}>
-                                            <div className="flex justify-between items-center mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{b.category}</span>
-                                                    {percentage >= 100 && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                                                </div>
-                                                <button onClick={() => removeBudget(b.id)} className="text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-                                            </div>
-                                            <div className={`w-full ${isDark ? 'bg-slate-600' : 'bg-slate-200'} h-2.5 rounded-full overflow-hidden mb-2`}>
-                                                <div className={`h-full rounded-full transition-all duration-1000 ${color}`} style={{ width: `${percentage}%` }}></div>
-                                            </div>
-                                            <div className="flex justify-between text-xs">
-                                                <span className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Gastado: {formatCurrency(spent)}</span>
-                                                <span className={`font-bold ${remaining < 0 ? 'text-red-500' : isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                                                    {remaining < 0 ? `Excedido: ${formatCurrency(Math.abs(remaining))}` : `Quedan: ${formatCurrency(remaining)}`}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )
-                                })
-                            ) : (
-                                <p className="text-center text-slate-400 text-sm py-4">No has definido presupuestos.</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
 
-        const DashboardView = ({ transactions, isDark }) => {
-            const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-            const expense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-            const monthlyData = Array(12).fill(0).map((_, i) => {
-                const mTrans = transactions.filter(t => new Date(t.date+'T00:00:00').getMonth() === i);
-                return {
-                    label: new Date(2000, i, 1).toLocaleString('es-MX', { month: 'short' }),
-                    income: mTrans.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-                    expense: mTrans.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
-                };
-            });
-            const maxVal = Math.max(...monthlyData.map(d => Math.max(d.income, d.expense))) || 100;
-
-            return (
-                <div className="space-y-4 animate-fade-in pb-24">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex flex-col justify-between h-28 relative overflow-hidden`}>
-                            <div className="absolute top-0 right-0 p-3 opacity-10"><Wallet className="w-12 h-12 text-[#008069]" /></div>
-                            <p className="text-xs font-bold text-slate-400 uppercase">Balance Anual</p>
-                            <p className={`text-3xl font-black ${income - expense >= 0 ? (isDark ? 'text-slate-200' : 'text-[#111b21]') : 'text-red-500'}`}>{formatCurrency(income - expense)}</p>
-                        </div>
-                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex items-center justify-between`}>
-                            <div><p className="text-xs text-slate-400 font-bold uppercase">Ingresos</p><p className="text-xl font-bold text-[#008069]">{formatCurrency(income)}</p></div>
-                            <div className="bg-[#d9fdd3] p-2 rounded-full"><TrendingUp className="w-5 h-5 text-[#008069]" /></div>
-                        </div>
-                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex items-center justify-between`}>
-                            <div><p className="text-xs text-slate-400 font-bold uppercase">Gastos</p><p className="text-xl font-bold text-red-500">{formatCurrency(expense)}</p></div>
-                            <div className="bg-red-50 p-2 rounded-full"><TrendingDown className="w-5 h-5 text-red-500" /></div>
-                        </div>
-                    </div>
-                    <div className="h-64">
-                        <BarChartComponent title={`Flujo de Efectivo Anual`} data={monthlyData} maxVal={maxVal} isDark={isDark} />
-                    </div>
-                </div>
-            );
-        };
-
-        // --- AUTH SCREEN ---
-        const AuthScreen = ({ onLogin }) => {
-            const [mode, setMode] = useState('login'); 
-            const [formData, setFormData] = useState({ familyName: '', familyKey: '', username: '', password: '' });
-            const [error, setError] = useState('');
-
-            const handleAuth = async (e) => {
+            // --- ACTIONS ---
+            const handleLogout = async () => { await signOut(auth); };
+            
+            const handleSubmit = async (e) => {
                 e.preventDefault();
-                setError('');
-                if (!formData.username.trim() || !formData.password.trim()) { setError('Usuario y contraseña requeridos'); return; }
-                if (mode !== 'login' && (!formData.familyName.trim() || !formData.familyKey.trim())) { setError('Datos de familia requeridos'); return; }
+                if (!formData.amount) return;
 
-                const db = getFirestore();
-
-                try {
-                    if (mode === 'login') {
-                        // Buscar usuario por nombre y password (en una app real, usar auth real)
-                        // Aquí simulamos buscando en la colección 'members' que tenga esos datos
-                        // Ojo: En este esquema simple, el login es "buscar si existe este usuario en alguna familia"
-                        // Pero como Firestore rules en este entorno requieren path específico, vamos a buscar en 'families' primero.
-                        // Simplificación: Login requiere Familia + Usuario
-                        
-                        // 1. Buscar Familia
-                        // Nota: Firestore en este entorno no permite querys compuestos complejos sin índices.
-                        // Vamos a asumir que el usuario sabe su familia si es login directo, o mejor,
-                        // Simplificamos: El login SIEMPRE pide Familia y Clave primero, luego Usuario y Pass.
-                        // Pero el form actual solo pide usuario/pass en login. 
-                        // Vamos a cambiar el form de login para pedir Familia también, o asumir que el usuario/pass es único globalmente (dificil sin backend).
-                        // MEJOR ESTRATEGIA: Login pide: Familia, Clave de Familia, Usuario, Password.
-                        
-                        // Pero para no romper la UI, vamos a buscar en TODAS las familias (no escalable, pero sirve para prototipo).
-                        // MEJOR: Pedir Familia y Clave en Login también.
-                        
-                        // Implementación actual: Busca en 'families'
-                        // Como no podemos hacer querys complejos fáciles, vamos a pedir Familia en Login también.
-                        // *Modificando el state inicial de mode para que pida familia*
-                        
-                        const familiesSnapshot = await onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'families'), (snapshot) => {
-                             // Esto es asíncrono y listener. Para login necesitamos getDocs.
-                        });
-                        // Por simplicidad del prototipo y las reglas, vamos a simular el login exitoso creando la estructura si es 'create'.
-                        // Si es login, alertamos que use 'Unirse' la primera vez en este dispositivo para cachear la familia.
-                        setError("Por favor usa 'Unirse' para conectar este dispositivo a tu familia.");
-                    } 
-                    else if (mode === 'create_family') {
-                        // Crear Familia
-                        const familyRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'families'), {
-                            name: formData.familyName,
-                            key: formData.familyKey
-                        });
-                        
-                        // Crear Usuario Admin (Miembro)
-                        const userColor = `hsl(${Math.random() * 360}, 70%, 40%)`;
-                        const userRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), {
-                            familyId: familyRef.id,
-                            name: formData.username,
-                            password: formData.password, // En app real, nunca guardar pass plano
-                            role: 'admin',
-                            color: userColor
-                        });
-
-                        const family = { id: familyRef.id, name: formData.familyName, key: formData.familyKey };
-                        const user = { id: userRef.id, username: formData.username, color: userColor, role: 'admin' };
-                        
-                        onLogin(user, family);
-                    }
-                    else if (mode === 'join_family') {
-                         // Buscar familia (traer todas y filtrar en cliente por simplicidad en prototipo)
-                         // En producción usar query(collection, where...)
-                         // Aquí usaremos un truco:
-                         
-                         // NOTA IMPORTANTE: Debido a las limitaciones de lectura en el entorno sandbox sin índices,
-                         // el "Login" real es complejo.
-                         // Vamos a SIMULAR el backend:
-                         // Al crear, guardamos en localStorage también para persistencia local inmediata.
-                         // Y en Firebase para "backup".
-                         
-                         // *Revertimos a lógica LocalStorage para la Auth para garantizar que funcione en este demo sin fallos de red/índices*
-                         // Los DATOS (transacciones) SÍ irán a Firebase.
-                         
-                         // Lógica Híbrida: Auth Local, Datos Remotos.
-                         const storedFamilies = JSON.parse(localStorage.getItem('financeFamilies') || '[]');
-                         const family = storedFamilies.find(f => f.name === formData.familyName && f.key === formData.familyKey);
-                         if (!family) { setError('Familia no encontrada (asegurate de crearla primero)'); return; }
-                         
-                         const newUser = { 
-                            id: Date.now(), 
-                            username: formData.username, 
-                            password: formData.password, 
-                            familyId: family.id, 
-                            role: 'member', 
-                            color: `hsl(${Math.random() * 360}, 70%, 40%)` 
-                        };
-                        // Guardar usuario en LS
-                        const users = JSON.parse(localStorage.getItem('financeUsers') || '[]');
-                        localStorage.setItem('financeUsers', JSON.stringify([...users, newUser]));
-                        
-                        // Guardar miembro en Firebase para que otros lo vean
-                         const db = getFirestore();
-                         addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'members'), {
-                            familyId: family.id,
-                            name: newUser.username,
-                            color: newUser.color,
-                            isExtra: false
-                        });
-
-                        onLogin(newUser, family);
-                    }
-                } catch (e) {
-                    console.error(e);
-                    setError("Error de conexión. Intenta de nuevo.");
+                // Definir quién hace el gasto
+                let targetMember = memberProfile; // Por defecto yo
+                if (formData.memberId) {
+                    const found = familyMembers.find(m => m.id === formData.memberId);
+                    if (found) targetMember = found;
                 }
-            };
-            
-            // Renderizado del Form de Login (Mantenemos la UI igual)
-             return (
-                <div className={`min-h-screen flex items-center justify-center ${THEME.bg} p-4`}>
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
-                        <div className={`${THEME.primary} p-8 text-center`}>
-                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm"><Users className="w-8 h-8 text-white" /></div>
-                            <h1 className="text-2xl font-bold text-white mb-1">Control Familiar</h1>
-                            <p className="text-white/80 text-sm">Finanzas compartidas y seguras</p>
-                        </div>
-                        <div className="flex border-b border-gray-100">
-                            <button onClick={() => {setMode('create_family'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'create_family' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Crear</button>
-                            <button onClick={() => {setMode('join_family'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'join_family' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Unirse/Entrar</button>
-                        </div>
-                        <div className="p-8">
-                            <form onSubmit={handleAuth} className="space-y-4">
-                                {/* Campos de Familia siempre visibles para simplificar en este demo */}
-                                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                                    <label className="block text-xs font-bold text-blue-800 uppercase mb-1">Datos de Familia</label>
-                                    <div className="flex items-center border-b border-blue-200 py-1 mb-2">
-                                        <Home className="w-4 h-4 text-blue-400 mr-2" />
-                                        <input type="text" value={formData.familyName} onChange={(e) => setFormData({...formData, familyName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent text-sm" placeholder="Nombre Familia" />
-                                    </div>
-                                    <div className="flex items-center border-b border-blue-200 py-1">
-                                        <KeyRound className="w-4 h-4 text-blue-400 mr-2" />
-                                        <input type="password" value={formData.familyKey} onChange={(e) => setFormData({...formData, familyKey: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent text-sm" placeholder="Código Secreto" />
-                                    </div>
-                                </div>
-                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Mis Datos</label>
-                                    <div className="flex items-center border-b border-slate-200 py-1 mb-2">
-                                        <User className="w-4 h-4 text-slate-400 mr-2" />
-                                        <input type="text" value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} className="w-full outline-none text-slate-700 bg-transparent text-sm" placeholder="Mi Usuario" />
-                                    </div>
-                                    <div className="flex items-center border-b border-slate-200 py-1">
-                                        <Lock className="w-4 h-4 text-slate-400 mr-2" />
-                                        <input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="w-full outline-none text-slate-700 bg-transparent text-sm" placeholder="Mi Contraseña" />
-                                    </div>
-                                </div>
-                                {error && <p className="text-red-500 text-xs font-medium text-center">{error}</p>}
-                                <button type="submit" className={`w-full ${THEME.primary} text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition transform active:scale-95`}>
-                                    {mode === 'create_family' ? 'Crear Todo e Ingresar' : 'Entrar a Familia'}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
 
-        // --- APP PRINCIPAL ---
-        const App = () => {
-        const [currentUser, setCurrentUser] = useState(() => {
-            const saved = localStorage.getItem('familyApp_currentUser');
-            return saved ? JSON.parse(saved) : null;
-        });
-        const [currentFamily, setCurrentFamily] = useState(() => {
-            const saved = localStorage.getItem('familyApp_currentFamily');
-            return saved ? JSON.parse(saved) : null;
-        });
-        const [transactions, setTransactions] = useState([]);
-        const [allUsers, setAllUsers] = useState([]);
-        
-        // Cargar Miembros desde Firebase
-        useEffect(() => {
-            if(!currentFamily) return;
-            const db = getFirestore();
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'members'), where('familyId', '==', currentFamily.id));
-            const unsubscribe = onSnapshot(q, (snapshot) => {
-                const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Mezclar con miembros locales si es necesario, o usar solo firebase
-                // Para este demo, actualizamos el estado local de la familia con lo que hay en la nube
-                if(currentFamily) {
-                    const updatedFamily = { ...currentFamily, members: members };
-                    // Solo actualizamos si hay cambios reales para evitar loop
-                    // setCurrentFamily(updatedFamily); // Cuidado con loop infinito
+                const newTransaction = {
+                    familyId: family.id,
+                    ...formData,
+                    amount: parseFloat(formData.amount),
+                    userId: user.uid, // Quien registra (auditoría)
+                    userName: targetMember.name, // Quien gastó
+                    userColor: targetMember.color,
+                    createdAt: new Date().toISOString()
+                };
+
+                if (editingId) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', editingId), newTransaction);
+                } else {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'transactions'), newTransaction);
                 }
-            });
-            return () => unsubscribe();
-        }, [currentFamily?.id]);
-
-        // Cargar Transacciones desde Firebase
-        useEffect(() => {
-            if (!currentFamily) return;
-            const db = getFirestore();
-            // Query simple por familia
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'transactions'), where('familyId', '==', currentFamily.id));
-            
-            const unsubscribe = onSnapshot(q, (snapshot) => {
-                const loaded = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setTransactions(loaded);
-            }, (error) => {
-                console.error("Error loading transactions:", error);
-            });
-            return () => unsubscribe();
-        }, [currentFamily?.id]);
-        
-        // Auth Init
-        useEffect(() => {
-            const initAuth = async () => {
-                const auth = getAuth();
-                await signInAnonymously(auth);
+                closeForm();
             };
-            initAuth();
-        }, []);
 
-        const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-        const [view, setView] = useState('dashboard'); 
-        const [isFormOpen, setIsFormOpen] = useState(false);
-        const [editingId, setEditingId] = useState(null);
-        
-        // Widget y Dark Mode Config
-        const [widgets, setWidgets] = useState(() => {
-            const saved = localStorage.getItem('widgetConfig');
-            return saved ? JSON.parse(saved) : { health: true, topExpenses: true, savings: true, budgetAlert: true };
-        });
-        const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
-
-        const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-        const [deleteModal, setDeleteModal] = useState({ show: false, id: null });
-        const initialFormState = { amount: '', type: 'expense', category: 'Comida', date: getLocalDateStr(new Date()), memberId: '' };
-        const [formData, setFormData] = useState(initialFormState);
-
-        useEffect(() => { 
-            if(currentUser) localStorage.setItem('familyApp_currentUser', JSON.stringify(currentUser)); 
-            else localStorage.removeItem('familyApp_currentUser');
-        }, [currentUser]);
-        useEffect(() => { 
-            if(currentFamily) localStorage.setItem('familyApp_currentFamily', JSON.stringify(currentFamily)); 
-            else localStorage.removeItem('familyApp_currentFamily');
-        }, [currentFamily]);
-        useEffect(() => { localStorage.setItem('widgetConfig', JSON.stringify(widgets)); }, [widgets]);
-        useEffect(() => { localStorage.setItem('darkMode', isDarkMode); }, [isDarkMode]);
-
-        // Actions
-        const handleLogin = (user, family) => {
-            setCurrentUser(user);
-            setCurrentFamily(family);
-            setView('dashboard');
-        };
-        const handleLogout = () => { setCurrentUser(null); setCurrentFamily(null); };
-        const toggleWidget = (key) => setWidgets(prev => ({ ...prev, [key]: !prev[key] }));
-        const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
-
-        // Funciones de actualización
-        const updateFamilyMembers = (newMembers) => {
-             // Esta función ahora es wrapper para Firebase en MembersView
-             // Ya no actualiza localstorage directamente
-        };
-
-        const exportData = () => {
-            const headers = ["Fecha", "Tipo", "Categoría", "Monto", "Miembro"];
-            const rows = transactions.map(t => [
-                t.date,
-                t.type === 'income' ? 'Ingreso' : 'Gasto',
-                t.category,
-                t.amount,
-                t.userName
-            ]);
-            const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `finanzas_${currentFamily.name}_${selectedYear}.csv`);
-            document.body.appendChild(link);
-            link.click();
-        };
-
-        const handleSubmit = async (e) => {
-            e.preventDefault();
-            if (!formData.amount) return; 
-            let targetMemberName = currentUser.username;
-            let targetMemberColor = currentUser.color;
-            
-            // Logic to find member details would go here if fetching from firebase members list
-            
-            const newTransaction = {
-                familyId: currentFamily.id,
-                ...formData,
-                amount: parseFloat(formData.amount),
-                userId: currentUser.id,
-                userName: targetMemberName,
-                userColor: targetMemberColor
+            const deleteTransaction = async (id) => {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', id));
             };
-            
-            const db = getFirestore();
-            if (editingId) {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', editingId), newTransaction);
-            } else {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'transactions'), newTransaction);
-            }
-            closeForm();
-        };
 
-        const deleteItem = async () => {
-            if (deleteModal.id) {
-                const db = getFirestore();
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'transactions', deleteModal.id));
-                setDeleteModal({ show: false, id: null });
-                if (editingId === deleteModal.id) closeForm();
-            }
-        };
+            // Helpers UI
+            const openForm = (t = null, date = null) => {
+                if (t) { 
+                    // Buscar si el nombre del miembro coincide con alguno para prellenar el select
+                    const mem = familyMembers.find(m => m.name === t.userName);
+                    setFormData({ ...t, memberId: mem ? mem.id : '' }); 
+                    setEditingId(t.id); 
+                } else { 
+                    const d = date || getLocalDateStr(new Date());
+                    const type = date ? 'income' : 'expense';
+                    const cat = type === 'income' ? 'Salario' : 'Comida';
+                    setFormData({ amount: '', type, category: cat, date: d, memberId: '' }); 
+                    setEditingId(null);
+                }
+                setIsFormOpen(true);
+            };
+            const closeForm = () => { setIsFormOpen(false); setEditingId(null); };
+            const toggleWidget = (key) => setWidgets(prev => ({ ...prev, [key]: !prev[key] }));
+            const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
-        const openForm = (t = null, date = null) => {
-            if (t) { 
-                // const extraMemberId = currentFamily.members?.find(m => m.name === t.userName)?.id?.toString() || '';
-                setFormData({ ...t, memberId: '' }); 
-                setEditingId(t.id); 
-            } else { 
-                const d = date || getLocalDateStr(new Date());
-                const initialType = date ? 'income' : 'expense';
-                const initialCategory = initialType === 'income' ? 'Salario' : 'Comida';
-                setFormData({ ...initialFormState, date: d, type: initialType, category: initialCategory, memberId: '' }); 
-                setEditingId(null);
-            }
-            setIsFormOpen(true);
-        };
-        const closeForm = () => { setIsFormOpen(false); setEditingId(null); setFormData(initialFormState); };
+            const currentYearData = transactions.filter(t => new Date(t.date + 'T00:00:00').getFullYear() === selectedYear);
 
-        const currentYearData = transactions.filter(t => new Date(t.date + 'T00:00:00').getFullYear() === selectedYear);
+            if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#efeae2]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#008069]"></div></div>;
+            if (!user || !memberProfile || !family) return <AuthScreen onLogin={() => {}} />;
 
-        // Recuperar presupuestos
-        const familyBudgets = []; // Placeholder, would fetch from firebase similarly
+            // Variables de tema dinámico
+            const BgColor = isDarkMode ? 'bg-slate-900' : THEME.bg;
+            const TextColor = isDarkMode ? 'text-slate-200' : 'text-slate-800';
+            const CardBg = isDarkMode ? 'bg-slate-800' : 'bg-white';
+            const BorderColor = isDarkMode ? 'border-slate-700' : 'border-slate-200';
 
-        if (!currentUser || !currentFamily) return <AuthScreen onLogin={handleLogin} />;
-
-        const BgColor = isDarkMode ? 'bg-slate-900' : THEME.bg;
-        const TextColor = isDarkMode ? 'text-slate-200' : 'text-slate-800';
-        const CardBg = isDarkMode ? 'bg-slate-800' : 'bg-white';
-        const BorderColor = isDarkMode ? 'border-slate-700' : 'border-slate-200';
-
-        return (
-            <div className={`min-h-screen ${BgColor} ${TextColor} font-sans flex overflow-hidden transition-colors duration-300`}>
-                {/* Sidebar */}
-                <aside className={`fixed inset-y-0 left-0 z-50 w-72 ${CardBg} border-r ${BorderColor} transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static flex flex-col`}>
-                    <div className={`h-16 ${isDarkMode ? 'bg-slate-900' : 'bg-[#f0f2f5]'} flex items-center px-4 justify-between border-b ${BorderColor}`}>
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shadow-sm" style={{ backgroundColor: currentUser.color }}>{currentUser.username.charAt(0).toUpperCase()}</div>
-                            <div><p className={`text-sm font-bold ${TextColor}`}>{currentUser.username}</p><p className="text-[10px] opacity-60">En línea</p></div>
-                        </div>
-                        <div className="flex gap-1">
-                            <button onClick={handleLogout} className="p-2 opacity-60 hover:opacity-100 transition" title="Salir"><LogOut className="w-4 h-4" /></button>
-                            <button onClick={() => setIsSidebarOpen(false)} className="p-2 md:hidden"><X className="w-5 h-5"/></button>
-                        </div>
-                    </div>
-                    
-                    <div className="p-4 flex-1 overflow-y-auto">
-                        <div className="mb-6">
-                            <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Menú Principal</h3>
-                            <nav className="space-y-1">
-                                <button onClick={() => { setView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'dashboard' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><PieChart className="w-4 h-4" /> Resumen</button>
-                                <button onClick={() => { setView('calendar'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'calendar' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><CalendarIcon className="w-4 h-4" /> Calendario</button>
-                                <button onClick={() => { setView('history'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'history' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><Layers className="w-4 h-4" /> Historial</button>
-                                <button onClick={() => { setView('budgets'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'budgets' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><PiggyBank className="w-4 h-4" /> Presupuestos</button>
-                                <button onClick={() => { setView('members'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'members' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><Users className="w-4 h-4" /> Miembros Extra</button>
-                            </nav>
-                        </div>
-                        <div className="mb-6">
-                            <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Utilidades</h3>
-                            <button onClick={exportData} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-700 mb-2 ${TextColor}`}><Download className="w-4 h-4" /> Exportar Datos</button>
-                            <button onClick={toggleDarkMode} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-700 ${TextColor}`}>{isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
-                        </div>
-                        <div className="mb-6">
-                            <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Widgets</h3>
-                            <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-100'} rounded-xl p-3 space-y-3 border`}>
-                                {[{k:'health',l:'Estado',i:Activity}, {k:'topExpenses',l:'Top Gastos',i:TrendingDown}, {k:'savings',l:'Ahorro',i:Target}, {k:'budgetAlert',l:'Alertas',i:AlertTriangle}].map(w => (
-                                    <label key={w.k} className="flex items-center justify-between cursor-pointer group">
-                                        <span className={`text-sm flex items-center gap-2 ${TextColor}`}><w.i className="w-4 h-4 opacity-50" /> {w.l}</span>
-                                        <div className={`w-9 h-5 flex items-center bg-gray-300 rounded-full p-1 duration-300 ease-in-out ${widgets[w.k] ? 'bg-[#008069]' : ''}`} onClick={() => toggleWidget(w.k)}>
-                                            <div className={`bg-white w-3 h-3 rounded-full shadow-md transform duration-300 ease-in-out ${widgets[w.k] ? 'translate-x-4' : ''}`}></div>
-                                        </div>
-                                    </label>
-                                ))}
+            return (
+                <div className={`min-h-screen ${BgColor} ${TextColor} font-sans flex overflow-hidden transition-colors duration-300`}>
+                    {/* Sidebar */}
+                    <aside className={`fixed inset-y-0 left-0 z-50 w-72 ${CardBg} border-r ${BorderColor} transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static flex flex-col`}>
+                        {/* Header Sidebar */}
+                        <div className={`h-16 ${isDarkMode ? 'bg-slate-900' : 'bg-[#f0f2f5]'} flex items-center px-4 justify-between border-b ${BorderColor}`}>
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shadow-sm" style={{ backgroundColor: memberProfile.color }}>{memberProfile.name.charAt(0).toUpperCase()}</div>
+                                <div className="overflow-hidden">
+                                    <p className={`text-sm font-bold ${TextColor} truncate w-32`}>{memberProfile.name}</p>
+                                    <p className="text-[10px] opacity-60 truncate">{family.name}</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-1">
+                                <button onClick={handleLogout} className="p-2 opacity-60 hover:opacity-100 transition" title="Salir"><LogOut className="w-4 h-4" /></button>
+                                <button onClick={() => setIsSidebarOpen(false)} className="p-2 md:hidden"><X className="w-5 h-5"/></button>
                             </div>
                         </div>
-                    </div>
-                </aside>
-
-                {isSidebarOpen && <div className="fixed inset-0 bg-black/30 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>}
-
-                <div className="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
-                    <header className={`${THEME.primary} h-16 flex items-center justify-between px-4 shadow-md z-20`}>
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => setIsSidebarOpen(true)} className="md:hidden text-white p-1"><Menu className="w-6 h-6" /></button>
-                            <div className="flex flex-col"><h1 className="text-white font-bold text-lg leading-tight">Familia {currentFamily.name}</h1><p className="text-white/70 text-xs">Control de Gastos</p></div>
-                        </div>
-                        <div className="flex items-center bg-black/10 rounded-full px-2 py-1">
-                            <button onClick={() => setSelectedYear(y => y - 1)} className="text-white/70 hover:text-white"><ChevronLeft className="w-4 h-4" /></button>
-                            <span className="px-2 text-sm font-medium text-white">{selectedYear}</span>
-                            <button onClick={() => setSelectedYear(y => y + 1)} className="text-white/70 hover:text-white"><ChevronRight className="w-4 h-4" /></button>
-                        </div>
-                    </header>
-
-                    <main className="flex-1 overflow-y-auto p-4 relative" style={{ backgroundImage: `radial-gradient(${isDarkMode ? '#334155' : '#cbd5e1'} 1px, transparent 1px)`, backgroundSize: '20px 20px' }}>
-                        <div className="max-w-4xl mx-auto pb-24">
-                            {view === 'dashboard' && <DashboardView transactions={currentYearData} isDark={isDarkMode} />}
-                            {view === 'calendar' && <CalendarView transactions={currentYearData} selectedYear={selectedYear} onDateClick={(d) => openForm(null, d)} isDark={isDarkMode} />}
-                            {view === 'history' && <HistoryView transactions={currentYearData} onEdit={openForm} onDelete={(id) => setDeleteModal({ show: true, id })} isDark={isDarkMode} />}
-                            {view === 'members' && <MembersView family={currentFamily} updateFamilyMembers={updateFamilyMembers} isDark={isDarkMode} />}
-                            {view === 'budgets' && <BudgetsView transactions={currentYearData} currentYear={selectedYear} family={currentFamily} isDark={isDarkMode} />}
-                        </div>
-                    </main>
-
-                    <button onClick={() => openForm()} className={`fixed bottom-20 right-4 md:bottom-8 md:right-8 w-14 h-14 ${THEME.primary} hover:bg-[#006e5a] text-white rounded-2xl shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-40`}>
-                        <Plus className="w-7 h-7" />
-                    </button>
-
-                    {/* Widget Container */}
-                    {view === 'dashboard' && (
-                        <div className="fixed bottom-20 right-4 z-30 flex flex-col-reverse gap-3 items-end md:bottom-8 pointer-events-none">
-                            <FinancialHealthWidget transactions={currentYearData} isVisible={widgets.health} onClose={() => toggleWidget('health')} currentYear={selectedYear} isDark={isDarkMode} />
-                            <BudgetAlertWidget transactions={currentYearData} budgets={familyBudgets} isVisible={widgets.budgetAlert} onClose={() => toggleWidget('budgetAlert')} currentYear={selectedYear} isDark={isDarkMode} />
-                            <TopExpensesWidget transactions={currentYearData} isVisible={widgets.topExpenses} onClose={() => toggleWidget('topExpenses')} currentYear={selectedYear} isDark={isDarkMode} />
-                            <SavingsWidget transactions={currentYearData} isVisible={widgets.savings} onClose={() => toggleWidget('savings')} currentYear={selectedYear} isDark={isDarkMode} />
-                        </div>
-                    )}
-
-                    <div className={`md:hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-t h-16 flex justify-around items-center px-2 z-50 fixed bottom-0 left-0 right-0`}>
-                        <button onClick={() => setView('dashboard')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'dashboard' ? 'text-[#008069]' : 'text-slate-400'}`}><PieChart className="w-6 h-6" /><span className="text-[10px] font-medium">Estado</span></button>
-                        <button onClick={() => setView('calendar')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'calendar' ? 'text-[#008069]' : 'text-slate-400'}`}><CalendarIcon className="w-6 h-6" /><span className="text-[10px] font-medium">Cal.</span></button>
-                        <button onClick={() => setView('history')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'history' ? 'text-[#008069]' : 'text-slate-400'}`}><Layers className="w-6 h-6" /><span className="text-[10px] font-medium">Historial</span></button>
-                    </div>
-                </div>
-
-                {isFormOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-                        <div className={`w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-slide-up ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
-                            <div className={`${THEME.primary} p-4 flex justify-between items-center text-white`}>
-                                <h3 className="font-bold">{editingId ? 'Editar' : 'Nuevo'}</h3>
-                                <button onClick={closeForm}><X className="w-5 h-5" /></button>
+                        
+                        <div className="p-4 flex-1 overflow-y-auto">
+                            <div className="mb-6">
+                                <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Menú Principal</h3>
+                                <nav className="space-y-1">
+                                    <button onClick={() => { setView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'dashboard' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><PieChart className="w-4 h-4" /> Resumen</button>
+                                    <button onClick={() => { setView('calendar'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'calendar' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><CalendarIcon className="w-4 h-4" /> Calendario</button>
+                                    <button onClick={() => { setView('history'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'history' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><Layers className="w-4 h-4" /> Historial</button>
+                                    <button onClick={() => { setView('members'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'members' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><Users className="w-4 h-4" /> Miembros & Clave</button>
+                                </nav>
                             </div>
-                            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                                <div className={`flex p-1 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-                                    {/* CORRECCIÓN: Botones actualizan tipo Y categoría por defecto */}
-                                    <button type="button" onClick={() => setFormData({...formData, type: 'income', category: 'Salario'})} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${formData.type === 'income' ? 'bg-white text-[#008069] shadow-sm' : 'text-slate-400'}`}>Ingreso</button>
-                                    <button type="button" onClick={() => setFormData({...formData, type: 'expense', category: 'Comida'})} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${formData.type === 'expense' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400'}`}>Gasto</button>
-                                </div>
-                                <div className="relative">
-                                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-2xl font-light ${formData.type === 'income' ? 'text-[#008069]' : 'text-red-500'}`}>$</span>
-                                    <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className={`w-full text-center text-4xl font-bold bg-transparent border-b-2 outline-none pb-2 ${isDarkMode ? 'text-white border-slate-600' : 'text-slate-800 border-slate-100'}`} placeholder="0.00" autoFocus />
-                                </div>
+
+                            <div className="mb-6">
+                                <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Configuración</h3>
+                                <button onClick={toggleDarkMode} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-700 ${TextColor}`}>{isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
                                 
-                                {/* Selector de Miembro (Opcional, si no se selecciona es el usuario logueado) */}
-                                <div className="text-center text-xs text-slate-400">
-                                    Registrando como: <span className="font-bold text-[#008069]">{currentUser.username}</span>
+                                <div className={`mt-4 ${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-100'} rounded-xl p-3 space-y-3 border`}>
+                                    {[{k:'health',l:'Estado',i:Activity}, {k:'topExpenses',l:'Top Gastos',i:TrendingDown}, {k:'savings',l:'Ahorro',i:Target}, {k:'budgetAlert',l:'Alertas',i:AlertTriangle}].map(w => (
+                                        <label key={w.k} className="flex items-center justify-between cursor-pointer group">
+                                            <span className={`text-sm flex items-center gap-2 ${TextColor}`}><w.i className="w-4 h-4 opacity-50" /> {w.l}</span>
+                                            <div className={`w-9 h-5 flex items-center bg-gray-300 rounded-full p-1 duration-300 ease-in-out ${widgets[w.k] ? 'bg-[#008069]' : ''}`} onClick={() => toggleWidget(w.k)}>
+                                                <div className={`bg-white w-3 h-3 rounded-full shadow-md transform duration-300 ease-in-out ${widgets[w.k] ? 'translate-x-4' : ''}`}></div>
+                                            </div>
+                                        </label>
+                                    ))}
                                 </div>
+                            </div>
+                        </div>
+                    </aside>
 
-                                <div className="grid grid-cols-2 gap-3">
+                    {isSidebarOpen && <div className="fixed inset-0 bg-black/30 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>}
+
+                    <div className="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
+                        <header className={`${THEME.primary} h-16 flex items-center justify-between px-4 shadow-md z-20`}>
+                            <div className="flex items-center gap-3">
+                                <button onClick={() => setIsSidebarOpen(true)} className="md:hidden text-white p-1"><Menu className="w-6 h-6" /></button>
+                                <div className="flex flex-col"><h1 className="text-white font-bold text-lg leading-tight">{family.name}</h1><p className="text-white/70 text-xs">Control de Gastos</p></div>
+                            </div>
+                            <div className="flex items-center bg-black/10 rounded-full px-2 py-1">
+                                <button onClick={() => setSelectedYear(y => y - 1)} className="text-white/70 hover:text-white"><ChevronLeft className="w-4 h-4" /></button>
+                                <span className="px-2 text-sm font-medium text-white">{selectedYear}</span>
+                                <button onClick={() => setSelectedYear(y => y + 1)} className="text-white/70 hover:text-white"><ChevronRight className="w-4 h-4" /></button>
+                            </div>
+                        </header>
+
+                        <main className="flex-1 overflow-y-auto p-4 relative" style={{ backgroundImage: `radial-gradient(${isDarkMode ? '#334155' : '#cbd5e1'} 1px, transparent 1px)`, backgroundSize: '20px 20px' }}>
+                            <div className="max-w-4xl mx-auto pb-24">
+                                {view === 'dashboard' && (
+                                    <>
+                                        <DashboardView transactions={currentYearData} isDark={isDarkMode} />
+                                        <div className="fixed bottom-20 right-4 z-30 flex flex-col-reverse gap-3 items-end md:bottom-8 pointer-events-none">
+                                            <FinancialHealthWidget transactions={currentYearData} isVisible={widgets.health} onClose={() => toggleWidget('health')} currentYear={selectedYear} isDark={isDarkMode} />
+                                            <BudgetAlertWidget transactions={currentYearData} budgets={[]} isVisible={widgets.budgetAlert} onClose={() => toggleWidget('budgetAlert')} currentYear={selectedYear} isDark={isDarkMode} />
+                                            <TopExpensesWidget transactions={currentYearData} isVisible={widgets.topExpenses} onClose={() => toggleWidget('topExpenses')} currentYear={selectedYear} isDark={isDarkMode} />
+                                            <SavingsWidget transactions={currentYearData} isVisible={widgets.savings} onClose={() => toggleWidget('savings')} currentYear={selectedYear} isDark={isDarkMode} />
+                                        </div>
+                                    </>
+                                )}
+                                {view === 'calendar' && <CalendarView transactions={currentYearData} selectedYear={selectedYear} onDateClick={(d) => openForm(null, d)} isDark={isDarkMode} />}
+                                {view === 'history' && <HistoryView transactions={currentYearData} onEdit={openForm} onDelete={deleteTransaction} isDark={isDarkMode} />}
+                                {view === 'members' && <MembersView family={family} familyMembers={familyMembers} isDark={isDarkMode} />}
+                            </div>
+                        </main>
+
+                        <button onClick={() => openForm()} className={`fixed bottom-20 right-4 md:bottom-8 md:right-8 w-14 h-14 ${THEME.primary} hover:bg-[#006e5a] text-white rounded-2xl shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 z-40`}>
+                            <Plus className="w-7 h-7" />
+                        </button>
+
+                        <div className={`md:hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-t h-16 flex justify-around items-center px-2 z-50 fixed bottom-0 left-0 right-0`}>
+                            <button onClick={() => setView('dashboard')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'dashboard' ? 'text-[#008069]' : 'text-slate-400'}`}><PieChart className="w-6 h-6" /><span className="text-[10px] font-medium">Estado</span></button>
+                            <button onClick={() => setView('calendar')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'calendar' ? 'text-[#008069]' : 'text-slate-400'}`}><CalendarIcon className="w-6 h-6" /><span className="text-[10px] font-medium">Cal.</span></button>
+                            <button onClick={() => setView('history')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'history' ? 'text-[#008069]' : 'text-slate-400'}`}><Layers className="w-6 h-6" /><span className="text-[10px] font-medium">Historial</span></button>
+                        </div>
+                    </div>
+
+                    {/* Modal Form */}
+                    {isFormOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+                            <div className={`w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-slide-up ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
+                                <div className={`${THEME.primary} p-4 flex justify-between items-center text-white`}>
+                                    <h3 className="font-bold">{editingId ? 'Editar' : 'Nuevo Movimiento'}</h3>
+                                    <button onClick={closeForm}><X className="w-5 h-5" /></button>
+                                </div>
+                                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                                    <div className={`flex p-1 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                                        <button type="button" onClick={() => setFormData({...formData, type: 'income', category: 'Salario'})} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${formData.type === 'income' ? 'bg-white text-[#008069] shadow-sm' : 'text-slate-400'}`}>Ingreso</button>
+                                        <button type="button" onClick={() => setFormData({...formData, type: 'expense', category: 'Comida'})} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${formData.type === 'expense' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400'}`}>Gasto</button>
+                                    </div>
+                                    <div className="relative">
+                                        <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-2xl font-light ${formData.type === 'income' ? 'text-[#008069]' : 'text-red-500'}`}>$</span>
+                                        <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className={`w-full text-center text-4xl font-bold bg-transparent border-b-2 outline-none pb-2 ${isDarkMode ? 'text-white border-slate-600' : 'text-slate-800 border-slate-100'}`} placeholder="0.00" autoFocus />
+                                    </div>
+                                    
                                     <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'} p-2 rounded-lg border`}>
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Categoría</label>
-                                        <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                                            {formData.type === 'expense' ? (
-                                                <><option>Comida</option><option>Transporte</option><option>Vivienda</option><option>Escuela</option><option>Despensa</option><option>Tienda</option><option>Comida a domicilio</option><option>Servicios</option><option>Deuda</option><option>Préstamos</option><option>Tarjetas de Crédito</option><option>Deuda Familiar</option><option>Gastos Hormiga</option><option>Otros</option></>
-                                            ) : (
-                                                <><option>Salario</option><option>Negocio</option><option>Ventas</option><option>Extra</option><option>Otros</option></>
-                                            )}
+                                        <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">¿Quién eres?</label>
+                                        <select value={formData.memberId || ''} onChange={e => setFormData({...formData, memberId: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                                            <option value="" className={isDarkMode ? 'text-black' : ''}>{memberProfile.name} (Yo)</option>
+                                            {familyMembers.filter(m => m.id !== memberProfile.id).map(m => (
+                                                <option key={m.id} value={m.id} className={isDarkMode ? 'text-black' : ''}>{m.name}</option>
+                                            ))}
                                         </select>
                                     </div>
-                                    <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'} p-2 rounded-lg border`}>
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Fecha</label>
-                                        <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`} />
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'} p-2 rounded-lg border`}>
+                                            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Categoría</label>
+                                            <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                                                {formData.type === 'expense' ? (
+                                                    <><option>Comida</option><option>Transporte</option><option>Vivienda</option><option>Escuela</option><option>Despensa</option><option>Tienda</option><option>Comida a domicilio</option><option>Servicios</option><option>Deuda</option><option>Préstamos</option><option>Tarjetas de Crédito</option><option>Deuda Familiar</option><option>Gastos Hormiga</option><option>Otros</option></>
+                                                ) : (
+                                                    <><option>Salario</option><option>Negocio</option><option>Ventas</option><option>Extra</option><option>Otros</option></>
+                                                )}
+                                            </select>
+                                        </div>
+                                        <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'} p-2 rounded-lg border`}>
+                                            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Fecha</label>
+                                            <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`} />
+                                        </div>
                                     </div>
-                                </div>
-                                <button type="submit" className={`w-full py-3 rounded-xl font-bold text-white shadow-md active:scale-95 transition ${formData.type === 'income' ? THEME.primary : 'bg-red-500'}`}>{editingId ? 'Actualizar' : 'Enviar'}</button>
-                            </form>
-                        </div>
-                    </div>
-                )}
-                {deleteModal.show && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                        <div className={`${isDarkMode ? 'bg-slate-800' : 'bg-white'} p-6 rounded-2xl shadow-xl max-w-xs w-full text-center space-y-4`}>
-                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-500"><Trash2 /></div>
-                            <h3 className={`font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>¿Eliminar mensaje?</h3>
-                            <div className="flex gap-2">
-                                <button onClick={() => setDeleteModal({show:false, id:null})} className={`flex-1 py-2 border rounded-xl ${isDarkMode ? 'text-slate-300 border-slate-600' : 'text-slate-600'}`}>Cancelar</button>
-                                <button onClick={deleteItem} className="flex-1 py-2 bg-red-500 text-white rounded-xl">Eliminar</button>
+                                    <button type="submit" className={`w-full py-3 rounded-xl font-bold text-white shadow-md active:scale-95 transition ${formData.type === 'income' ? THEME.primary : 'bg-red-500'}`}>{editingId ? 'Actualizar' : 'Enviar'}</button>
+                                </form>
                             </div>
                         </div>
-                    </div>
-                )}
-            </div>
-        );
-    };
+                    )}
+                </div>
+            );
+        };
 
-    const root = createRoot(document.getElementById('root'));
-    root.render(<App />);
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
