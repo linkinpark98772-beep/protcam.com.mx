@@ -61,7 +61,7 @@
         import { getAnalytics } from "firebase/analytics";
 
         // ------------------------------------------------------------------
-        // CONFIGURACIÓN DE FIREBASE
+        // CONFIGURACIÓN DE FIREBASE (Tus Credenciales)
         // ------------------------------------------------------------------
         const firebaseConfig = {
             apiKey: "AIzaSyBI0r0YoRLZ6E-X7liiDaEPOdUi-bC13nI",
@@ -551,6 +551,10 @@
                             if (err.message === "Código de familia inválido") throw err;
                             if (err.code === 'permission-denied') {
                                 throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y permite la escritura.");
+                            }
+                            if (err.code === 'failed-precondition') {
+                                console.error("Missing index:", err);
+                                throw new Error("Falta índice en Firebase. Revisa la consola.");
                             }
                             throw new Error("Error al unirse. Intenta de nuevo.");
                         }
