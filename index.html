@@ -25,7 +25,7 @@
         button:hover:not(:disabled) {
             transform: translateY(-2px);
             filter: brightness(1.06);
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 10px 20px -3px rgba(37, 99, 235, 0.25), 0 4px 6px -4px rgba(37, 99, 235, 0.1);
         }
         button:active:not(:disabled) {
             transform: translateY(0px) scale(0.97);
@@ -37,10 +37,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 font-sans selection:bg-blue-100 selection:text-blue-700">
 
-    <!-- Pantalla Intro / Video Animado -->
+    <!-- Pantalla Intro / Video Animado con Estética Moderna -->
     <div id="intro-overlay" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center transition-opacity duration-700 px-4">
-        <div class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mb-6 overflow-hidden rounded-3xl shadow-2xl shadow-blue-500/20">
-            <!-- Video intro clínico -->
+        <div class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mb-6 overflow-hidden rounded-3xl shadow-2xl shadow-blue-500/20 border border-slate-800">
             <video autoplay muted playsinline class="absolute inset-0 w-full h-full object-cover opacity-90">
                 <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-with-medical-data-41582-large.mp4" type="video/mp4">
                 Tu navegador no soporta videos.
@@ -70,13 +69,12 @@
     <!-- Modal de Autenticación Moderno y Minimalista -->
     <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 flex flex-col items-center justify-center px-4 transition-all">
         
-        <!-- Logo y Título arriba del panel de login -->
         <div class="text-center mb-6 space-y-2 animate-fade-in max-w-sm">
             <div class="w-16 h-16 mx-auto bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-3xl shadow-xl shadow-blue-500/20 flex items-center justify-center">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
             </div>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Asistente Digital de Salud</h1>
-            <p class="text-xs text-slate-500 font-medium">Gestión clínica y control de medicamentos en tiempo real</p>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight text-white">Asistente Digital de Salud</h1>
+            <p class="text-xs text-blue-200 font-medium">Gestión clínica y control de medicamentos en tiempo real</p>
         </div>
 
         <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl shadow-slate-900/10 max-w-sm w-full space-y-5 border border-slate-100 animate-fade-in">
@@ -143,7 +141,7 @@
     <!-- Contenido Principal de la App -->
     <main id="app-main" class="max-w-xl mx-auto mt-4 px-4 sm:px-0 space-y-5 hidden">
 
-        <!-- Barra de Sincronización en la Nube (Solo visible para Creador / Google) -->
+        <!-- Barra de Sincronización en la Nube (Solo visible para Creador / Admin) -->
         <section id="seccion-config-sala" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 space-y-3">
             <div class="flex justify-between items-center">
                 <h2 class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span>☁️</span> Sincronización en la Nube</h2>
@@ -169,7 +167,6 @@
                 </div>
             </div>
 
-            <!-- Listado de Usuarios Conectados a la Sala -->
             <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2">
                 <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1"><span>👥</span> Usuarios Conectados en esta Sala:</h4>
                 <div id="lista-usuarios-conectados" class="space-y-1.5 max-h-28 overflow-y-auto">
@@ -370,7 +367,7 @@
                                 <option value="Nasal 👃">Nasal 👃</option>
                                 <option value="Oftálmica 👁️">Oftálmica 👁️</option>
                                 <option value="Gotas 💧">Gotas 💧</option>
-                                <option value="Topico 🧴">Tópico 🧴</option>
+                                <option value="Tópico 🧴">Tópico 🧴</option>
                                 <option value="Intradérmica 💉">Intradérmica 💉</option>
                                 <option value="Enterales 🧪">Enterales 🧪</option>
                                 <option value="Vaginal 🌸">Vaginal 🌸</option>
@@ -386,19 +383,26 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Indicación de Tiempo</label>
-                        <select id="momento" onchange="verificarMomento(this.value)" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 outline-none text-xs font-medium">
-                            <option value="Horario Fijo">Horario Regular (Cada X horas)</option>
-                            <option value="Antes de desayunar">Antes de desayunar</option>
-                            <option value="Después de desayunar">Después de desayunar</option>
-                            <option value="Antes de comer">Antes de comer</option>
-                            <option value="Después de comer">Después de comer</option>
-                            <option value="Antes de cenar">Antes de cenar</option>
-                            <option value="Después de cenar">Después de cenar</option>
-                            <option value="Antes de dormir">Antes de dormir</option>
-                            <option value="PRN (Si es necesario)">PRN (Si es necesario)</option>
-                        </select>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Indicación de Tiempo</label>
+                            <select id="momento" onchange="verificarMomento(this.value)" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 outline-none text-xs font-medium">
+                                <option value="Horario Fijo">Horario Regular (Cada X horas)</option>
+                                <option value="Antes de desayunar">Antes de desayunar</option>
+                                <option value="Después de desayunar">Después de desayunar</option>
+                                <option value="Antes de comer">Antes de comer</option>
+                                <option value="Después de comer">Después de comer</option>
+                                <option value="Antes de cenar">Antes de cenar</option>
+                                <option value="Después de cenar">Después de cenar</option>
+                                <option value="Antes de dormir">Antes de dormir</option>
+                                <option value="PRN (Si es necesario)">PRN (Si es necesario)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Duración (¿Por cuántos días?)</label>
+                            <input type="number" id="duracion-dias" placeholder="Ej. 7 (Dejar en blanco si es indefinido)" 
+                                   class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white outline-none text-xs font-semibold transition">
+                        </div>
                     </div>
                     
                     <div id="bloque-frecuencia" class="grid grid-cols-1 sm:grid-cols-2 gap-3 transition-all">
@@ -612,7 +616,7 @@
                             <option value="Nasal 👃">Spray Nasal 👃</option>
                             <option value="Oftálmica 👁️">Oftálmica 👁️</option>
                             <option value="Gotas 💧">Gotas / ml 💧</option>
-                            <option value="Topico 🧴">Tópico / Piezas 🧴</option>
+                            <option value="Tópico 🧴">Tópico / Piezas 🧴</option>
                             <option value="Intradérmica 💉">Intradérmica 💉</option>
                             <option value="Enterales 🧪">Enterales 🧪</option>
                             <option value="Vaginal 🌸">Vaginal 🌸</option>
@@ -923,7 +927,7 @@
                 if(seccionConfig) seccionConfig.classList.remove('hidden');
             } else {
                 document.getElementById('badge-rol').innerText = '👤 Invitado (' + detalle + ')';
-                if(seccionConfig) seccionConfig.classList.add('hidden'); // Ocultar configuración de sala a invitados
+                if(seccionConfig) seccionConfig.classList.add('hidden');
             }
 
             if(window.currentRoom) {
@@ -1335,6 +1339,7 @@
             const dosisVal = document.getElementById('dosis-cantidad').value;
             const nombreVal = document.getElementById('nombre').value.trim();
             const viaVal = document.getElementById('via').value;
+            const duracionDiasVal = parseInt(document.getElementById('duracion-dias').value) || null;
 
             const existenteIdx = window.medicamentos.findIndex(m => m.pacienteId === window.pacienteActivoId && m.nombre.toLowerCase() === nombreVal.toLowerCase());
             const stockConservado = existenteIdx !== -1 ? (window.medicamentos[existenteIdx].stock || 0) : 0;
@@ -1348,6 +1353,7 @@
                     dosis: dosisVal,
                     via: viaVal,
                     momento: momentoSel,
+                    duracionDias: duracionDiasVal,
                     stock: stockConservado,
                     esFijo: false
                 };
@@ -1366,6 +1372,7 @@
                     momento: momentoSel,
                     frecuencia: parseInt(document.getElementById('frecuencia').value),
                     ultimaToma: tiempoToma,
+                    duracionDias: duracionDiasVal,
                     historial: [tiempoToma],
                     stock: stockConservado,
                     esFijo: true
@@ -1558,16 +1565,26 @@
 
             window.medicamentos.forEach(med => {
                 if(med.pacienteId !== window.pacienteActivoId || !med.esFijo) return;
+                
+                // Verificar si ya expiró por los días de duración
+                if (med.duracionDias) {
+                    const diasMs = med.duracionDias * 24 * 3600000;
+                    const fechaFin = med.ultimaToma + diasMs;
+                    if (ahora > fechaFin) return;
+                }
+
                 let proximaMs = med.ultimaToma + (med.frecuencia * 3600000);
                 while (proximaMs <= limite24h) {
-                    if (proximaMs > ahora) { 
-                        tomasProyectadas.push({
-                            medNombre: med.nombre,
-                            dosis: med.dosis || '',
-                            via: med.via || 'Oral 💊',
-                            tiempoMs: proximaMs,
-                            fecha: new Date(proximaMs)
-                        });
+                    if (proximaMs > ahora) {
+                        if (!med.duracionDias || proximaMs <= (med.ultimaToma + (med.duracionDias * 24 * 3600000))) {
+                            tomasProyectadas.push({
+                                medNombre: med.nombre,
+                                dosis: med.dosis || '',
+                                via: med.via || 'Oral 💊',
+                                tiempoMs: proximaMs,
+                                fecha: new Date(proximaMs)
+                            });
+                        }
                     }
                     proximaMs += (med.frecuencia * 3600000);
                 }
@@ -1586,15 +1603,18 @@
                 const textColor = alerta ? 'text-rose-700 font-bold' : 'text-slate-900';
                 const warningIcon = alerta ? '⚠️' : '✅';
                 const dosisBadge = toma.dosis ? (' • <b>[' + toma.dosis + ']</b>') : '';
+                
+                const btnAgregarPersonal = alerta ? ('<div class="mt-2"><button onclick="irANav(\'horarios\')" class="bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl shadow-sm hover:bg-rose-700 transition">➕ Agregar Personal a Turno</button></div>') : '';
 
                 htmlCronograma += '<div class="relative mb-3 transition-all">' +
                     '<div class="absolute -left-[25px] top-2 w-3 h-3 rounded-full ring-4 ' + dotColor + '"></div>' +
-                    '<div class="bg-white p-3.5 rounded-2xl shadow-sm border ' + (alerta ? 'border-rose-200 bg-rose-50/40' : 'border-slate-100') + ' text-xs flex justify-between items-center">' +
-                        '<div>' +
+                    '<div class="bg-white p-3.5 rounded-2xl shadow-sm border ' + (alerta ? 'border-rose-200 bg-rose-50/40' : 'border-slate-100') + ' text-xs flex flex-col justify-between">' +
+                        '<div class="flex justify-between items-center">' +
                             '<span class="' + textColor + '">' + horaStr + diaStr + ' - <b>' + toma.medNombre + '</b>' + dosisBadge + '</span>' +
-                            '<div class="text-[10px] text-slate-500 font-medium">' + toma.via + '</div>' +
+                            '<span>' + warningIcon + '</span>' +
                         '</div>' +
-                        '<span>' + warningIcon + '</span>' +
+                        '<div class="text-[10px] text-slate-500 font-medium mt-1">' + toma.via + '</div>' +
+                        btnAgregarPersonal +
                     '</div>' +
                 '</div>';
             });
@@ -1613,6 +1633,11 @@
 
             const ahora = new Date().getTime();
             fijos.forEach(med => {
+                if (med.duracionDias) {
+                    const diasMs = med.duracionDias * 24 * 3600000;
+                    if (ahora > (med.ultimaToma + diasMs)) return;
+                }
+
                 const proximaTomaMs = med.ultimaToma + (med.frecuencia * 3600000);
                 const fechaProximaToma = new Date(proximaTomaMs);
                 const tiempoRestante = proximaTomaMs - ahora;
@@ -1620,6 +1645,8 @@
                 const alerta = window.caeEnHorarioSinEnfermero(fechaProximaToma);
                 let estadoClase = 'bg-white border-slate-200';
                 if(tiempoRestante <= 0) estadoClase = 'bg-rose-50 border-rose-300 parpadeo';
+
+                const btnAgregarPersonalHome = alerta ? ('<div class="mt-2"><button onclick="irANav(\'horarios\')" class="bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl shadow-sm hover:bg-rose-700 transition">➕ Agregar Personal a Turno</button></div>') : '';
 
                 listaHome.innerHTML += '<div class="p-4 rounded-2xl border ' + estadoClase + ' shadow-sm text-xs space-y-1.5">' +
                     '<div class="flex justify-between font-bold text-slate-900">' +
@@ -1630,6 +1657,7 @@
                         '<span>' + med.via + ' • Cada ' + med.frecuencia + 'h</span>' +
                         (alerta ? '<span class="text-rose-600 font-bold">⚠️ Sin personal</span>' : '<span class="text-emerald-600 font-bold">Cubierto ✅</span>') +
                     '</div>' +
+                    btnAgregarPersonalHome +
                 '</div>';
             });
         };
@@ -1646,9 +1674,15 @@
 
             const ahora = new Date().getTime();
             programados.forEach(med => {
+                if (med.duracionDias) {
+                    const diasMs = med.duracionDias * 24 * 3600000;
+                    if (ahora > (med.ultimaToma + diasMs)) return;
+                }
+
                 const viaBadge = med.via || 'Oral 💊';
                 const dosisBadge = med.dosis ? ('<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl text-[10px] font-bold">Dosis: ' + med.dosis + '</span>') : '';
                 const momentoBadge = med.momento && med.momento !== 'Horario Fijo' ? ('<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-xl text-[10px] font-semibold">' + med.momento + '</span>') : '';
+                const duracionBadge = med.duracionDias ? ('<span class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-xl text-[10px] font-semibold">Duración: ' + med.duracionDias + ' días</span>') : '';
 
                 const tarjeta = document.createElement('div');
                 tarjeta.className = "p-5 rounded-3xl shadow-sm bg-white border border-slate-200 text-xs space-y-3";
@@ -1663,18 +1697,19 @@
                 const textoReloj = tiempoRestante <= 0 ? ('Atrasado: ' + horas + 'h ' + mins + 'm') : ('Faltan: ' + horas + 'h ' + mins + 'm');
 
                 const btnAjustar = alertaSin ? ('<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="w-full bg-rose-600 text-white py-2.5 rounded-2xl font-bold text-[11px] shadow-sm mt-1">🛡️ Ajustar al siguiente turno con personal</button>') : '';
+                const btnAgregarPersonalLista = alertaSin ? ('<div class="mt-1"><button onclick="irANav(\'horarios\')" class="w-full bg-rose-700 text-white py-2 rounded-2xl font-bold text-[11px] shadow-sm">➕ Ir a Agregar Personal</button></div>') : '';
 
                 tarjeta.innerHTML = '<div class="flex justify-between items-start">' +
                     '<div>' +
                         '<h3 class="font-extrabold text-sm text-slate-900">' + med.nombre + '</h3>' +
                         '<div class="flex gap-2 mt-2 flex-wrap">' +
                             '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-xl font-bold">' + viaBadge + '</span>' +
-                            dosisBadge + ' ' + momentoBadge +
+                            dosisBadge + ' ' + momentoBadge + ' ' + duracionBadge +
                         '</div>' +
                     '</div>' +
                     '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-rose-600 font-bold p-1">🗑️</button>' +
                 '</div>' +
-                (alertaSin ? ('<div class="bg-rose-500 text-white font-bold p-2.5 rounded-2xl text-center text-[11px]">⚠️ Cae en horario sin personal ' + btnAjustar + '</div>') : '') +
+                (alertaSin ? ('<div class="bg-rose-500 text-white font-bold p-2.5 rounded-2xl text-center text-[11px]">⚠️ Cae en horario sin personal ' + btnAjustar + btnAgregarPersonalLista + '</div>') : '') +
                 '<div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex justify-between items-center font-mono font-bold text-slate-800">' +
                     '<span>Próxima: ' + fechaProximaToma.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
                     '<span class="' + (tiempoRestante <= 0 ? 'text-rose-600' : 'text-blue-600') + '">' + textoReloj + '</span>' +
