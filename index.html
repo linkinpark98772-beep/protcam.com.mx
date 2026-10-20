@@ -63,12 +63,13 @@
             <!-- Formulario Acceso por Código de Sala -->
             <div id="auth-enfermero-container" class="hidden space-y-3">
                 <p class="text-sm text-slate-600 font-bold text-center">Acceso por Código de Sala</p>
-                <input type="text" id="enfermero-room-code" placeholder="Código de Sala (Ej. ABCD)" class="w-full p-3 border border-slate-300 rounded-xl text-center text-lg uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-widest">
+                <input type="text" id="enfermero-room-code" placeholder="Código de Sala Permanente (Ej. CLINICA1)" class="w-full p-3 border border-slate-300 rounded-xl text-center text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-wider">
+                <input type="password" id="enfermero-room-pass" placeholder="Contraseña de la Sala" class="w-full p-3 border border-slate-300 rounded-xl text-center text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
                 <div class="flex gap-2">
                     <button onclick="volverASeleccion()" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl hover:bg-slate-300 transition text-xs">Atrás</button>
                     <button onclick="verificarEnfermeroSala()" class="flex-1 bg-emerald-600 text-white font-bold py-2 rounded-xl shadow-md hover:bg-emerald-700 transition text-xs">Conectar Sala</button>
                 </div>
-                <p id="enfermero-error" class="text-red-500 text-xs text-center hidden font-bold">Sala no encontrada o código inválido.</p>
+                <p id="enfermero-error" class="text-red-500 text-xs text-center hidden font-bold">Sala no encontrada o contraseña incorrecta.</p>
             </div>
         </div>
     </div>
@@ -96,19 +97,34 @@
     <main id="app-main" class="max-w-md mx-auto mt-4 px-4 space-y-6 hidden">
 
         <!-- Barra de Sincronización en la Nube -->
-        <section class="bg-blue-50 p-4 rounded-xl shadow-sm border border-blue-200">
-            <div class="flex justify-between items-center mb-2">
+        <section class="bg-blue-50 p-4 rounded-xl shadow-sm border border-blue-200 space-y-3">
+            <div class="flex justify-between items-center">
                 <h2 class="text-xs font-bold text-blue-800 flex items-center gap-1"><span>☁️</span> Sincronización en la Nube</h2>
                 <span id="cloud-status" class="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded shadow-sm border border-slate-200">Modo Local</span>
             </div>
             
-            <div class="flex gap-2 mb-2">
-                <button onclick="crearSalaAdmin()" class="flex-1 bg-blue-600 text-white text-xs font-bold py-2 rounded shadow-sm hover:bg-blue-700 transition">Generar / Actualizar Mi Sala</button>
+            <div class="space-y-2">
+                <div class="flex gap-2">
+                    <input type="text" id="input-config-room-code" placeholder="Código de Sala (Ej. CLINICA1)" class="flex-1 p-2 border border-slate-300 rounded-lg text-xs uppercase font-bold outline-none">
+                    <input type="password" id="input-config-room-pass" placeholder="Contraseña" class="w-28 p-2 border border-slate-300 rounded-lg text-xs font-bold outline-none">
+                    <button onclick="guardarConfigSala()" class="bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition">Guardar Sala</button>
+                </div>
             </div>
 
             <div class="bg-white p-2.5 rounded border border-blue-100 flex justify-between items-center shadow-inner">
-                <p class="text-xs text-slate-600">Código de Sala Activa: <b id="active-room-code" class="text-sm text-blue-700 tracking-wider">---</b></p>
+                <div>
+                    <p class="text-xs text-slate-600">Sala Activa: <b id="active-room-code" class="text-sm text-blue-700 tracking-wider">---</b></p>
+                    <p class="text-[10px] text-slate-400">Conectados en sala: <span id="connected-users-count" class="font-bold text-slate-600">0 usuarios</span></p>
+                </div>
                 <button onclick="salirSala()" id="btn-salir-sala" class="bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold px-2.5 py-1.5 rounded hover:bg-red-100 transition hidden">Desconectar</button>
+            </div>
+
+            <!-- Listado de Usuarios Conectados a la Sala -->
+            <div class="bg-white p-3 rounded-lg border border-blue-100 space-y-1.5">
+                <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1"><span>👥</span> Usuarios Conectados en esta Sala:</h4>
+                <div id="lista-usuarios-conectados" class="space-y-1 max-h-24 overflow-y-auto">
+                    <p class="text-[10px] text-slate-400 italic">Nadie conectado aún.</p>
+                </div>
             </div>
         </section>
 
@@ -545,6 +561,7 @@
         let perfilActual = localStorage.getItem('perfilActivo') || null;
         let rolActual = localStorage.getItem('rolActual') || null;
         window.currentRoom = localStorage.getItem('salaSincronizacion') || null;
+        window.currentRoomPass = localStorage.getItem('salaSincronizacionPass') || '';
 
         window.pushToCloud = async function() {};
         window.conectarSala = function(codigo) {};
@@ -744,6 +761,7 @@
             document.getElementById('auth-enfermero-container').classList.add('hidden');
             document.getElementById('enfermero-error').classList.add('hidden');
             document.getElementById('enfermero-room-code').value = '';
+            document.getElementById('enfermero-room-pass').value = '';
         };
 
         window.iniciarSesionApp = function(rol, detalle) {
@@ -769,6 +787,10 @@
 
             if(window.currentRoom) {
                 document.getElementById('active-room-code').innerText = window.currentRoom;
+                const inputCode = document.getElementById('input-config-room-code');
+                const inputPass = document.getElementById('input-config-room-pass');
+                if(inputCode) inputCode.value = window.currentRoom;
+                if(inputPass) inputPass.value = window.currentRoomPass;
                 window.conectarSala(window.currentRoom);
             }
 
@@ -1529,11 +1551,11 @@
         }, 1000);
     </script>
 
-    <!-- Módulo de Sincronización Firebase Auth con Google, Control de Licencias y Usuarios -->
+    <!-- Módulo de Sincronización Firebase Auth con Google, Control de Licencias, Salas Permanentes y Usuarios Conectados -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD6lWwHLvxi2NdiNeVzSBg3_1i5L5dWOYM",
@@ -1550,6 +1572,7 @@
         let db = null;
         let auth = null;
         let unsub = null;
+        let usuarioActualObj = null;
 
         try {
             const app = initializeApp(firebaseConfig);
@@ -1574,6 +1597,7 @@
         }
 
         async function registrarYVerificarUsuario(user) {
+            usuarioActualObj = user;
             const email = user.email.toLowerCase();
             const isAdmin = email === ADMIN_EMAIL.toLowerCase();
             const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'usuarios_app', user.uid);
@@ -1645,6 +1669,9 @@
         };
 
         window.cerrarSesionFirebase = async function() {
+            if (window.currentRoom && usuarioActualObj) {
+                await registrarSalidaSala(window.currentRoom);
+            }
             if (auth && auth.currentUser) {
                 try { await signOut(auth); } catch (e) { console.error(e); }
             }
@@ -1737,39 +1764,86 @@
                     pacientes: window.pacientes,
                     medicamentos: window.medicamentos,
                     enfermeros: window.enfermeros,
-                    notas: window.notasFijas
-                });
+                    notas: window.notasFijas,
+                    password: window.currentRoomPass || ''
+                }, { merge: true });
             } catch(e) { console.error("Error al subir datos:", e); }
         };
 
-        window.crearSalaAdmin = async function() {
-            if(!db) {
-                alert('Servidor de nube no disponible.');
+        window.guardarConfigSala = async function() {
+            const codigo = document.getElementById('input-config-room-code').value.toUpperCase().trim();
+            const pass = document.getElementById('input-config-room-pass').value.trim();
+            if(!codigo) {
+                alert('Escribe un código de sala válido.');
                 return;
             }
-            const codigo = window.currentRoom || Math.random().toString(36).substring(2, 6).toUpperCase();
+
+            if(window.currentRoom && window.currentRoom !== codigo) {
+                await registrarSalidaSala(window.currentRoom);
+            }
+
             window.currentRoom = codigo;
+            window.currentRoomPass = pass;
             localStorage.setItem('salaSincronizacion', codigo);
-            await window.pushToCloud();
+            localStorage.setItem('salaSincronizacionPass', pass);
+
+            if(!db) {
+                alert('Modo local activo. Conecta Firebase para sincronizar.');
+                return;
+            }
+
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
+            const snap = await getDoc(docRef);
+            if(!snap.exists()) {
+                await setDoc(docRef, {
+                    pacientes: window.pacientes,
+                    medicamentos: window.medicamentos,
+                    enfermeros: window.enfermeros,
+                    notas: window.notasFijas,
+                    password: pass,
+                    conectados: []
+                });
+            } else {
+                await updateDoc(docRef, { password: pass });
+            }
+
+            await registrarIngresoSala(codigo);
             window.conectarSala(codigo);
-            alert('¡Sala sincronizada con éxito!\nComparte este código de sala con quien desees: ' + codigo);
+            document.getElementById('active-room-code').innerText = codigo;
+            document.getElementById('btn-salir-sala').classList.remove('hidden');
+            alert('¡Sala permanente configurada con éxito!\nCódigo: ' + codigo);
         };
 
         window.verificarEnfermeroSala = async function() {
             const codigo = document.getElementById('enfermero-room-code').value.toUpperCase().trim();
+            const pass = document.getElementById('enfermero-room-pass').value.trim();
             if(!codigo) return;
+
             if(!db) {
                 window.currentRoom = codigo;
+                window.currentRoomPass = pass;
                 localStorage.setItem('salaSincronizacion', codigo);
+                localStorage.setItem('salaSincronizacionPass', pass);
                 window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
                 return;
             }
+
             try {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
                 const docSnap = await getDoc(docRef);
                 if(docSnap.exists()) {
+                    const data = docSnap.data();
+                    if(data.password && data.password !== pass) {
+                        const err = document.getElementById('enfermero-error');
+                        err.innerText = "Contraseña de sala incorrecta.";
+                        err.classList.remove('hidden');
+                        return;
+                    }
                     window.currentRoom = codigo;
+                    window.currentRoomPass = pass;
                     localStorage.setItem('salaSincronizacion', codigo);
+                    localStorage.setItem('salaSincronizacionPass', pass);
+                    await registrarIngresoSala(codigo);
                     window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
                 } else {
                     const err = document.getElementById('enfermero-error');
@@ -1778,15 +1852,44 @@
                 }
             } catch(e) {
                 window.currentRoom = codigo;
+                window.currentRoomPass = pass;
                 localStorage.setItem('salaSincronizacion', codigo);
+                localStorage.setItem('salaSincronizacionPass', pass);
                 window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
             }
         };
 
-        window.salirSala = function() {
+        async function registrarIngresoSala(codigo) {
+            if(!db || !usuarioActualObj) return;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
+            try {
+                const nombreUser = usuarioActualObj.displayName || usuarioActualObj.email;
+                await updateDoc(docRef, {
+                    conectados: arrayUnion(nombreUser)
+                });
+            } catch(e) { console.error("Error registrando ingreso:", e); }
+        }
+
+        async function registrarSalidaSala(codigo) {
+            if(!db || !usuarioActualObj || !codigo) return;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
+            try {
+                const nombreUser = usuarioActualObj.displayName || usuarioActualObj.email;
+                await updateDoc(docRef, {
+                    conectados: arrayRemove(nombreUser)
+                });
+            } catch(e) { console.error("Error registrando salida:", e); }
+        }
+
+        window.salirSala = async function() {
+            if(window.currentRoom) {
+                await registrarSalidaSala(window.currentRoom);
+            }
             if(unsub) unsub();
             window.currentRoom = null;
+            window.currentRoomPass = '';
             localStorage.removeItem('salaSincronizacion');
+            localStorage.removeItem('salaSincronizacionPass');
             window.cambiarPerfil();
         };
 
@@ -1811,6 +1914,20 @@
                     const txtN = document.getElementById('notas-fijas');
                     if(txtN) txtN.value = window.notasFijas;
 
+                    // Renderizar usuarios conectados
+                    const conectados = data.conectados || [];
+                    document.getElementById('connected-users-count').innerText = conectados.length + ' usuario(s)';
+                    const listaConectadosEl = document.getElementById('lista-usuarios-conectados');
+                    if(conectados.length > 0) {
+                        let htmlUsr = '';
+                        conectados.forEach(u => {
+                            htmlUsr += '<div class="text-[10px] text-slate-700 bg-blue-50 px-2 py-0.5 rounded flex items-center gap-1 font-semibold">🟢 ' + u + '</div>';
+                        });
+                        listaConectadosEl.innerHTML = htmlUsr;
+                    } else {
+                        listaConectadosEl.innerHTML = '<p class="text-[10px] text-slate-400 italic">Nadie conectado aún.</p>';
+                    }
+
                     window.actualizarSelectPacientes();
                     window.renderizarResumenEnfermeros();
                     window.renderizarListaHome();
@@ -1823,6 +1940,8 @@
                     if(cloudStatus) cloudStatus.innerHTML = '🟢 Conectado';
                     const activeRoom = document.getElementById('active-room-code');
                     if(activeRoom) activeRoom.innerText = codigo;
+                    const btnSalir = document.getElementById('btn-salir-sala');
+                    if(btnSalir) btnSalir.classList.remove('hidden');
                 }
             });
         };
