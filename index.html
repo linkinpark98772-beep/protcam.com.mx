@@ -1471,18 +1471,81 @@
                 const ahora = new Date().getTime();
                 med.ultimaToma = ahora;
                 if (!med.historial) med.historial = [];
-                    <div class="flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-                        <div>
-                            <span class="text-[10px] text-slate-400 font-semibold block">Existencia Actual</span>
-                            <b class="text-sm ' + (esCritico ? 'text-rose-600' : 'text-slate-900') + '">' + stockVal + ' ' + unidadTexto + '</b>
-                        </div>
-                        <div>
-                            <button onclick="abrirModalStock(\'' + med.id + '\')" class="bg-amber-600 text-white font-semibold px-4 py-2.5 rounded-2xl text-xs shadow-sm hover:bg-amber-700 transition">➕ Surtir / Recargar</button>
-                        </div>
-                    </div>
+                med.historial.push(ahora);
+
+                // Descontar del stock si tiene números en la dosis
+                const numMatch = (med.dosis || '').match(/(\d+(\.\d+)?)/);
+                const cantDescontar = numMatch ? parseFloat(numMatch[1]) : 1;
+                if (med.stock !== undefined && med.stock > 0) {
+                    med.stock = Math.max(0, med.stock - cantDescontar);
+                }
+
+                window.guardarYRenderizar();
+                window.mostrarNotificacion('✅ Toma registrada correctamente', 'exito');
+            }
+        };
+
+        window.abrirModalStock = function(id) {
+            document.getElementById('stock-med-id').value = id;
+            document.getElementById('input-stock-add').value = '';
+            document.getElementById('modal-stock').classList.remove('hidden');
+        };
+
+        window.cerrarModalStock = function() {
+            document.getElementById('modal-stock').classList.add('hidden');
+        };
+
+        window.guardarRecargaStock = function() {
+            const id = document.getElementById('stock-med-id').value;
+            const cant = parseFloat(document.getElementById('input-stock-add').value) || 0;
+            const med = window.medicamentos.find(m => m.id === id);
+            if (med && cant > 0) {
+                med.stock = (med.stock || 0) + cant;
+                window.cerrarModalStock();
+                window.guardarYRenderizar();
+                window.mostrarNotificacion('📦 Stock actualizado (+' + cant + ')', 'exito');
+            }
+        };
+
+        window.renderizarInventario = function() {
+            const contenedor = document.getElementById('contenedor-inventario');
+            if (!contenedor) return;
+            const medsPaciente = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId);
+            if (medsPaciente.length === 0) {
+                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4 bg-white rounded-3xl border">No hay medicamentos ni insumos en el inventario de este paciente.</p>';
+                return;
+            }
+
+            let html = '';
+            medsPaciente.forEach(med => {
+                const stockVal = med.stock !== undefined ? med.stock : 0;
+                const esCritico = stockVal <= 5;
+                let unidadTexto = 'unidades';
+                if (med.via && (med.via.includes('Inhalado') || med.via.includes('Nebulización'))) unidadTexto = 'disparos / dosis';
+                else if (med.via && (med.via.includes('Gotas') || med.via.includes('Oftálmica'))) unidadTexto = 'gotas / ml';
+                else if (med.via && med.via.includes('Oral')) unidadTexto = 'pastillas / piezas';
+
+                html += '<div class="bg-white p-5 rounded-3xl border ' + (esCritico ? 'border-rose-300' : 'border-slate-200') + ' shadow-sm space-y-3">' +
+                    '<div class="flex justify-between items-center">' +
+                        '<div>' +
+                            '<h3 class="font-extrabold text-sm text-slate-900">' + med.nombre + '</h3>' +
+                            '<span class="text-[11px] text-slate-500 font-medium">' + (med.via || 'Oral 💊') + '</span>' +
+                        '</div>' +
+                        '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-rose-600 font-bold p-1">🗑️</button>' +
+                    '</div>' +
+                    '<div class="flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-100">' +
+                        '<div>' +
+                            '<span class="text-[10px] text-slate-400 font-semibold block">Existencia Actual</span>' +
+                            '<b class="text-sm ' + (esCritico ? 'text-rose-600' : 'text-slate-900') + '">' + stockVal + ' ' + unidadTexto + '</b>' +
+                        '</div>' +
+                        '<div>' +
+                            '<button onclick="abrirModalStock(\'' + med.id + '\')" class="bg-amber-600 text-white font-semibold px-4 py-2.5 rounded-2xl text-xs shadow-sm hover:bg-amber-700 transition">➕ Surtir / Recargar</button>' +
+                        '</div>' +
+                    '</div>' +
                     (esCritico ? '<p class="text-[11px] text-rose-600 font-bold text-center">⚠️ ¡Stock bajo o en 0! Recarga las existencias aquí.</p>' : '') +
                 '</div>';
             });
+            contenedor.innerHTML = html;
         };
 
         window.mostrarNotificacion = function(mensaje, tipo = 'info') {
