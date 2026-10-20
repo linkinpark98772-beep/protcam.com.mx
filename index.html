@@ -25,7 +25,7 @@
         button:hover:not(:disabled) {
             transform: translateY(-2px);
             filter: brightness(1.06);
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25), 0 4px 6px -4px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);
         }
         button:active:not(:disabled) {
             transform: translateY(0px) scale(0.97);
@@ -37,9 +37,10 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 font-sans selection:bg-blue-100 selection:text-blue-700">
 
+    <!-- Pantalla Intro / Video Animado -->
     <div id="intro-overlay" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center transition-opacity duration-700 px-4">
         <div class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mb-6 overflow-hidden rounded-3xl shadow-2xl shadow-blue-500/20">
-            <!-- Video intro inspirado en diseño médico profesional -->
+            <!-- Video intro clínico -->
             <video autoplay muted playsinline class="absolute inset-0 w-full h-full object-cover opacity-90">
                 <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-with-medical-data-41582-large.mp4" type="video/mp4">
                 Tu navegador no soporta videos.
@@ -50,23 +51,26 @@
         <p class="text-blue-200 text-[11px] sm:text-xs tracking-widest uppercase mt-2 opacity-75 font-semibold text-center">Plataforma Clínica Inteligente</p>
     </div>
 
-    <header class="bg-white/90 backdrop-blur-md border-b border-slate-100 text-slate-800 px-4 sm:px-8 py-4 shadow-sm sticky top-0 z-20 flex justify-between items-center max-w-4xl mx-auto rounded-b-3xl">
-        <div class="flex items-center gap-3">
-            <button onclick="irANav('home')" id="btn-home-back" class="text-slate-600 font-bold p-2 rounded-xl hover:bg-slate-100 transition hidden text-sm flex items-center gap-1 shadow-sm"><span>⬅️</span> Volver</button>
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-base shadow-md shadow-blue-500/20">+</div>
-                <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900" id="titulo-header">Asistente Digital de Salud</h1>
+    <!-- Header Superior Minimalista Responsivo -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-100 text-slate-800 px-4 sm:px-8 py-3.5 shadow-sm sticky top-0 z-20 flex justify-between items-center max-w-4xl mx-auto rounded-b-3xl">
+        <div class="flex items-center gap-2.5">
+            <button onclick="irANav('home')" id="btn-home-back" class="text-slate-600 font-bold p-2 rounded-xl hover:bg-slate-100 transition hidden text-xs flex items-center gap-1 shadow-sm"><span>⬅️</span> Volver</button>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-500/20">+</div>
+                <h1 class="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 truncate max-w-[160px] sm:max-w-xs" id="titulo-header">Asistente Digital de Salud</h1>
             </div>
         </div>
-        <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-2">
             <button onclick="irANav('admin')" id="btn-tab-admin" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-2 rounded-xl font-semibold transition shadow-sm hidden">🛡️ Panel Admin</button>
-            <span id="badge-rol" class="text-[11px] sm:text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl font-medium border border-slate-200 shadow-sm hidden sm:inline-block"></span>
+            <span id="badge-rol" class="text-[11px] bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl font-medium border border-slate-200 shadow-sm hidden sm:inline-block"></span>
             <button onclick="cambiarPerfil()" class="text-xs bg-slate-100 text-slate-700 px-3.5 py-1.5 rounded-xl font-medium hover:bg-slate-200 transition hidden shadow-sm" id="btn-cambiar-perfil">👤 Salir</button>
         </div>
     </header>
 
+    <!-- Modal de Autenticación Moderno y Minimalista -->
     <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 flex flex-col items-center justify-center px-4 transition-all">
         
+        <!-- Logo y Título arriba del panel de login -->
         <div class="text-center mb-6 space-y-2 animate-fade-in max-w-sm">
             <div class="w-16 h-16 mx-auto bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-3xl shadow-xl shadow-blue-500/20 flex items-center justify-center">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
@@ -75,7 +79,7 @@
             <p class="text-xs text-slate-500 font-medium">Gestión clínica y control de medicamentos en tiempo real</p>
         </div>
 
-        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl shadow-slate-900/10 max-w-sm w-full space-y-6 border border-slate-100 animate-fade-in">
+        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl shadow-slate-900/10 max-w-sm w-full space-y-5 border border-slate-100 animate-fade-in">
             <div class="text-center space-y-1">
                 <h2 class="text-base sm:text-lg font-bold text-slate-900">Iniciar Sesión</h2>
                 <p class="text-slate-500 text-xs">Acceso con Google o código de sala invitado</p>
@@ -102,7 +106,7 @@
                 <p id="google-auth-error" class="text-rose-500 text-xs text-center hidden font-medium"></p>
             </div>
 
-            <!-- Formulario Acceso por Código de Sala -->
+            <!-- Formulario Acceso por Código de Sala para Invitados -->
             <div id="auth-enfermero-container" class="hidden space-y-3">
                 <p class="text-xs text-slate-700 font-bold text-center">Acceso por Código de Sala</p>
                 <input type="text" id="enfermero-nombre-invitado" placeholder="Tu Nombre (Ej. Enfermero Luis)" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs outline-none focus:border-blue-600 focus:bg-white transition font-medium">
@@ -117,6 +121,7 @@
         </div>
     </div>
 
+    <!-- Modales de Notificación y Licencia -->
     <div id="modal-bienvenida-prueba" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
         <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center space-y-4 border border-slate-100 animate-fade-in">
             <div class="w-14 h-14 mx-auto bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">🎁</div>
@@ -135,9 +140,10 @@
         </div>
     </div>
 
+    <!-- Contenido Principal de la App -->
     <main id="app-main" class="max-w-xl mx-auto mt-4 px-4 sm:px-0 space-y-5 hidden">
 
-        <!-- Barra de Sincronización en la Nube (Solo visible para el Creador / Google) -->
+        <!-- Barra de Sincronización en la Nube (Solo visible para Creador / Google) -->
         <section id="seccion-config-sala" class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 space-y-3">
             <div class="flex justify-between items-center">
                 <h2 class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span>☁️</span> Sincronización en la Nube</h2>
@@ -155,7 +161,7 @@
             <div id="sala-activa-info-cont" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hidden">
                 <div>
                     <p class="text-xs text-slate-600">Sala Activa: <b id="active-room-code" class="text-sm text-blue-600 tracking-wider font-extrabold">---</b></p>
-                    <p class="text-[10px] text-slate-400">Conectados en sala: <span id="connected-users-count" class="font-bold text-slate-600">0 usuarios</span></p>
+                    <p class="text-[10px] text-slate-400">Conectados en sala: <span id="connected-users-count" class="font-bold text-slate-600">0 usuario(s)</span></p>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="editarSalaActiva()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-[11px] font-semibold px-3 py-2 rounded-xl transition">✏️ Editar</button>
@@ -356,11 +362,21 @@
                             <label class="block text-xs font-bold text-slate-700 mb-1">Vía de Administración</label>
                             <select id="via" onchange="actualizarDosisLabel(this.value)" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 outline-none text-xs font-medium">
                                 <option value="Oral 💊">Oral 💊</option>
+                                <option value="Intramuscular 💉">Intramuscular 💉</option>
+                                <option value="Intravenosa 💉">Intravenosa 💉</option>
+                                <option value="Subcutánea 💉">Subcutánea 💉</option>
                                 <option value="Inhalado 💨">Inhalado 💨</option>
+                                <option value="Nebulización 💨">Nebulización 💨</option>
                                 <option value="Nasal 👃">Nasal 👃</option>
-                                <option value="Inyectable 💉">Inyectable 💉</option>
+                                <option value="Oftálmica 👁️">Oftálmica 👁️</option>
                                 <option value="Gotas 💧">Gotas 💧</option>
                                 <option value="Topico 🧴">Tópico 🧴</option>
+                                <option value="Intradérmica 💉">Intradérmica 💉</option>
+                                <option value="Enterales 🧪">Enterales 🧪</option>
+                                <option value="Vaginal 🌸">Vaginal 🌸</option>
+                                <option value="Nasogástrica 🩺">Nasogástrica 🩺</option>
+                                <option value="Orogástrica 🩺">Orogástrica 🩺</option>
+                                <option value="Parenteral 🩸">Parenteral 🩸</option>
                             </select>
                         </div>
                         <div>
@@ -463,6 +479,7 @@
 
     </main>
 
+    <!-- Modal Pacientes -->
     <div id="modal-paciente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
         <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 animate-fade-in">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
@@ -551,7 +568,7 @@
         </div>
     </div>
 
-    <!-- Modal para Surtir / Recargar Stock -->
+    <!-- Modal Stock -->
     <div id="modal-stock" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
         <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-xs w-full space-y-4 border border-slate-100 animate-fade-in">
             <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
@@ -570,7 +587,7 @@
         </div>
     </div>
 
-    <!-- Modal para Registrar Nuevo Artículo en Inventario Independiente -->
+    <!-- Modal Nuevo Stock -->
     <div id="modal-nuevo-stock" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
         <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full space-y-4 border border-slate-100 animate-fade-in">
             <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
@@ -587,11 +604,21 @@
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tipo de Unidad</label>
                         <select id="nuevo-stock-via" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs outline-none font-medium">
                             <option value="Oral 💊">Pastillas / Piezas 💊</option>
+                            <option value="Intramuscular 💉">Intramuscular 💉</option>
+                            <option value="Intravenosa 💉">Intravenosa 💉</option>
+                            <option value="Subcutánea 💉">Subcutánea 💉</option>
                             <option value="Inhalado 💨">Puffs / Disparos 💨</option>
-                            <option value="Nasal 👃">Spray Nasal (Disparos) 👃</option>
+                            <option value="Nebulización 💨">Nebulización 💨</option>
+                            <option value="Nasal 👃">Spray Nasal 👃</option>
+                            <option value="Oftálmica 👁️">Oftálmica 👁️</option>
                             <option value="Gotas 💧">Gotas / ml 💧</option>
-                            <option value="Inyectable 💉">Ampolletas / ml 💉</option>
                             <option value="Topico 🧴">Tópico / Piezas 🧴</option>
+                            <option value="Intradérmica 💉">Intradérmica 💉</option>
+                            <option value="Enterales 🧪">Enterales 🧪</option>
+                            <option value="Vaginal 🌸">Vaginal 🌸</option>
+                            <option value="Nasogástrica 🩺">Nasogástrica 🩺</option>
+                            <option value="Orogástrica 🩺">Orogástrica 🩺</option>
+                            <option value="Parenteral 🩸">Parenteral 🩸</option>
                         </select>
                     </div>
                     <div>
@@ -607,8 +634,8 @@
         </div>
     </div>
 
+    <!-- Script Principal de Lógica y UI -->
     <script>
-        // Ocultar animación intro al cargar
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const intro = document.getElementById('intro-overlay');
@@ -625,7 +652,6 @@
             { id: '1', nombre: 'Paciente Principal (Ej. Juan Pérez)', edad: '70', diabetico: 'No Diabético', padecimientos: 'Hipertensión', cirugias: 'Ninguna', alergias: 'Ninguna' }
         ];
         window.pacienteActivoId = localStorage.getItem('pacienteActivoIdV3') || window.pacientes[0].id;
-
         window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV17')) || [];
         
         let enfermerosDefault = [
@@ -643,7 +669,6 @@
         window.pushToCloud = async function() {};
         window.conectarSala = function(codigo) {};
 
-        // --- GESTIÓN DE PACIENTES Y FICHA CLÍNICA ---
         window.actualizarSelectPacientes = function() {
             const select = document.getElementById('select-paciente-activo');
             if(!select) return;
@@ -678,6 +703,7 @@
             window.generarCronograma();
             window.renderizarLista();
             window.renderizarInventario();
+            window.pushToCloud();
         };
 
         window.abrirModalPaciente = function() {
@@ -720,16 +746,7 @@
                 return;
             }
 
-            const nuevo = {
-                id: Date.now().toString(),
-                nombre,
-                edad,
-                diabetico,
-                padecimientos,
-                cirugias,
-                alergias
-            };
-
+            const nuevo = { id: Date.now().toString(), nombre, edad, diabetico, padecimientos, cirugias, alergias };
             window.pacientes.push(nuevo);
             localStorage.setItem('pacientesClinicosV3', JSON.stringify(window.pacientes));
             
@@ -757,7 +774,6 @@
             window.pushToCloud();
         };
 
-        // --- NAVEGACIÓN ---
         window.irANav = function(vistaId) {
             ['home', 'horarios', 'finanzas', 'medicamentos', 'calendario', 'inventario', 'admin'].forEach(v => {
                 const el = document.getElementById('vista-' + v);
@@ -791,7 +807,6 @@
         window.actualizarOpcionesStockEnFormulario = function() {
             const selectEl = document.getElementById('select-stock-med');
             if (!selectEl) return;
-
             let opcionesSelect = '<option value="">-- 📦 Seleccionar de tu inventario o escribir abajo --</option>';
             window.medicamentos.forEach(med => {
                 if(med.pacienteId === window.pacienteActivoId) {
@@ -831,15 +846,15 @@
         window.actualizarDosisLabel = function(via) {
             const labelDosis = document.getElementById('label-dosis');
             const inputDosis = document.getElementById('dosis-cantidad');
-            if (via.includes('Inhalado') || via.includes('Nasal')) {
+            if (via.includes('Inhalado') || via.includes('Nebulización') || via.includes('Nasal')) {
                 labelDosis.innerText = 'Dosis (Puffs / Disparos)';
                 inputDosis.placeholder = 'Ej. 2 puffs';
-            } else if (via.includes('Gotas')) {
+            } else if (via.includes('Gotas') || via.includes('Oftálmica')) {
                 labelDosis.innerText = 'Dosis (Gotas)';
-                inputDosis.placeholder = 'Ej. 5 gotas';
-            } else if (via.includes('Inyectable')) {
+                inputDosis.placeholder = 'Ej. 2 gotas';
+            } else if (via.includes('Intramuscular') || via.includes('Intravenosa') || via.includes('Subcutánea') || via.includes('Parenteral')) {
                 labelDosis.innerText = 'Dosis (Mililitros / UI)';
-                inputDosis.placeholder = 'Ej. 10 ml';
+                inputDosis.placeholder = 'Ej. 5 ml';
             } else {
                 labelDosis.innerText = 'Dosis (Pastillas / Unidades)';
                 inputDosis.placeholder = 'Ej. 1 tableta';
@@ -871,7 +886,6 @@
             }
         };
 
-        // --- AUTENTICACIÓN ---
         window.mostrarFormEnfermero = function() {
             document.getElementById('auth-buttons').classList.add('hidden');
             document.getElementById('auth-enfermero-container').classList.remove('hidden');
@@ -909,7 +923,7 @@
                 if(seccionConfig) seccionConfig.classList.remove('hidden');
             } else {
                 document.getElementById('badge-rol').innerText = '👤 Invitado (' + detalle + ')';
-                if(seccionConfig) seccionConfig.classList.add('hidden'); // Ocultar panel de configuración a invitados
+                if(seccionConfig) seccionConfig.classList.add('hidden'); // Ocultar configuración de sala a invitados
             }
 
             if(window.currentRoom) {
@@ -956,7 +970,6 @@
             document.getElementById('modal-bienvenida-prueba').classList.add('hidden');
         };
 
-        // --- GESTIÓN DE PERSONAL ---
         window.cambiarTipoPagoModal = function(tipo) {
             const labelMonto = document.getElementById('label-monto-pago');
             const inputPago = document.getElementById('input-enf-pago');
@@ -1101,7 +1114,6 @@
             }
         };
 
-        // --- CÁLCULOS CLÍNICOS Y FINANZAS ---
         window.renderizarResumenEnfermeros = function() {
             const contenedor = document.getElementById('contenedor-enfermeros-resumen');
             if (!contenedor) return;
@@ -1305,7 +1317,6 @@
             if(el) el.value = ahora.toISOString().slice(0, 16);
         };
 
-        // --- FORMULARIO MEDICAMENTOS ---
         const form = document.getElementById('form-medicamento');
         const txtNotas = document.getElementById('notas-fijas');
 
@@ -1315,7 +1326,7 @@
             window.notasFijas = txtNotas.value;
             localStorage.setItem('notasFijas', window.notasFijas);
             clearTimeout(timeoutNotas);
-            timeoutNotas = setTimeout(function() { window.pushToCloud(); }, 1500);
+            timeoutNotas = setTimeout(function() { window.pushToCloud(); }, 1000);
         });
 
         form.addEventListener('submit', function(e) {
@@ -1375,7 +1386,6 @@
             window.irANav('calendario');
         });
 
-        // --- INVENTARIO Y STOCK INDEPENDIENTE ---
         window.abrirModalNuevoStock = function() {
             document.getElementById('nuevo-stock-nombre').value = '';
             document.getElementById('nuevo-stock-cant').value = '';
@@ -1430,6 +1440,7 @@
             window.renderizarLista();
             window.renderizarInventario();
             window.actualizarOpcionesStockEnFormulario();
+            window.pushToCloud();
         };
 
         window.eliminar = function(id) {
@@ -1499,9 +1510,9 @@
                 const esCritico = stockVal <= 5;
 
                 let unidadTexto = 'piezas';
-                if (med.via && (med.via.includes('Inhalado') || med.via.includes('Nasal'))) unidadTexto = 'puffs / disparos';
-                else if (med.via && med.via.includes('Gotas')) unidadTexto = 'gotas / ml';
-                else if (med.via && med.via.includes('Inyectable')) unidadTexto = 'ml / UI';
+                if (med.via && (med.via.includes('Inhalado') || med.via.includes('Nebulización') || med.via.includes('Nasal'))) unidadTexto = 'puffs / disparos';
+                else if (med.via && (med.via.includes('Gotas') || med.via.includes('Oftálmica'))) unidadTexto = 'gotas / ml';
+                else if (med.via && (med.via.includes('Intramuscular') || med.via.includes('Intravenosa') || med.via.includes('Subcutánea') || med.via.includes('Parenteral'))) unidadTexto = 'ml / UI';
 
                 contenedor.innerHTML += '<div class="bg-white p-5 rounded-3xl border ' + (esCritico ? 'border-rose-300 shadow-sm bg-rose-50/20' : 'border-slate-200 shadow-sm') + ' space-y-3">' +
                     '<div class="flex justify-between items-start">' +
@@ -1690,6 +1701,7 @@
         }, 1000);
     </script>
 
+    <!-- Script de Firebase y Sincronización en Tiempo Real -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1952,7 +1964,6 @@
             window.conectarSala(codigo);
             
             document.getElementById('active-room-code').innerText = codigo;
-            
             document.getElementById('creador-sala-cont').classList.add('hidden');
             document.getElementById('sala-activa-info-cont').classList.remove('hidden');
 
@@ -1981,7 +1992,7 @@
             localStorage.removeItem('esCreadorSalaV2');
 
             document.getElementById('active-room-code').innerText = '---';
-            document.getElementById('connected-users-count').innerText = '0 usuarios';
+            document.getElementById('connected-users-count').innerText = '0 usuario(s)';
             document.getElementById('lista-usuarios-conectados').innerHTML = '<p class="text-[10px] text-slate-400 italic">Nadie conectado aún.</p>';
             
             document.getElementById('creador-sala-cont').classList.remove('hidden');
@@ -2080,20 +2091,6 @@
             } catch(e) { console.error("Error registrando salida:", e); }
         }
 
-        window.salirSala = async function() {
-            if(window.currentRoom) {
-                await registrarSalidaSala(window.currentRoom);
-            }
-            if(unsub) unsub();
-            window.currentRoom = null;
-            window.currentRoomPass = '';
-            window.esCreadorSala = false;
-            localStorage.removeItem('salaSincronizacion');
-            localStorage.removeItem('salaSincronizacionPass');
-            localStorage.removeItem('esCreadorSalaV2');
-            window.cambiarPerfil();
-        };
-
         window.conectarSala = function(codigo) {
             if(!db) return;
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
@@ -2102,18 +2099,25 @@
             unsub = onSnapshot(docRef, function(docSnap) {
                 if(docSnap.exists()) {
                     const data = docSnap.data();
-                    window.pacientes = data.pacientes || window.pacientes;
-                    window.medicamentos = data.medicamentos || [];
-                    window.enfermeros = data.enfermeros || window.enfermeros;
-                    window.notasFijas = data.notas || '';
                     
-                    localStorage.setItem('pacientesClinicosV3', JSON.stringify(window.pacientes));
-                    localStorage.setItem('medicamentosPacientesV17', JSON.stringify(window.medicamentos));
-                    localStorage.setItem('enfermerosConfigV9', JSON.stringify(window.enfermeros));
-                    localStorage.setItem('notasFijas', window.notasFijas);
-
-                    const txtN = document.getElementById('notas-fijas');
-                    if(txtN) txtN.value = window.notasFijas;
+                    if (data.pacientes) {
+                        window.pacientes = data.pacientes;
+                        localStorage.setItem('pacientesClinicosV3', JSON.stringify(window.pacientes));
+                    }
+                    if (data.medicamentos) {
+                        window.medicamentos = data.medicamentos;
+                        localStorage.setItem('medicamentosPacientesV17', JSON.stringify(window.medicamentos));
+                    }
+                    if (data.enfermeros) {
+                        window.enfermeros = data.enfermeros;
+                        localStorage.setItem('enfermerosConfigV9', JSON.stringify(window.enfermeros));
+                    }
+                    if (data.notas !== undefined) {
+                        window.notasFijas = data.notas;
+                        localStorage.setItem('notasFijas', window.notasFijas);
+                        const txtN = document.getElementById('notas-fijas');
+                        if(txtN && document.activeElement !== txtN) txtN.value = window.notasFijas;
+                    }
 
                     const conectados = data.conectados || [];
                     document.getElementById('connected-users-count').innerText = conectados.length + ' usuario(s)';
