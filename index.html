@@ -1471,119 +1471,119 @@
                 const ahora = new Date().getTime();
                 med.ultimaToma = ahora;
                 if (!med.historial) med.historial = [];
-                med.historial.push(ahora);
-
-                if (med.stock !== undefined && med.stock > 0) {
-                    const numExtraido = parseFloat(med.dosis);
-                    const descuento = (!isNaN(numExtraido) && numExtraido > 0) ? numExtraido : 1;
-                    med.stock = Math.max(0, med.stock - descuento);
-                }
-
-                window.guardarYRenderizar();
-            }
-        };
-
-        window.abrirModalStock = function(id) {
-            document.getElementById('stock-med-id').value = id;
-            const med = window.medicamentos.find(m => m.id === id);
-            if(med) {
-                document.getElementById('label-modal-stock').innerText = 'Añadir existencias a: ' + med.nombre;
-            }
-            document.getElementById('input-stock-add').value = '';
-            document.getElementById('modal-stock').classList.remove('hidden');
-        };
-
-        window.cerrarModalStock = function() {
-            document.getElementById('modal-stock').classList.add('hidden');
-        };
-
-        window.guardarRecargaStock = function() {
-            const id = document.getElementById('stock-med-id').value;
-            const cantidad = parseFloat(document.getElementById('input-stock-add').value) || 0;
-            const med = window.medicamentos.find(m => m.id === id);
-            if(med) {
-                med.stock = Math.max(0, (med.stock || 0) + cantidad);
-                window.guardarYRenderizar();
-            }
-            window.cerrarModalStock();
-        };
-
-        window.renderizarInventario = function() {
-            const contenedor = document.getElementById('contenedor-inventario');
-            if(!contenedor) return;
-            contenedor.innerHTML = '';
-
-            const medsPaciente = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId);
-
-            if (medsPaciente.length === 0) {
-                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6 bg-white rounded-3xl border">No hay fármacos para este paciente en el inventario. Usa el botón "+ Añadir Stock".</p>';
-                return;
-            }
-
-            medsPaciente.forEach(med => {
-                const stockVal = med.stock !== undefined ? med.stock : 0;
-                const esCritico = stockVal <= 5;
-
-                let unidadTexto = 'piezas';
-                if (med.via && (med.via.includes('Inhalado') || med.via.includes('Nebulización') || med.via.includes('Nasal'))) unidadTexto = 'puffs / disparos';
-                else if (med.via && (med.via.includes('Gotas') || med.via.includes('Oftálmica'))) unidadTexto = 'gotas / ml';
-                else if (med.via && (med.via.includes('Intramuscular') || med.via.includes('Intravenosa') || med.via.includes('Subcutánea') || med.via.includes('Parenteral'))) unidadTexto = 'ml / UI';
-
-                contenedor.innerHTML += '<div class="bg-white p-5 rounded-3xl border ' + (esCritico ? 'border-rose-300 shadow-sm bg-rose-50/20' : 'border-slate-200 shadow-sm') + ' space-y-3">' +
-                    '<div class="flex justify-between items-start">' +
-                        '<div>' +
-                            '<h3 class="font-extrabold text-sm text-slate-900">' + med.nombre + '</h3>' +
-                            '<span class="text-[10px] text-slate-500 font-medium">' + (med.via || 'Oral 💊') + (med.esFijo ? ' • Dosis: ' + med.dosis : ' • Solo en Inventario') + '</span>' +
-                        '</div>' +
-                        '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-rose-600 text-xs font-bold p-1">🗑️</button>' +
-                    '</div>' +
-                    '<div class="flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-100">' +
-                        '<div>' +
-                            '<span class="text-[10px] text-slate-400 font-semibold block">Existencia Actual</span>' +
-                            '<b class="text-sm ' + (esCritico ? 'text-rose-600' : 'text-slate-900') + '">' + stockVal + ' ' + unidadTexto + '</b>' +
-                        '</div>' +
-                        '<div>' +
-                            '<button onclick="abrirModalStock(\'' + med.id + '\')" class="bg-amber-600 text-white font-semibold px-4 py-2.5 rounded-2xl text-xs shadow-sm hover:bg-amber-700 transition">➕ Surtir / Recargar</button>' +
-                        '</div>' +
-                    '</div>' +
+                    <div class="flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-semibold block">Existencia Actual</span>
+                            <b class="text-sm ' + (esCritico ? 'text-rose-600' : 'text-slate-900') + '">' + stockVal + ' ' + unidadTexto + '</b>
+                        </div>
+                        <div>
+                            <button onclick="abrirModalStock(\'' + med.id + '\')" class="bg-amber-600 text-white font-semibold px-4 py-2.5 rounded-2xl text-xs shadow-sm hover:bg-amber-700 transition">➕ Surtir / Recargar</button>
+                        </div>
+                    </div>
                     (esCritico ? '<p class="text-[11px] text-rose-600 font-bold text-center">⚠️ ¡Stock bajo o en 0! Recarga las existencias aquí.</p>' : '') +
                 '</div>';
             });
         };
 
-        // AJUSTE GLOBAL INTELIGENTE DE TODO EL CICLO DEL MEDICAMENTO AL SIGUIENTE TURNO CON PERSONAL
+        window.mostrarNotificacion = function(mensaje, tipo = 'info') {
+            let notif = document.getElementById('toast-notificacion');
+            if (!notif) {
+                notif = document.createElement('div');
+                notif.id = 'toast-notificacion';
+                notif.className = 'fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-sm z-50 p-4 rounded-2xl shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-0 flex items-center gap-2.5 border';
+                document.body.appendChild(notif);
+            }
+            if (tipo === 'exito') {
+                notif.className = 'fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-sm z-50 p-4 rounded-2xl shadow-2xl text-xs font-bold transition-all duration-300 bg-emerald-900 text-white border-emerald-500 flex items-center gap-2.5';
+            } else if (tipo === 'alerta') {
+                notif.className = 'fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-sm z-50 p-4 rounded-2xl shadow-2xl text-xs font-bold transition-all duration-300 bg-rose-900 text-white border-rose-500 flex items-center gap-2.5';
+            } else {
+                notif.className = 'fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-sm z-50 p-4 rounded-2xl shadow-2xl text-xs font-bold transition-all duration-300 bg-slate-900 text-white border-slate-700 flex items-center gap-2.5';
+            }
+            notif.innerHTML = '<span>' + mensaje + '</span>';
+            notif.style.opacity = '1';
+            clearTimeout(window.timeoutToast);
+            window.timeoutToast = setTimeout(() => {
+                if (notif) notif.style.opacity = '0';
+            }, 4500);
+        };
+
+        // AJUSTE GLOBAL INTELIGENTE DE TODO EL CICLO DEL MEDICAMENTO PARA QUE TODAS LAS TOMAS CONCUERDEN CON PERSONAL
         window.ajustarAlSiguienteEnfermero = function(id) {
             const med = window.medicamentos.find(m => m.id === id);
             if (!med || !med.esFijo) return;
 
-            let testMs = new Date().getTime();
-            let encontrado = false;
-            
-            // Buscar hacia adelante minuto a minuto (hasta 7 días / 10080 minutos) el primer momento válido con personal
-            for (let minOffset = 0; minOffset < 10080; minOffset += 15) {
-                let tiempoPrueba = testMs + (minOffset * 60000);
-                if (!window.caeEnHorarioSinEnfermero(new Date(tiempoPrueba))) {
-                    // Encontramos un momento con personal. Vamos a alinear la ultimaToma para que las repeticiones cada 'frecuencia' horas caigan en horas válidas.
-                    // Buscamos hacia atrás desde este tiempo válido el ancla original que mantenga el intervalo de frecuencia exacto.
-                    let baseToma = med.ultimaToma;
-                    while (baseToma <= tiempoPrueba) {
-                        baseToma += (med.frecuencia * 3600000);
+            const ahora = new Date().getTime();
+            const freqMs = med.frecuencia * 3600000;
+            const tomasPorDia = Math.max(1, Math.round(24 / med.frecuencia));
+
+            // 1. Encontrar la primera toma futura actual como punto de referencia
+            let proxActual = med.ultimaToma + freqMs;
+            while (proxActual <= ahora) {
+                proxActual += freqMs;
+            }
+
+            let mejorCandidatoPrimeraToma = null;
+            let menorConflictos = 999;
+            let mejorPuntajeRedondo = -999;
+            let menorDesplazamiento = Infinity;
+
+            // 2. Probar todos los posibles horarios en un ciclo completo (en bloques de 15 minutos)
+            // para encontrar el ciclo donde TODAS las tomas del día caigan en horarios CON personal.
+            const pasosTotales = (med.frecuencia * 4); // cada 15 mins dentro de una ventana de frecuencia
+            for (let i = 0; i < pasosTotales; i++) {
+                // Calculamos candidato a primera toma futura a partir de ahora
+                let tiempoCandidato = ahora + (i * 15 * 60000);
+                // Redondear a bloques limpios de 15 minutos en el reloj (ej. :00, :15, :30, :45)
+                let fechaCand = new Date(tiempoCandidato);
+                fechaCand.setMinutes(Math.floor(fechaCand.getMinutes() / 15) * 15, 0, 0);
+                tiempoCandidato = fechaCand.getTime();
+                if (tiempoCandidato <= ahora) tiempoCandidato += 15 * 60000;
+
+                // Evaluar todas las tomas de las próximas 24 horas con este candidato
+                let conflictosCiclo = 0;
+                for (let k = 0; k < tomasPorDia; k++) {
+                    let tomaProyectada = new Date(tiempoCandidato + (k * freqMs));
+                    if (window.caeEnHorarioSinEnfermero(tomaProyectada)) {
+                        conflictosCiclo++;
                     }
-                    while (baseToma > tiempoPrueba) {
-                        baseToma -= (med.frecuencia * 3600000);
-                    }
-                    med.ultimaToma = baseToma;
-                    encontrado = true;
-                    break;
+                }
+
+                // Preferir horas exactas en punto (:00) como 6:00 am, 2:00 pm, 10:00 pm
+                const minutosReloj = new Date(tiempoCandidato).getMinutes();
+                const puntajeRedondo = (minutosReloj === 0) ? 2 : (minutosReloj === 30 ? 1 : 0);
+                const desplazamiento = Math.abs(tiempoCandidato - proxActual);
+
+                if (
+                    conflictosCiclo < menorConflictos ||
+                    (conflictosCiclo === menorConflictos && puntajeRedondo > mejorPuntajeRedondo) ||
+                    (conflictosCiclo === menorConflictos && puntajeRedondo === mejorPuntajeRedondo && desplazamiento < menorDesplazamiento)
+                ) {
+                    menorConflictos = conflictosCiclo;
+                    mejorPuntajeRedondo = puntajeRedondo;
+                    menorDesplazamiento = desplazamiento;
+                    mejorCandidatoPrimeraToma = tiempoCandidato;
                 }
             }
 
-            if (!encontrado) {
-                alert('No se encontró ningún turno con personal en los próximos 7 días. Por favor añade un horario en "Mis Horarios y Turnos".');
-                return;
-            }
+            if (mejorCandidatoPrimeraToma !== null) {
+                // Ajustar la última toma base para que la siguiente toma sea exactamente mejorCandidatoPrimeraToma
+                med.ultimaToma = mejorCandidatoPrimeraToma - freqMs;
+                window.guardarYRenderizar();
 
-            window.guardarYRenderizar();
+                // Generar resumen de los nuevos horarios del ciclo para mostrar al usuario
+                let horariosCiclo = [];
+                for (let k = 0; k < tomasPorDia; k++) {
+                    let f = new Date(mejorCandidatoPrimeraToma + (k * freqMs));
+                    horariosCiclo.push(f.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+                }
+
+                if (menorConflictos === 0) {
+                    window.mostrarNotificacion('✅ Horarios ajustados al personal: ' + horariosCiclo.join(' • '), 'exito');
+                } else {
+                    window.mostrarNotificacion('⚠️ Se ajustó al mejor horario posible (' + horariosCiclo.join(' • ') + '), pero el hueco sin personal es mayor a ' + med.frecuencia + 'h.', 'alerta');
+                }
+            }
         };
 
         window.generarCronograma = function() {
