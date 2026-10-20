@@ -13,39 +13,38 @@
             100% { opacity: 1; }
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
+            from { opacity: 0; transform: scale(0.96); }
             to { opacity: 1; transform: scale(1); }
         }
-        .animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 font-sans selection:bg-blue-100 selection:text-blue-700">
 
-    <!-- INTRODUCCIÓN ANIMADA TIPO VIDEO MÉDICO -->
-    <div id="intro-overlay" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center transition-opacity duration-700">
-        <!-- Video Loop Background / Animation container -->
-        <div class="relative w-40 h-40 flex items-center justify-center mb-6">
+    <!-- INTRODUCCIÓN ANIMADA CON TÍTULO Y LOGO -->
+    <div id="intro-overlay" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center transition-opacity duration-700 px-4">
+        <div class="relative w-36 h-36 flex items-center justify-center mb-6">
             <div class="absolute inset-0 border-2 border-blue-400/30 rounded-full animate-ping opacity-75"></div>
-            <div class="absolute inset-0 border-2 border-dashed border-blue-500 rounded-full animate-spin" style="animation-duration: 10s;"></div>
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-6 rounded-3xl shadow-2xl shadow-blue-500/50 flex items-center justify-center transform hover:scale-105 transition">
-                <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="absolute inset-0 border-2 border-dashed border-blue-500 rounded-full animate-spin" style="animation-duration: 12s;"></div>
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-5 rounded-3xl shadow-2xl shadow-blue-500/50 flex items-center justify-center">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                 </svg>
             </div>
         </div>
-        <h1 class="text-white text-3xl font-extrabold tracking-wider opacity-0 animate-pulse duration-1000" style="animation: fadeIn 1s ease-out forwards; animation-delay: 0.3s;">Asistente Digital de Salud</h1>
-        <p class="text-blue-200 text-xs tracking-widest uppercase mt-2 opacity-75 font-semibold">Plataforma Clínica Inteligente</p>
+        <h1 class="text-white text-2xl sm:text-3xl font-extrabold tracking-tight text-center opacity-0 animate-pulse duration-1000" style="animation: fadeIn 1s ease-out forwards; animation-delay: 0.3s;">Asistente Digital de Salud</h1>
+        <p class="text-blue-200 text-xs tracking-widest uppercase mt-2 opacity-75 font-semibold text-center">Plataforma Clínica Inteligente</p>
     </div>
 
     <!-- Header superior minimalista -->
     <header class="bg-white/90 backdrop-blur-md border-b border-slate-100 text-slate-800 px-6 py-4 shadow-sm sticky top-0 z-20 flex justify-between items-center">
         <div class="flex items-center gap-3">
-            <button onclick="irANav('home')" id="btn-home-back" class="text-slate-600 font-bold p-2 rounded-xl hover:bg-slate-100 transition hidden text-sm">⬅️ Volver</button>
+            <button onclick="irANav('home')" id="btn-home-back" class="text-slate-600 font-bold p-2 rounded-xl hover:bg-slate-100 transition hidden text-sm flex items-center gap-1"><span>⬅️</span> Volver</button>
             <div class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-base shadow-md shadow-blue-500/20">+</div>
-                <h1 class="text-lg font-extrabold tracking-tight" id="titulo-header">Asistente Digital de Salud</h1>
+                <h1 class="text-lg font-extrabold tracking-tight text-slate-900" id="titulo-header">Asistente Digital de Salud</h1>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -55,25 +54,25 @@
         </div>
     </header>
 
-    <!-- Modal de Autenticación de Inicio (Estética Moderna y Minimalista) -->
-    <div id="auth-modal" class="fixed inset-0 bg-gradient-to-br from-slate-900/90 via-blue-950/90 to-slate-900 backdrop-blur-md z-40 flex flex-col items-center justify-center px-4 transition-all">
+    <!-- Modal de Autenticación de Inicio (Estética Minimalista Blanca y Azul) -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 flex flex-col items-center justify-center px-4 transition-all">
         
         <div class="text-center mb-6 space-y-2">
-            <div class="w-16 h-16 mx-auto bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-3xl shadow-2xl shadow-blue-500/30 flex items-center justify-center transform hover:rotate-6 transition duration-300">
+            <div class="w-16 h-16 mx-auto bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-3xl shadow-xl shadow-blue-500/20 flex items-center justify-center">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
             </div>
-            <h1 class="text-2xl font-extrabold text-white tracking-tight">Asistente Digital de Salud</h1>
-            <p class="text-xs text-blue-200 font-medium">Gestión clínica y control de medicamentos en tiempo real</p>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Asistente Digital de Salud</h1>
+            <p class="text-xs text-slate-500 font-medium">Gestión clínica y control de medicamentos en tiempo real</p>
         </div>
 
-        <div class="bg-white p-8 rounded-3xl shadow-2xl shadow-slate-900/20 max-w-sm w-full space-y-6 border border-slate-100 animate-fade-in">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl shadow-slate-900/10 max-w-sm w-full space-y-6 border border-slate-100 animate-fade-in">
             <div class="text-center space-y-1">
                 <h2 class="text-lg font-bold text-slate-900">Iniciar Sesión</h2>
                 <p class="text-slate-500 text-xs">Identifícate con Google o ingresa por código de sala</p>
             </div>
             
             <div class="space-y-3" id="auth-buttons">
-                <button onclick="loginConGoogle()" class="w-full bg-white border border-slate-200 text-slate-700 font-semibold py-3 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 text-xs">
+                <button onclick="loginConGoogle()" class="w-full bg-white border border-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 text-xs">
                     <svg class="w-4 h-4" viewBox="0 0 24 24">
                         <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/>
                         <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"/>
@@ -85,23 +84,23 @@
                 
                 <div class="relative flex py-1 items-center">
                     <div class="flex-grow border-t border-slate-100"></div>
-                    <span class="flex-shrink mx-3 text-slate-400 text-[10px] uppercase font-bold tracking-wider">O acceso manual</span>
+                    <span class="flex-shrink mx-3 text-slate-400 text-[10px] uppercase font-bold tracking-wider">O acceso por sala</span>
                     <div class="flex-grow border-t border-slate-100"></div>
                 </div>
 
-                <button onclick="mostrarFormEnfermero()" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-2xl shadow-md hover:bg-slate-800 transition flex items-center justify-center gap-2 text-xs"><span>🔑</span> Conectar por Código de Sala</button>
+                <button onclick="mostrarFormEnfermero()" class="w-full bg-slate-900 text-white font-semibold py-3.5 rounded-2xl shadow-md hover:bg-slate-800 transition flex items-center justify-center gap-2 text-xs"><span>🔑</span> Conectar por Código de Sala</button>
                 <p id="google-auth-error" class="text-rose-500 text-xs text-center hidden font-medium"></p>
             </div>
 
             <!-- Formulario Acceso por Código de Sala -->
             <div id="auth-enfermero-container" class="hidden space-y-3">
                 <p class="text-xs text-slate-700 font-bold text-center">Acceso por Código de Sala</p>
-                <input type="text" id="enfermero-nombre-invitado" placeholder="Tu Nombre / Personal" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs outline-none focus:border-blue-600 focus:bg-white transition font-medium">
-                <input type="text" id="enfermero-room-code" placeholder="Código de Sala (Ej. CLINICA1)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs uppercase outline-none focus:border-blue-600 focus:bg-white transition font-bold tracking-wider">
-                <input type="password" id="enfermero-room-pass" placeholder="Contraseña de la Sala" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs outline-none focus:border-blue-600 focus:bg-white transition font-medium">
+                <input type="text" id="enfermero-nombre-invitado" placeholder="Tu Nombre" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs outline-none focus:border-blue-600 focus:bg-white transition font-medium">
+                <input type="text" id="enfermero-room-code" placeholder="Código de Sala (Ej. CLINICA1)" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs uppercase outline-none focus:border-blue-600 focus:bg-white transition font-bold tracking-wider">
+                <input type="password" id="enfermero-room-pass" placeholder="Contraseña de la Sala" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs outline-none focus:border-blue-600 focus:bg-white transition font-medium">
                 <div class="flex gap-2 pt-1">
-                    <button onclick="volverASeleccion()" class="bg-slate-100 text-slate-600 font-semibold py-2.5 px-4 rounded-2xl hover:bg-slate-200 transition text-xs">Atrás</button>
-                    <button onclick="verificarEnfermeroSala()" class="flex-1 bg-blue-600 text-white font-semibold py-2.5 rounded-2xl shadow-md shadow-blue-500/20 hover:bg-blue-700 transition text-xs">Ingresar a Sala</button>
+                    <button onclick="volverASeleccion()" class="bg-slate-100 text-slate-600 font-semibold py-3 px-4 rounded-2xl hover:bg-slate-200 transition text-xs">Atrás</button>
+                    <button onclick="verificarEnfermeroSala()" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-2xl shadow-md shadow-blue-500/20 hover:bg-blue-700 transition text-xs">Ingresar a Sala</button>
                 </div>
                 <p id="enfermero-error" class="text-rose-500 text-xs text-center hidden font-medium">Sala no encontrada o contraseña incorrecta.</p>
             </div>
@@ -140,17 +139,17 @@
             <div class="space-y-2">
                 <div class="flex gap-2">
                     <input type="text" id="input-config-room-code" placeholder="Código de Sala (Ej. CLINICA1)" class="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs uppercase font-bold outline-none focus:border-blue-600 transition">
-                    <input type="password" id="input-config-room-pass" placeholder="Contraseña" class="w-32 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold outline-none focus:border-blue-600 transition">
-                    <button onclick="guardarConfigSala()" class="bg-blue-600 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-sm hover:bg-blue-700 transition">Guardar</button>
+                    <input type="password" id="input-config-room-pass" placeholder="Contraseña" class="w-28 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold outline-none focus:border-blue-600 transition">
+                    <button id="btn-guardar-sala" onclick="guardarConfigSala()" class="bg-blue-600 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-sm hover:bg-blue-700 transition">Guardar</button>
                 </div>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex justify-between items-center">
                 <div>
                     <p class="text-xs text-slate-600">Sala Activa: <b id="active-room-code" class="text-sm text-blue-600 tracking-wider font-extrabold">---</b></p>
-                    <p class="text-[10px] text-slate-400">Conectados: <span id="connected-users-count" class="font-bold text-slate-600">0 usuarios</span></p>
+                    <p class="text-[10px] text-slate-400">Conectados en sala: <span id="connected-users-count" class="font-bold text-slate-600">0 usuarios</span></p>
                 </div>
-                <button onclick="salirSala()" id="btn-salir-sala" class="bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-semibold px-3.5 py-2 rounded-xl hover:bg-rose-100 transition hidden">Desconectar</button>
+                <button onclick="cerrarSalaActiva()" id="btn-cerrar-sala" class="bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-semibold px-3.5 py-2 rounded-xl hover:bg-rose-100 transition hidden">Cerrar Sala</button>
             </div>
 
             <!-- Listado de Usuarios Conectados a la Sala -->
@@ -907,7 +906,16 @@
             if(window.currentRoom) {
                 document.getElementById('active-room-code').innerText = window.currentRoom;
                 const inputCode = document.getElementById('input-config-room-code');
-                if(inputCode) inputCode.value = window.currentRoom;
+                if(inputCode) {
+                    inputCode.value = window.currentRoom;
+                    if (!window.esCreadorSala && rolActual !== 'admin') {
+                        inputCode.disabled = true;
+                        const passInput = document.getElementById('input-config-room-pass');
+                        if(passInput) passInput.disabled = true;
+                        const btnGuardar = document.getElementById('btn-guardar-sala');
+                        if(btnGuardar) btnGuardar.classList.add('hidden');
+                    }
+                }
                 window.conectarSala(window.currentRoom);
             }
 
@@ -1931,9 +1939,46 @@
             const nombreCreador = usuarioActualObj ? (usuarioActualObj.displayName || usuarioActualObj.email) : 'Creador (Admin)';
             await registrarIngresoSala(codigo, nombreCreador);
             window.conectarSala(codigo);
+            
             document.getElementById('active-room-code').innerText = codigo;
-            document.getElementById('btn-salir-sala').classList.remove('hidden');
+            document.getElementById('btn-cerrar-sala').classList.remove('hidden');
+            
+            // Cambiar botón a Editar
+            const btnGuardar = document.getElementById('btn-guardar-sala');
+            btnGuardar.innerText = "Editar";
+            btnGuardar.className = "bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-sm transition";
+
             alert('¡Sala permanente configurada con éxito!\nCódigo: ' + codigo);
+        };
+
+        window.cerrarSalaActiva = async function() {
+            if(window.currentRoom) {
+                await registrarSalidaSala(window.currentRoom);
+            }
+            if(unsub) unsub();
+            if(db && window.currentRoom) {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', window.currentRoom);
+                try { await updateDoc(docRef, { conectados: [] }); } catch(e) {}
+            }
+            window.currentRoom = null;
+            window.currentRoomPass = '';
+            window.esCreadorSala = false;
+            localStorage.removeItem('salaSincronizacion');
+            localStorage.removeItem('salaSincronizacionPass');
+            localStorage.removeItem('esCreadorSalaV2');
+
+            document.getElementById('active-room-code').innerText = '---';
+            document.getElementById('connected-users-count').innerText = '0 usuarios';
+            document.getElementById('lista-usuarios-conectados').innerHTML = '<p class="text-[10px] text-slate-400 italic">Nadie conectado aún.</p>';
+            document.getElementById('btn-cerrar-sala').classList.add('hidden');
+            
+            const btnGuardar = document.getElementById('btn-guardar-sala');
+            btnGuardar.innerText = "Guardar";
+            btnGuardar.className = "bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-sm transition";
+            document.getElementById('input-config-room-code').value = '';
+            document.getElementById('input-config-room-pass').value = '';
+
+            alert('Se ha cerrado la sala.');
         };
 
         window.verificarEnfermeroSala = async function() {
@@ -2084,8 +2129,8 @@
                     if(cloudStatus) cloudStatus.innerHTML = '🟢 Conectado';
                     const activeRoom = document.getElementById('active-room-code');
                     if(activeRoom) activeRoom.innerText = codigo;
-                    const btnSalir = document.getElementById('btn-salir-sala');
-                    if(btnSalir) btnSalir.classList.remove('hidden');
+                    const btnCerrar = document.getElementById('btn-cerrar-sala');
+                    if(btnCerrar && (window.esCreadorSala || rolActual === 'admin')) btnCerrar.classList.remove('hidden');
                 }
             });
         };
