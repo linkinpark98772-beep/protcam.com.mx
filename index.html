@@ -140,7 +140,7 @@
                 <div class="flex gap-2">
                     <input type="text" id="input-config-room-code" placeholder="Código de Sala (Ej. CLINICA1)" class="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs uppercase font-bold outline-none focus:border-blue-600 transition">
                     <input type="password" id="input-config-room-pass" placeholder="Contraseña" class="w-28 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold outline-none focus:border-blue-600 transition">
-                    <button id="btn-guardar-sala" onclick="guardarConfigSala()" class="bg-blue-600 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-sm hover:bg-blue-700 transition">Guardar</button>
+                    <button id="btn-guardar-sala" onclick="guardarConfigSala()" class="bg-blue-600 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-sm hover:bg-blue-700 transition">Guardar Sala</button>
                 </div>
             </div>
 
@@ -1943,9 +1943,8 @@
             document.getElementById('active-room-code').innerText = codigo;
             document.getElementById('btn-cerrar-sala').classList.remove('hidden');
             
-            // Cambiar botón a Editar
             const btnGuardar = document.getElementById('btn-guardar-sala');
-            btnGuardar.innerText = "Editar";
+            btnGuardar.innerText = "Editar Sala";
             btnGuardar.className = "bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-sm transition";
 
             alert('¡Sala permanente configurada con éxito!\nCódigo: ' + codigo);
@@ -1973,7 +1972,7 @@
             document.getElementById('btn-cerrar-sala').classList.add('hidden');
             
             const btnGuardar = document.getElementById('btn-guardar-sala');
-            btnGuardar.innerText = "Guardar";
+            btnGuardar.innerText = "Guardar Sala";
             btnGuardar.className = "bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-sm transition";
             document.getElementById('input-config-room-code').value = '';
             document.getElementById('input-config-room-pass').value = '';
