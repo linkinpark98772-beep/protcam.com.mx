@@ -18,16 +18,17 @@
         }
         .animate-fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
-        /* Animaciones fluidas para todos los botones */
+        /* Animaciones fluidas avanzadas para todos los botones de la página */
         button, .btn-anim {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
         button:hover:not(:disabled) {
             transform: translateY(-2px);
-            filter: brightness(1.05);
+            filter: brightness(1.06);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25), 0 4px 6px -4px rgba(37, 99, 235, 0.25);
         }
         button:active:not(:disabled) {
-            transform: translateY(0px) scale(0.98);
+            transform: translateY(0px) scale(0.97);
         }
 
         ::-webkit-scrollbar { width: 6px; }
@@ -158,12 +159,12 @@
                 </div>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex justify-between items-center">
+            <div id="sala-activa-info-cont" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex justify-between items-center hidden">
                 <div>
                     <p class="text-xs text-slate-600">Sala Activa: <b id="active-room-code" class="text-sm text-blue-600 tracking-wider font-extrabold">---</b></p>
                     <p class="text-[10px] text-slate-400">Conectados en sala: <span id="connected-users-count" class="font-bold text-slate-600">0 usuarios</span></p>
                 </div>
-                <div id="botones-sala-activa" class="flex gap-2 hidden">
+                <div class="flex gap-2">
                     <button onclick="editarSalaActiva()" class="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-[11px] font-semibold px-3 py-2 rounded-xl transition">✏️ Editar</button>
                     <button onclick="cerrarSalaActiva()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[11px] font-semibold px-3 py-2 rounded-xl transition">🗑️ Cerrar Sala</button>
                 </div>
@@ -931,6 +932,9 @@
                         if(passInput) passInput.disabled = true;
                         const btnGuardar = document.getElementById('btn-guardar-sala');
                         if(btnGuardar) btnGuardar.classList.add('hidden');
+                    } else {
+                        document.getElementById('creador-sala-cont').classList.add('hidden');
+                        document.getElementById('sala-activa-info-cont').classList.remove('hidden');
                     }
                 }
                 window.conectarSala(window.currentRoom);
@@ -1699,7 +1703,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD6lWwHLvxi2NdiNeVzSBg3_1i5L5dWOYM",
@@ -1961,14 +1965,14 @@
             
             // Cambiar vista de botones en el panel de sala
             document.getElementById('creador-sala-cont').classList.add('hidden');
-            document.getElementById('botones-sala-activa').classList.remove('hidden');
+            document.getElementById('sala-activa-info-cont').classList.remove('hidden');
 
             alert('¡Sala permanente configurada con éxito!\nCódigo: ' + codigo);
         };
 
         window.editarSalaActiva = function() {
             document.getElementById('creador-sala-cont').classList.remove('hidden');
-            document.getElementById('botones-sala-activa').classList.add('hidden');
+            document.getElementById('sala-activa-info-cont').classList.add('hidden');
         };
 
         window.cerrarSalaActiva = async function() {
@@ -1992,7 +1996,7 @@
             document.getElementById('lista-usuarios-conectados').innerHTML = '<p class="text-[10px] text-slate-400 italic">Nadie conectado aún.</p>';
             
             document.getElementById('creador-sala-cont').classList.remove('hidden');
-            document.getElementById('botones-sala-activa').classList.add('hidden');
+            document.getElementById('sala-activa-info-cont').classList.add('hidden');
 
             document.getElementById('input-config-room-code').value = '';
             document.getElementById('input-config-room-pass').value = '';
@@ -2151,7 +2155,7 @@
                     
                     if (window.esCreadorSala || rolActual === 'admin') {
                         document.getElementById('creador-sala-cont').classList.add('hidden');
-                        document.getElementById('botones-sala-activa').classList.remove('hidden');
+                        document.getElementById('sala-activa-info-cont').classList.remove('hidden');
                     }
                 }
             });
