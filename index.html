@@ -3,125 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Clínico de Medicamentos</title>
+    <title>Asistente Digital de Salud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .parpadeo { animation: parpadear 1.5s infinite; }
         @keyframes parpadear {
             0% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.4; }
             100% { opacity: 1; }
         }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-12">
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12 font-sans selection:bg-blue-100 selection:text-blue-700">
 
-    <!-- Header superior -->
-    <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-20 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-            <button onclick="irANav('home')" id="btn-home-back" class="text-white font-bold px-2 py-1 rounded hover:bg-blue-700 transition hidden">🏠</button>
-            <h1 class="text-lg font-bold" id="titulo-header">Control de Medicamentos</h1>
+    <!-- INTRODUCCIÓN ANIMADA TIPO VIDEO MÉDICO -->
+    <div id="intro-overlay" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="relative w-36 h-36 flex items-center justify-center">
+            <!-- Círculo animado exterior -->
+            <div class="absolute inset-0 border-2 border-blue-400/30 rounded-full animate-ping opacity-75"></div>
+            <div class="absolute inset-0 border-2 border-dashed border-blue-500 rounded-full animate-spin" style="animation-duration: 8s;"></div>
+            <!-- Cruz médica central en SVG con ondas -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-5 rounded-2xl shadow-2xl shadow-blue-500/50 flex items-center justify-center transform hover:scale-105 transition">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round2" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </div>
         </div>
-        <div class="flex items-center gap-2">
-            <button onclick="irANav('admin')" id="btn-tab-admin" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded font-bold transition shadow-sm hidden">🛡️ Panel Admin</button>
-            <span id="badge-rol" class="text-[10px] bg-blue-700 px-2 py-1 rounded font-semibold text-white"></span>
-            <button onclick="cambiarPerfil()" class="text-xs bg-white text-blue-600 px-3 py-1 rounded font-bold hover:bg-blue-50 transition shadow-sm hidden" id="btn-cambiar-perfil">👤 Salir</button>
+        <h1 class="text-white text-2xl font-bold tracking-wider mt-6 opacity-0 animate-pulse duration-1000" style="animation: fadeIn 1s ease-out forwards; animation-delay: 0.3s;">Asistente Digital de Salud</h1>
+        <p class="text-blue-200 text-xs tracking-widest uppercase mt-1 opacity-75">Plataforma Clínica Inteligente</p>
+    </div>
+
+    <!-- Header superior minimalista -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-100 text-slate-800 px-5 py-3.5 shadow-sm sticky top-0 z-20 flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+            <button onclick="irANav('home')" id="btn-home-back" class="text-slate-600 font-bold p-1.5 rounded-lg hover:bg-slate-100 transition hidden text-sm">⬅️</button>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-500/20">+</div>
+                <h1 class="text-base font-bold tracking-tight" id="titulo-header">Asistente Digital de Salud</h1>
+            </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+            <button onclick="irANav('admin')" id="btn-tab-admin" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg font-semibold transition shadow-sm hidden">🛡️ Panel Admin</button>
+            <span id="badge-rol" class="text-[11px] bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-medium border border-slate-200"></span>
+            <button onclick="cambiarPerfil()" class="text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-medium hover:bg-slate-200 transition hidden" id="btn-cambiar-perfil">👤 Salir</button>
         </div>
     </header>
 
-    <!-- Modal de Autenticación de Inicio -->
-    <div id="auth-modal" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex flex-col items-center justify-center px-4 transition-all">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-6">
-            <div class="text-center">
-                <h2 class="text-2xl font-bold text-slate-800">Bienvenido</h2>
-                <p class="text-slate-500 text-sm mt-1">Identifícate con Google o ingresa con código de sala</p>
+    <!-- Modal de Autenticación de Inicio (Fondo minimalista azul claro) -->
+    <div id="auth-modal" class="fixed inset-0 bg-gradient-to-br from-slate-900/90 via-blue-950/90 to-slate-900 backdrop-blur-sm z-40 flex flex-col items-center justify-center px-4 transition-all">
+        
+        <!-- Logo y Título Arriba del Panel de Login -->
+        <div class="text-center mb-6 space-y-2">
+            <div class="w-16 h-16 mx-auto bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl shadow-xl shadow-blue-500/30 flex items-center justify-center transform hover:rotate-6 transition duration-300">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+            </div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight">Asistente Digital de Salud</h1>
+            <p class="text-xs text-blue-200 font-medium">Gestión clínica y control de medicamentos en tiempo real</p>
+        </div>
+
+        <div class="bg-white p-7 rounded-3xl shadow-2xl shadow-slate-900/10 max-w-sm w-full space-y-6 border border-slate-100">
+            <div class="text-center space-y-1">
+                <h2 class="text-lg font-bold text-slate-900">Iniciar Sesión</h2>
+                <p class="text-slate-500 text-xs">Identifícate con Google o ingresa por código de sala</p>
             </div>
             
             <div class="space-y-3" id="auth-buttons">
-                <button onclick="loginConGoogle()" class="w-full bg-white border-2 border-slate-200 text-slate-700 font-bold py-3 rounded-xl shadow-sm hover:bg-slate-50 transition flex items-center justify-center gap-2.5">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <button onclick="loginConGoogle()" class="w-full bg-white border border-slate-200 text-slate-700 font-semibold py-3 rounded-2xl shadow-sm hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2.5 text-xs">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24">
                         <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/>
                         <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"/>
                         <path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z"/>
                         <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5L1.6 17c1.9 3.9 5.8 7 10.4 7z"/>
                     </svg>
-                    <span>Iniciar sesión con Google</span>
+                    <span>Continuar con Google</span>
                 </button>
                 
                 <div class="relative flex py-1 items-center">
-                    <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="flex-shrink mx-3 text-slate-400 text-[10px] uppercase font-bold">O acceso por invitación</span>
-                    <div class="flex-grow border-t border-slate-200"></div>
+                    <div class="flex-grow border-t border-slate-100"></div>
+                    <span class="flex-shrink mx-3 text-slate-400 text-[10px] uppercase font-bold tracking-wider">O acceso por invitación</span>
+                    <div class="flex-grow border-t border-slate-100"></div>
                 </div>
 
-                <button onclick="mostrarFormEnfermero()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-md hover:bg-emerald-600 transition flex items-center justify-center gap-2"><span>🔑</span> Sesión por Invitación (Código de Sala)</button>
-                <p id="google-auth-error" class="text-red-500 text-xs text-center hidden font-bold"></p>
+                <button onclick="mostrarFormEnfermero()" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-2xl shadow-md hover:bg-slate-800 transition flex items-center justify-center gap-2 text-xs"><span>🔑</span> Conectar por Código de Sala</button>
+                <p id="google-auth-error" class="text-rose-500 text-xs text-center hidden font-medium"></p>
             </div>
 
             <!-- Formulario Acceso por Código de Sala -->
             <div id="auth-enfermero-container" class="hidden space-y-3">
-                <p class="text-sm text-slate-600 font-bold text-center">Acceso por Código de Sala</p>
-                <input type="text" id="enfermero-nombre-invitado" placeholder="Tu Nombre / Enfermero(a)" class="w-full p-3 border border-slate-300 rounded-xl text-center text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
-                <input type="text" id="enfermero-room-code" placeholder="Código de Sala Permanente (Ej. CLINICA1)" class="w-full p-3 border border-slate-300 rounded-xl text-center text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-wider">
-                <input type="password" id="enfermero-room-pass" placeholder="Contraseña de la Sala" class="w-full p-3 border border-slate-300 rounded-xl text-center text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
-                <div class="flex gap-2">
-                    <button onclick="volverASeleccion()" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl hover:bg-slate-300 transition text-xs">Atrás</button>
-                    <button onclick="verificarEnfermeroSala()" class="flex-1 bg-emerald-600 text-white font-bold py-2 rounded-xl shadow-md hover:bg-emerald-700 transition text-xs">Conectar Sala</button>
+                <p class="text-xs text-slate-700 font-bold text-center">Acceso por Código de Sala</p>
+                <input type="text" id="enfermero-nombre-invitado" placeholder="Tu Nombre / Personal" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs outline-none focus:border-blue-600 focus:bg-white transition font-medium">
+                <input type="text" id="enfermero-room-code" placeholder="Código de Sala (Ej. CLINICA1)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs uppercase outline-none focus:border-blue-600 focus:bg-white transition font-bold tracking-wider">
+                <input type="password" id="enfermero-room-pass" placeholder="Contraseña de la Sala" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs outline-none focus:border-blue-600 focus:bg-white transition font-medium">
+                <div class="flex gap-2 pt-1">
+                    <button onclick="volverASeleccion()" class="bg-slate-100 text-slate-600 font-semibold py-2.5 px-4 rounded-2xl hover:bg-slate-200 transition text-xs">Atrás</button>
+                    <button onclick="verificarEnfermeroSala()" class="flex-1 bg-blue-600 text-white font-semibold py-2.5 rounded-2xl shadow-md shadow-blue-500/20 hover:bg-blue-700 transition text-xs">Ingresar a Sala</button>
                 </div>
-                <p id="enfermero-error" class="text-red-500 text-xs text-center hidden font-bold">Sala no encontrada o contraseña incorrecta.</p>
+                <p id="enfermero-error" class="text-rose-500 text-xs text-center hidden font-medium">Sala no encontrada o contraseña incorrecta.</p>
             </div>
         </div>
     </div>
 
     <!-- Modal de Bienvenida con Prueba de 15 Días -->
-    <div id="modal-bienvenida-prueba" class="fixed inset-0 bg-slate-900 bg-opacity-90 z-50 flex items-center justify-center px-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center space-y-4">
-            <span class="text-4xl">🎁</span>
-            <h3 class="text-lg font-bold text-slate-800">¡Bienvenido a la App!</h3>
-            <p class="text-xs text-slate-600 leading-relaxed">Te has registrado exitosamente. Como regalo de bienvenida, se te han otorgado <b>15 días de prueba gratis</b> para explorar todas las funciones de control clínico y gestión en la nube.</p>
-            <button onclick="cerrarModalPrueba()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md hover:bg-blue-700 transition">Comenzar a Usar</button>
+    <div id="modal-bienvenida-prueba" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center space-y-4 border border-slate-100">
+            <div class="w-14 h-14 mx-auto bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">🎁</div>
+            <h3 class="text-lg font-extrabold text-slate-900">¡Bienvenido a la App!</h3>
+            <p class="text-xs text-slate-600 leading-relaxed font-medium">Te has registrado exitosamente. Como regalo de bienvenida, se te han otorgado <b>15 días de prueba gratis</b> para explorar todas las funciones clínicas y de sincronización en la nube.</p>
+            <button onclick="cerrarModalPrueba()" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-2xl text-xs shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition">Comenzar a Usar</button>
         </div>
     </div>
 
     <!-- Modal de Aviso de Licencia Vencida -->
-    <div id="modal-licencia" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex items-center justify-center px-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center space-y-4">
-            <span class="text-4xl">⏳</span>
-            <h3 class="text-lg font-bold text-slate-800">Tiempo de Uso Expirado</h3>
-            <p class="text-xs text-slate-600">Tu periodo de prueba de 15 días o suscripción ha expirado. Contacta al administrador para renovar tu acceso o adquirir una suscripción mensual o permanente.</p>
-            <button onclick="cerrarSesionFirebase()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs">Cerrar Sesión</button>
+    <div id="modal-licencia" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-7 rounded-3xl shadow-2xl max-w-sm w-full text-center space-y-4 border border-slate-100">
+            <div class="w-14 h-14 mx-auto bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">⏳</div>
+            <h3 class="text-lg font-extrabold text-slate-900">Periodo de Uso Expirado</h3>
+            <p class="text-xs text-slate-600 leading-relaxed font-medium">Tu periodo de prueba de 15 días o suscripción ha expirado. Contacta al administrador para renovar tu acceso permanente o mensual.</p>
+            <button onclick="cerrarSesionFirebase()" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-2xl text-xs hover:bg-slate-800 transition">Cerrar Sesión</button>
         </div>
     </div>
 
-    <main id="app-main" class="max-w-md mx-auto mt-4 px-4 space-y-6 hidden">
+    <main id="app-main" class="max-w-md mx-auto mt-4 px-4 space-y-5 hidden">
 
         <!-- Barra de Sincronización en la Nube (Solo visible para el Creador / Google) -->
-        <section id="seccion-config-sala" class="bg-blue-50 p-4 rounded-xl shadow-sm border border-blue-200 space-y-3">
+        <section id="seccion-config-sala" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
             <div class="flex justify-between items-center">
-                <h2 class="text-xs font-bold text-blue-800 flex items-center gap-1"><span>☁️</span> Sincronización en la Nube</h2>
-                <span id="cloud-status" class="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded shadow-sm border border-slate-200">Modo Local</span>
+                <h2 class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span>☁️</span> Sincronización en la Nube</h2>
+                <span id="cloud-status" class="text-[10px] font-semibold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">Modo Local</span>
             </div>
             
             <div class="space-y-2">
                 <div class="flex gap-2">
-                    <input type="text" id="input-config-room-code" placeholder="Código de Sala (Ej. CLINICA1)" class="flex-1 p-2 border border-slate-300 rounded-lg text-xs uppercase font-bold outline-none">
-                    <input type="password" id="input-config-room-pass" placeholder="Contraseña" class="w-28 p-2 border border-slate-300 rounded-lg text-xs font-bold outline-none">
-                    <button onclick="guardarConfigSala()" class="bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition">Guardar Sala</button>
+                    <input type="text" id="input-config-room-code" placeholder="Código de Sala (Ej. CLINICA1)" class="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs uppercase font-bold outline-none focus:border-blue-600 transition">
+                    <input type="password" id="input-config-room-pass" placeholder="Contraseña" class="w-28 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-600 transition">
+                    <button onclick="guardarConfigSala()" class="bg-blue-600 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow-sm hover:bg-blue-700 transition">Guardar</button>
                 </div>
             </div>
 
-            <div class="bg-white p-2.5 rounded border border-blue-100 flex justify-between items-center shadow-inner">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
                 <div>
-                    <p class="text-xs text-slate-600">Sala Activa: <b id="active-room-code" class="text-sm text-blue-700 tracking-wider">---</b></p>
-                    <p class="text-[10px] text-slate-400">Conectados en sala: <span id="connected-users-count" class="font-bold text-slate-600">0 usuarios</span></p>
+                    <p class="text-xs text-slate-600">Sala Activa: <b id="active-room-code" class="text-sm text-blue-600 tracking-wider font-extrabold">---</b></p>
+                    <p class="text-[10px] text-slate-400">Conectados: <span id="connected-users-count" class="font-bold text-slate-600">0 usuarios</span></p>
                 </div>
-                <button onclick="salirSala()" id="btn-salir-sala" class="bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold px-2.5 py-1.5 rounded hover:bg-red-100 transition hidden">Desconectar</button>
+                <button onclick="salirSala()" id="btn-salir-sala" class="bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-semibold px-3 py-1.5 rounded-xl hover:bg-rose-100 transition hidden">Desconectar</button>
             </div>
 
             <!-- Listado de Usuarios Conectados a la Sala -->
-            <div class="bg-white p-3 rounded-lg border border-blue-100 space-y-1.5">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
                 <h4 class="text-[11px] font-bold text-slate-700 flex items-center gap-1"><span>👥</span> Usuarios Conectados en esta Sala:</h4>
                 <div id="lista-usuarios-conectados" class="space-y-1 max-h-24 overflow-y-auto">
                     <p class="text-[10px] text-slate-400 italic">Nadie conectado aún.</p>
@@ -131,138 +161,139 @@
 
         <!-- ================= PÁGINA PRINCIPAL (DASHBOARD) ================= -->
         <div id="vista-home" class="space-y-4">
-            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 rounded-2xl shadow-md">
-                <h2 class="text-xl font-bold mb-1">Panel de Control Clínico</h2>
-                <p class="text-xs text-blue-100">Selecciona una sección para gestionar la atención del paciente.</p>
-            </div>
-
-            <!-- Resumen Próximas Tomas (Prioridad Superior) -->
-            <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1.5"><span>⏰</span> Tomas Próximas (Hoy y Mañana)</h2>
-                <div id="lista-medicamentos-home" class="space-y-3"></div>
+            
+            <!-- Resumen Próximas Tomas (Prioridad Superior Absoluta) -->
+            <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5"><span>⏰</span> Tomas Próximas (Hoy y Mañana)</h2>
+                <div id="lista-medicamentos-home" class="space-y-2.5"></div>
             </section>
 
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 rounded-2xl shadow-md">
+                <h2 class="text-lg font-bold mb-1">Panel de Control Clínico</h2>
+                <p class="text-xs text-blue-100 font-medium">Selecciona una sección para gestionar la atención del paciente.</p>
+            </div>
+
             <!-- Selector de Paciente Activo y Expediente Clínico -->
-            <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+            <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-slate-700 flex items-center gap-1"><span>🧑‍🦱</span> Paciente Activo:</h3>
-                    <button onclick="abrirModalPaciente()" class="text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-2.5 py-1 rounded-lg transition">➕ Gestionar Pacientes</button>
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1"><span>🧑‍🦱</span> Paciente Activo:</h3>
+                    <button onclick="abrirModalPaciente()" class="text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold px-3 py-1.5 rounded-xl transition">➕ Gestionar Pacientes</button>
                 </div>
-                <select id="select-paciente-activo" onchange="cambiarPacienteActivo(this.value)" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 bg-slate-50 outline-none">
+                <select id="select-paciente-activo" onchange="cambiarPacienteActivo(this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-blue-600 transition">
                     <option value="">-- Selecciona un paciente --</option>
                 </select>
 
                 <!-- Tarjeta Resumen de Ficha Clínica del Paciente Activo -->
                 <div id="resumen-paciente-activo-card" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1.5 hidden">
-                    <div class="flex justify-between items-center border-b pb-1">
-                        <span id="card-paciente-edad" class="font-bold text-slate-700">Edad: --</span>
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                        <span id="card-paciente-edad" class="font-bold text-slate-800">Edad: --</span>
                         <button onclick="abrirModalPaciente()" class="text-blue-600 font-semibold hover:underline text-[10px]">Ver Ficha Completa 📋</button>
                     </div>
                     <p id="card-paciente-padecimientos" class="text-slate-600"><b>Padecimientos:</b> --</p>
-                    <p id="card-paciente-alergias" class="text-red-600 font-medium"><b>Alergias / Alerta:</b> --</p>
+                    <p id="card-paciente-alergias" class="text-rose-600 font-medium"><b>Alergias / Alerta:</b> --</p>
                 </div>
             </section>
 
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="irANav('horarios')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
-                    <span class="text-3xl bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition">🧑‍⚕️</span>
-                    <span class="font-bold text-slate-700 text-sm">Mis Horarios y Turnos</span>
+                <button onclick="irANav('horarios')" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-2xl bg-blue-50 p-3 rounded-2xl group-hover:bg-blue-100 transition">🧑‍⚕️</span>
+                    <span class="font-bold text-slate-800 text-xs">Mis Horarios y Turnos</span>
                     <span class="text-[10px] text-slate-400">Personal y descansos</span>
                 </button>
 
-                <button onclick="irANav('finanzas')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
-                    <span class="text-3xl bg-emerald-50 p-3 rounded-xl group-hover:bg-emerald-100 transition">💰</span>
-                    <span class="font-bold text-slate-700 text-sm">Pagos y Sueldos</span>
+                <button onclick="irANav('finanzas')" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-2xl bg-emerald-50 p-3 rounded-2xl group-hover:bg-emerald-100 transition">💰</span>
+                    <span class="font-bold text-slate-800 text-xs">Pagos y Sueldos</span>
                     <span class="text-[10px] text-slate-400">Nómina y tarifas</span>
                 </button>
 
-                <button onclick="irANav('medicamentos')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
-                    <span class="text-3xl bg-amber-50 p-3 rounded-xl group-hover:bg-amber-100 transition">💊</span>
-                    <span class="font-bold text-slate-700 text-sm">Añadir Medicamento</span>
+                <button onclick="irANav('medicamentos')" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-2xl bg-amber-50 p-3 rounded-2xl group-hover:bg-amber-100 transition">💊</span>
+                    <span class="font-bold text-slate-800 text-xs">Añadir Medicamento</span>
                     <span class="text-[10px] text-slate-400">Registro y dosis</span>
                 </button>
 
-                <button onclick="irANav('calendario')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
-                    <span class="text-3xl bg-indigo-50 p-3 rounded-xl group-hover:bg-indigo-100 transition">📅</span>
-                    <span class="font-bold text-slate-700 text-sm">Cronograma 24h</span>
+                <button onclick="irANav('calendario')" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-2xl bg-indigo-50 p-3 rounded-2xl group-hover:bg-indigo-100 transition">📅</span>
+                    <span class="font-bold text-slate-800 text-xs">Cronograma 24h</span>
                     <span class="text-[10px] text-slate-400">Línea de tiempo y tomas</span>
                 </button>
 
-                <button onclick="irANav('inventario')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition col-span-2 flex flex-col items-center text-center gap-2 group">
-                    <span class="text-3xl bg-amber-100 p-3 rounded-xl group-hover:bg-amber-200 transition">📦</span>
-                    <span class="font-bold text-slate-700 text-sm">Inventario y Stock Independiente</span>
+                <button onclick="irANav('inventario')" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition col-span-2 flex flex-col items-center text-center gap-2 group">
+                    <span class="text-2xl bg-amber-100 p-3 rounded-2xl group-hover:bg-amber-200 transition">📦</span>
+                    <span class="font-bold text-slate-800 text-xs">Inventario y Stock Independiente</span>
                     <span class="text-[10px] text-slate-400">Control de piezas, disparos, gotas y surtir receta</span>
                 </button>
             </div>
 
             <!-- Notas Fijas -->
-            <section class="bg-yellow-50 p-4 rounded-xl shadow-sm border border-yellow-200">
-                <h2 class="text-sm font-semibold mb-2 text-yellow-800 flex items-center gap-1"><span>📌</span> Notas y Medicamentos Fijos</h2>
+            <section class="bg-amber-50/50 p-4 rounded-2xl shadow-sm border border-amber-200/60">
+                <h2 class="text-xs font-bold mb-2 text-amber-900 flex items-center gap-1.5"><span>📌</span> Notas y Medicamentos Fijos</h2>
                 <textarea id="notas-fijas" rows="2" placeholder="Ej. Insulina 8:00 AM todos los días..." 
-                          class="w-full p-2.5 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none text-xs bg-yellow-100/50"></textarea>
+                          class="w-full p-2.5 border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs bg-white/80 font-medium"></textarea>
             </section>
         </div>
 
         <!-- ================= PESTAÑA EXCLUSIVA PANEL DE ADMINISTRACIÓN (SOLO ADMIN) ================= -->
         <div id="vista-admin" class="space-y-4 hidden">
-            <div class="flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm">
-                <button onclick="irANav('home')" class="text-xs bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-300 transition flex items-center gap-1"><span>⬅️</span> Volver Atrás</button>
+            <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                <button onclick="irANav('home')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-3.5 py-2 rounded-xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
                 <span class="text-xs font-bold text-slate-500">Panel de Control Admin</span>
             </div>
 
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-lg border border-indigo-500/30 space-y-3">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl border border-indigo-500/30 space-y-4">
                 <div class="flex justify-between items-center border-b border-indigo-800/60 pb-3">
-                    <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-3">
                         <span class="text-2xl">🛡️</span>
                         <div>
                             <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-400">Panel de Administración Total</h2>
                             <p class="text-[10px] text-indigo-200 font-mono">Gestión de Licencias y Usuarios Registrados</p>
                         </div>
                     </div>
-                    <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2.5 py-1 rounded-full font-bold">Admin</span>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full font-bold">Admin</span>
                 </div>
-                <p class="text-xs text-slate-300 leading-relaxed">Desde esta pestaña puedes visualizar todos los usuarios que han iniciado sesión con Google, bloquear/activar cuentas y asignarles prueba de 15 días, suscripción mensual, acceso permanente o descontar días/meses.</p>
+                <p class="text-xs text-slate-300 leading-relaxed font-medium">Desde esta pestaña puedes visualizar todos los usuarios que han iniciado sesión con Google, bloquear/activar cuentas y asignarles prueba de 15 días, suscripción mensual, acceso permanente o descontar días/meses.</p>
                 <div>
                     <h3 class="text-xs font-bold text-amber-300 mb-2.5">👥 Usuarios Registrados en la App:</h3>
-                    <div id="lista-usuarios-admin" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
+                    <div id="lista-usuarios-admin" class="space-y-3 max-h-[420px] overflow-y-auto pr-1"></div>
                 </div>
             </div>
         </div>
 
         <!-- ================= VISTA MIS HORARIOS Y TURNOS ================= -->
         <div id="vista-horarios" class="space-y-4 hidden">
-            <div class="flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm">
-                <button onclick="irANav('home')" class="text-xs bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-300 transition flex items-center gap-1"><span>⬅️</span> Volver Atrás</button>
+            <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                <button onclick="irANav('home')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-3.5 py-2 rounded-xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
                 <span class="text-xs font-bold text-slate-500">Gestión de Horarios</span>
             </div>
 
-            <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div>
-                    <h2 class="font-bold text-slate-800 text-base">Mis Horarios y Turnos</h2>
-                    <p class="text-xs text-slate-500">Horarios y días laborables.</p>
+                    <h2 class="font-bold text-slate-900 text-sm">Mis Horarios y Turnos</h2>
+                    <p class="text-xs text-slate-500 font-medium">Horarios y días laborables.</p>
                 </div>
-                <button onclick="abrirModalEnfermero()" id="btn-add-enf" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1">
+                <button onclick="abrirModalEnfermero()" id="btn-add-enf" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl transition shadow-md shadow-blue-500/20 flex items-center gap-1.5">
                     <span>➕</span> Añadir Personal
                 </button>
             </div>
 
             <div class="space-y-3" id="contenedor-enfermeros-resumen"></div>
 
-            <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
-                <label class="text-xs text-red-800 font-bold block mb-2 border-b border-red-200 pb-1.5">⚠️ Reporte de Horarios SIN Personal:</label>
+            <div class="p-4 bg-rose-50/70 border border-rose-200 rounded-2xl">
+                <label class="text-xs text-rose-800 font-bold block mb-2 border-b border-rose-200 pb-1.5">⚠️ Reporte de Horarios SIN Personal:</label>
                 <div id="huecos-reporte" class="space-y-1.5"></div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="font-bold text-slate-700 text-xs mb-2">📅 Turnos de Hoy y Mañana</h3>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-blue-50 p-2.5 rounded-lg border border-blue-200">
-                        <h4 id="cal-hoy-titulo" class="font-bold text-blue-800 text-xs mb-1.5 border-b border-blue-200 pb-1">Hoy</h4>
-                        <ul id="lista-cal-hoy" class="text-[11px] space-y-1 text-slate-700"></ul>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 text-xs mb-2.5">📅 Turnos de Hoy y Mañana</h3>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div class="bg-blue-50/70 p-3 rounded-xl border border-blue-100">
+                        <h4 id="cal-hoy-titulo" class="font-bold text-blue-900 text-xs mb-2 border-b border-blue-200 pb-1">Hoy</h4>
+                        <ul id="lista-cal-hoy" class="text-[11px] space-y-1 text-slate-700 font-medium"></ul>
                     </div>
-                    <div class="bg-slate-100 p-2.5 rounded-lg border border-slate-200">
-                        <h4 id="cal-man-titulo" class="font-bold text-slate-600 text-xs mb-1.5 border-b border-slate-200 pb-1">Mañana</h4>
-                        <ul id="lista-cal-man" class="text-[11px] space-y-1 text-slate-600"></ul>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <h4 id="cal-man-titulo" class="font-bold text-slate-700 text-xs mb-2 border-b border-slate-200 pb-1">Mañana</h4>
+                        <ul id="lista-cal-man" class="text-[11px] space-y-1 text-slate-600 font-medium"></ul>
                     </div>
                 </div>
             </div>
@@ -270,14 +301,14 @@
 
         <!-- ================= VISTA FINANZAS Y PAGOS ================= -->
         <div id="vista-finanzas" class="space-y-4 hidden">
-            <div class="flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm">
-                <button onclick="irANav('home')" class="text-xs bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-300 transition flex items-center gap-1"><span>⬅️</span> Volver Atrás</button>
+            <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                <button onclick="irANav('home')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-3.5 py-2 rounded-xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
                 <span class="text-xs font-bold text-slate-500">Nómina y Pagos</span>
             </div>
 
-            <div class="bg-emerald-600 text-white p-4 rounded-2xl shadow-md">
+            <div class="bg-emerald-600 text-white p-5 rounded-3xl shadow-md">
                 <h2 class="text-base font-bold mb-1">💰 Nómina y Pagos</h2>
-                <p class="text-xs text-emerald-100">Configura sueldo fijo semanal o por hora de cada enfermero.</p>
+                <p class="text-xs text-emerald-100 font-medium">Configura sueldo fijo semanal o por hora de cada enfermero.</p>
             </div>
 
             <div id="contenedor-finanzas" class="space-y-3"></div>
@@ -285,32 +316,32 @@
 
         <!-- ================= VISTA NUEVO MEDICAMENTO ================= -->
         <div id="vista-medicamentos" class="space-y-4 hidden">
-            <div class="flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm">
-                <button onclick="irANav('calendario')" class="text-xs bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-300 transition flex items-center gap-1"><span>⬅️</span> Volver Atrás</button>
+            <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                <button onclick="irANav('calendario')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-3.5 py-2 rounded-xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
                 <span class="text-xs font-bold text-slate-500">Registro de Fármacos</span>
             </div>
 
-            <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-base font-bold text-slate-700 flex items-center gap-1.5"><span>💊</span> Registrar Medicamento</h2>
+            <section class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-1.5"><span>💊</span> Registrar Medicamento</h2>
                 </div>
-                <form id="form-medicamento" class="space-y-3.5">
+                <form id="form-medicamento" class="space-y-4">
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="block text-xs font-bold text-slate-600">Nombre del Medicamento</label>
+                            <label class="block text-xs font-bold text-slate-700">Nombre del Medicamento</label>
                             <span class="text-[10px] text-blue-600 font-semibold">Elige de stock o escribe uno nuevo</span>
                         </div>
-                        <select id="select-stock-med" onchange="seleccionarMedDeStock(this.value)" class="w-full p-2 mb-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-blue-50/60 text-slate-700 font-medium">
+                        <select id="select-stock-med" onchange="seleccionarMedDeStock(this.value)" class="w-full p-2.5 mb-2 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-blue-50/50 text-slate-800 font-semibold">
                             <option value="">-- 📦 Seleccionar de tu inventario o escribir abajo --</option>
                         </select>
                         <input type="text" id="nombre" required placeholder="Ej. Paracetamol 500mg" 
-                               class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs font-semibold text-slate-700">
+                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 focus:bg-white outline-none text-xs font-semibold text-slate-800 transition">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Vía de Administración</label>
-                            <select id="via" onchange="actualizarDosisLabel(this.value)" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-white">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Vía de Administración</label>
+                            <select id="via" onchange="actualizarDosisLabel(this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 outline-none text-xs font-medium">
                                 <option value="Oral 💊">Oral 💊</option>
                                 <option value="Inhalado 💨">Inhalado 💨</option>
                                 <option value="Nasal 👃">Nasal 👃</option>
@@ -320,15 +351,15 @@
                             </select>
                         </div>
                         <div>
-                            <label id="label-dosis" class="block text-xs font-bold text-slate-600 mb-1">Dosis</label>
+                            <label id="label-dosis" class="block text-xs font-bold text-slate-700 mb-1">Dosis</label>
                             <input type="text" id="dosis-cantidad" required placeholder="Ej. 1 tableta / 2 puffs" 
-                                   class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs">
+                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 focus:bg-white outline-none text-xs font-medium transition">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Indicación de Tiempo</label>
-                        <select id="momento" onchange="verificarMomento(this.value)" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-white">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Indicación de Tiempo</label>
+                        <select id="momento" onchange="verificarMomento(this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 outline-none text-xs font-medium">
                             <option value="Horario Fijo">Horario Regular (Cada X horas)</option>
                             <option value="Antes de desayunar">Antes de desayunar</option>
                             <option value="Después de desayunar">Después de desayunar</option>
@@ -343,8 +374,8 @@
                     
                     <div id="bloque-frecuencia" class="grid grid-cols-2 gap-3 transition-all">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Frecuencia</label>
-                            <select id="frecuencia" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Frecuencia</label>
+                            <select id="frecuencia" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 outline-none text-xs font-medium">
                                 <option value="4">Cada 4 hrs</option>
                                 <option value="6">Cada 6 hrs</option>
                                 <option value="8" selected>Cada 8 hrs</option>
@@ -353,8 +384,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Estado de Inicio</label>
-                            <select id="modo-inicio" onchange="cambiarModoInicio(this.value)" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-white">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Estado de Inicio</label>
+                            <select id="modo-inicio" onchange="cambiarModoInicio(this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 outline-none text-xs font-medium">
                                 <option value="ultima">Registrar última toma</option>
                                 <option value="nuevo">Nuevo (1ra toma ahora)</option>
                             </select>
@@ -362,12 +393,12 @@
                     </div>
 
                     <div id="contenedor-hora-toma">
-                        <label id="label-hora-toma" class="block text-xs font-bold text-slate-600 mb-1">Fecha y hora de última toma</label>
+                        <label id="label-hora-toma" class="block text-xs font-bold text-slate-700 mb-1">Fecha y hora de última toma</label>
                         <input type="datetime-local" id="ultima-toma" required 
-                               class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs">
+                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-600 focus:bg-white outline-none text-xs font-medium transition">
                     </div>
 
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-md text-xs">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 text-xs">
                         + Registrar Medicamento
                     </button>
                 </form>
@@ -376,22 +407,22 @@
 
         <!-- ================= VISTA CRONOGRAMA 24H ================= -->
         <div id="vista-calendario" class="space-y-4 hidden">
-            <div class="flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm">
-                <button onclick="irANav('home')" class="text-xs bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-300 transition flex items-center gap-1"><span>⬅️</span> Volver Atrás</button>
+            <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                <button onclick="irANav('home')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-3.5 py-2 rounded-xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
                 <span class="text-xs font-bold text-slate-500">Cronograma 24h</span>
             </div>
 
-            <section class="bg-indigo-50 p-4 rounded-xl shadow-sm border border-indigo-200">
+            <section class="bg-indigo-50/70 p-4 rounded-2xl shadow-sm border border-indigo-200">
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-sm font-semibold text-indigo-800 flex items-center gap-1.5"><span>📋</span> Cronograma de Medicamentos (24 hrs)</h2>
+                    <h2 class="text-sm font-bold text-indigo-900 flex items-center gap-1.5"><span>📋</span> Cronograma de Medicamentos (24 hrs)</h2>
                 </div>
-                <div id="cronograma-diario" class="space-y-2 relative border-l-2 border-indigo-300 ml-2 pl-4"></div>
+                <div id="cronograma-diario" class="space-y-2.5 relative border-l-2 border-indigo-300 ml-2 pl-4"></div>
             </section>
 
             <section>
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-sm font-bold text-slate-700">⏰ Lista Completa de Medicamentos</h2>
-                    <button onclick="irANav('medicamentos')" class="bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition">➕ Añadir Medicamento</button>
+                    <h2 class="text-sm font-bold text-slate-900">⏰ Lista Completa de Medicamentos</h2>
+                    <button onclick="irANav('medicamentos')" class="bg-blue-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-sm hover:bg-blue-700 transition">➕ Añadir Medicamento</button>
                 </div>
                 <div id="lista-medicamentos" class="space-y-3"></div>
             </section>
@@ -399,17 +430,17 @@
 
         <!-- ================= VISTA INVENTARIO Y STOCK INDEPENDIENTE ================= -->
         <div id="vista-inventario" class="space-y-4 hidden">
-            <div class="flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm">
-                <button onclick="irANav('home')" class="text-xs bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg hover:bg-slate-300 transition flex items-center gap-1"><span>⬅️</span> Volver Atrás</button>
+            <div class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+                <button onclick="irANav('home')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-3.5 py-2 rounded-xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
                 <span class="text-xs font-bold text-slate-500">Inventario y Stock</span>
             </div>
 
-            <div class="bg-amber-600 text-white p-4 rounded-2xl shadow-md flex justify-between items-center">
+            <div class="bg-amber-600 text-white p-5 rounded-3xl shadow-md flex justify-between items-center">
                 <div>
                     <h2 class="text-base font-bold mb-1">📦 Inventario y Existencias</h2>
-                    <p class="text-xs text-amber-100">Control independiente de piezas, puffs, gotas y mililitros.</p>
+                    <p class="text-xs text-amber-100 font-medium">Control independiente de piezas, puffs, gotas y mililitros.</p>
                 </div>
-                <button onclick="abrirModalNuevoStock()" class="bg-white text-amber-700 text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm hover:bg-amber-50">
+                <button onclick="abrirModalNuevoStock()" class="bg-white text-amber-800 text-xs font-bold px-3.5 py-2.5 rounded-2xl transition shadow-sm hover:bg-amber-50">
                     ➕ Añadir Stock
                 </button>
             </div>
@@ -420,69 +451,69 @@
     </main>
 
     <!-- Modal Gestión de Pacientes (Con Ficha Clínica Completa) -->
-    <div id="modal-paciente" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-sm font-bold text-slate-800">🧑‍🦱 Expediente y Gestión de Pacientes</h3>
-                <button onclick="cerrarModalPaciente()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+    <div id="modal-paciente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-7 rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-extrabold text-slate-900">🧑‍🦱 Expediente y Gestión de Pacientes</h3>
+                <button onclick="cerrarModalPaciente()" class="text-slate-400 hover:text-slate-700 font-bold p-1">✕</button>
             </div>
-            <div class="space-y-3.5">
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2.5">
-                    <h4 class="text-xs font-bold text-blue-700 uppercase">➕ Registrar Nuevo Paciente:</h4>
-                    <input type="text" id="nuevo-paciente-nombre" placeholder="Nombre y Apellido" class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 font-semibold">
+            <div class="space-y-4">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                    <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wider">➕ Registrar Nuevo Paciente:</h4>
+                    <input type="text" id="nuevo-paciente-nombre" placeholder="Nombre y Apellido" class="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-600 font-semibold transition">
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="number" id="nuevo-paciente-edad" placeholder="Edad (Ej. 65)" class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none">
-                        <select id="nuevo-paciente-diabetico" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white outline-none">
+                        <input type="number" id="nuevo-paciente-edad" placeholder="Edad (Ej. 65)" class="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-600 transition">
+                        <select id="nuevo-paciente-diabetico" class="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs outline-none font-medium">
                             <option value="No Diabético">No Diabético</option>
                             <option value="Diabético Tipo 1">Diabético Tipo 1</option>
                             <option value="Diabético Tipo 2">Diabético Tipo 2</option>
                         </select>
                     </div>
-                    <textarea id="nuevo-paciente-padecimientos" rows="2" placeholder="Padecimientos o enfermedades principales..." class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none"></textarea>
-                    <textarea id="nuevo-paciente-cirugias" rows="2" placeholder="Cirugías previas o antecedentes quirúrgicos..." class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none"></textarea>
-                    <textarea id="nuevo-paciente-alergias" rows="1" placeholder="Alergias a medicamentos u otros..." class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none text-red-600 font-medium"></textarea>
-                    <button onclick="agregarPaciente()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-blue-700 shadow-sm transition">+ Guardar Ficha del Paciente</button>
+                    <textarea id="nuevo-paciente-padecimientos" rows="2" placeholder="Padecimientos o enfermedades principales..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs outline-none transition"></textarea>
+                    <textarea id="nuevo-paciente-cirugias" rows="2" placeholder="Cirugías previas o antecedentes quirúrgicos..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs outline-none transition"></textarea>
+                    <textarea id="nuevo-paciente-alergias" rows="1" placeholder="Alergias a medicamentos u otros..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs outline-none text-rose-600 font-medium transition"></textarea>
+                    <button onclick="agregarPaciente()" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl text-xs hover:bg-blue-700 shadow-md shadow-blue-500/20 transition">+ Guardar Ficha del Paciente</button>
                 </div>
                 <div>
-                    <h4 class="text-xs font-bold text-slate-600 mb-2">Pacientes Registrados en la Sala:</h4>
-                    <div id="lista-pacientes-modal" class="space-y-2.5 max-h-56 overflow-y-auto"></div>
+                    <h4 class="text-xs font-bold text-slate-700 mb-2">Pacientes Registrados en la Sala:</h4>
+                    <div id="lista-pacientes-modal" class="space-y-2.5 max-h-56 overflow-y-auto pr-1"></div>
                 </div>
             </div>
-            <button onclick="cerrarModalPaciente()" class="w-full bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs">Cerrar</button>
+            <button onclick="cerrarModalPaciente()" class="w-full bg-slate-100 text-slate-700 font-semibold py-3 rounded-2xl text-xs hover:bg-slate-200 transition">Cerrar Ventana</button>
         </div>
     </div>
 
     <!-- Modal Editar / Añadir Enfermero -->
-    <div id="modal-enfermero" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 id="modal-enf-titulo" class="text-base font-bold text-slate-800">Añadir Personal</h3>
-                <button onclick="cerrarModalEnfermero()" class="text-slate-400 hover:text-slate-600 font-bold text-base">✕</button>
+    <div id="modal-enfermero" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-7 rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 id="modal-enf-titulo" class="text-base font-bold text-slate-900">Añadir Personal</h3>
+                <button onclick="cerrarModalEnfermero()" class="text-slate-400 hover:text-slate-700 font-bold p-1">✕</button>
             </div>
             
             <input type="hidden" id="edit-enf-id" value="">
             <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Personal</label>
-                <input type="text" id="input-enf-nombre" placeholder="Ej. Yael" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-slate-700">
+                <input type="text" id="input-enf-nombre" placeholder="Ej. Yael" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:border-blue-600 outline-none font-semibold text-slate-800 transition">
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo de Pago</label>
-                    <select id="input-enf-tipopago" onchange="cambiarTipoPagoModal(this.value)" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white">
+                    <select id="input-enf-tipopago" onchange="cambiarTipoPagoModal(this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium">
                         <option value="hora">Por Hora ($)</option>
                         <option value="fijo">Sueldo Fijo Semanal ($)</option>
                     </select>
                 </div>
                 <div>
                     <label id="label-monto-pago" class="block text-xs font-bold text-slate-500 uppercase mb-1">Pago por Hora ($)</label>
-                    <input type="number" id="input-enf-pago" placeholder="Ej. 120" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="number" id="input-enf-pago" placeholder="Ej. 120" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-600 transition">
                 </div>
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Día de Pago</label>
-                <select id="input-enf-diapago" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white">
+                <select id="input-enf-diapago" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium">
                     <option value="Lunes">Lunes</option>
                     <option value="Martes">Martes</option>
                     <option value="Miércoles">Miércoles</option>
@@ -495,54 +526,54 @@
 
             <div class="space-y-2">
                 <div class="flex justify-between items-center">
-                    <label class="text-xs font-bold text-slate-600 uppercase">Horarios por Día</label>
+                    <label class="text-xs font-bold text-slate-700 uppercase">Horarios por Día</label>
                     <button onclick="copiarLunesATodos()" type="button" class="text-xs text-blue-600 hover:underline font-bold">📋 Copiar Lunes a todos</button>
                 </div>
-                <div id="modal-dias-container" class="space-y-1.5"></div>
+                <div id="modal-dias-container" class="space-y-2"></div>
             </div>
 
-            <div class="flex gap-2 pt-2 border-t">
-                <button onclick="cerrarModalEnfermero()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded-xl hover:bg-slate-300 transition text-xs">Cancelar</button>
-                <button onclick="guardarEnfermeroModal()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl shadow-md hover:bg-blue-700 transition text-xs">💾 Guardar Personal</button>
+            <div class="flex gap-2 pt-3 border-t border-slate-100">
+                <button onclick="cerrarModalEnfermero()" class="flex-1 bg-slate-100 text-slate-700 font-semibold py-3 rounded-2xl hover:bg-slate-200 transition text-xs">Cancelar</button>
+                <button onclick="guardarEnfermeroModal()" class="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-2xl shadow-md shadow-blue-500/20 hover:bg-blue-700 transition text-xs">💾 Guardar Personal</button>
             </div>
         </div>
     </div>
 
     <!-- Modal para Surtir / Recargar Stock -->
-    <div id="modal-stock" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-xs w-full space-y-4">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-sm font-bold text-slate-800">📦 Surtir / Recargar Stock</h3>
-                <button onclick="cerrarModalStock()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+    <div id="modal-stock" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-7 rounded-3xl shadow-2xl max-w-xs w-full space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 class="text-sm font-extrabold text-slate-900">📦 Surtir / Recargar Stock</h3>
+                <button onclick="cerrarModalStock()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
             </div>
             <input type="hidden" id="stock-med-id" value="">
             <div>
-                <label id="label-modal-stock" class="block text-xs font-bold text-slate-600 mb-1">Cantidad a agregar</label>
-                <input type="number" id="input-stock-add" placeholder="Ej. 20" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-amber-500 font-bold">
+                <label id="label-modal-stock" class="block text-xs font-bold text-slate-700 mb-1">Cantidad a agregar</label>
+                <input type="number" id="input-stock-add" placeholder="Ej. 20" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 font-bold transition">
             </div>
-            <div class="flex gap-2">
-                <button onclick="cerrarModalStock()" class="flex-1 bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl">Cancelar</button>
-                <button onclick="guardarRecargaStock()" class="flex-1 bg-amber-600 text-white text-xs font-bold py-2 rounded-xl shadow-md hover:bg-amber-700">Guardar Stock</button>
+            <div class="flex gap-2 pt-1">
+                <button onclick="cerrarModalStock()" class="flex-1 bg-slate-100 text-slate-700 text-xs font-semibold py-3 rounded-2xl">Cancelar</button>
+                <button onclick="guardarRecargaStock()" class="flex-1 bg-amber-600 text-white text-xs font-semibold py-3 rounded-2xl shadow-md shadow-amber-500/20 hover:bg-amber-700">Guardar Stock</button>
             </div>
         </div>
     </div>
 
     <!-- Modal para Registrar Nuevo Artículo en Inventario Independiente -->
-    <div id="modal-nuevo-stock" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-4">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-sm font-bold text-slate-800">📦 Registrar Fármaco en Stock</h3>
-                <button onclick="cerrarModalNuevoStock()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+    <div id="modal-nuevo-stock" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-7 rounded-3xl shadow-2xl max-w-sm w-full space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                <h3 class="text-sm font-extrabold text-slate-900">📦 Registrar Fármaco en Stock</h3>
+                <button onclick="cerrarModalNuevoStock()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
             </div>
             <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Nombre del Fármaco / Insumo</label>
-                    <input type="text" id="nuevo-stock-nombre" placeholder="Ej. Salbutamol Spray / Jeringas" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-amber-500 font-semibold">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Fármaco / Insumo</label>
+                    <input type="text" id="nuevo-stock-nombre" placeholder="Ej. Salbutamol Spray / Jeringas" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 font-semibold transition">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Tipo de Unidad</label>
-                        <select id="nuevo-stock-via" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white outline-none">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tipo de Unidad</label>
+                        <select id="nuevo-stock-via" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none font-medium">
                             <option value="Oral 💊">Pastillas / Piezas 💊</option>
                             <option value="Inhalado 💨">Puffs / Disparos 💨</option>
                             <option value="Nasal 👃">Spray Nasal (Disparos) 👃</option>
@@ -552,40 +583,51 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">Cantidad Inicial</label>
-                        <input type="number" id="nuevo-stock-cant" placeholder="Ej. 200" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-amber-500 font-bold">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Cantidad Inicial</label>
+                        <input type="number" id="nuevo-stock-cant" placeholder="Ej. 200" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 font-bold transition">
                     </div>
                 </div>
             </div>
             <div class="flex gap-2 pt-2">
-                <button onclick="cerrarModalNuevoStock()" class="flex-1 bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">Cancelar</button>
-                <button onclick="guardarNuevoStockIndependiente()" class="flex-1 bg-amber-600 text-white text-xs font-bold py-2.5 rounded-xl shadow-md hover:bg-amber-700">Guardar en Stock</button>
+                <button onclick="cerrarModalNuevoStock()" class="flex-1 bg-slate-100 text-slate-700 text-xs font-semibold py-3 rounded-2xl">Cancelar</button>
+                <button onclick="guardarNuevoStockIndependiente()" class="flex-1 bg-amber-600 text-white text-xs font-semibold py-3 rounded-2xl shadow-md shadow-amber-500/20 hover:bg-amber-700">Guardar Stock</button>
             </div>
         </div>
     </div>
 
-    <!-- Script Principal -->
+    <!-- Script Principal de la Aplicación -->
     <script>
+        // Ocultar animación intro al cargar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const intro = document.getElementById('intro-overlay');
+                if(intro) {
+                    intro.style.opacity = '0';
+                    setTimeout(() => intro.remove(), 700);
+                }
+            }, 1200);
+        });
+
         const diasNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         
-        window.pacientes = JSON.parse(localStorage.getItem('pacientesClinicosV2')) || [
+        window.pacientes = JSON.parse(localStorage.getItem('pacientesClinicosV3')) || [
             { id: '1', nombre: 'Paciente Principal (Ej. Juan Pérez)', edad: '70', diabetico: 'No Diabético', padecimientos: 'Hipertensión', cirugias: 'Ninguna', alergias: 'Ninguna' }
         ];
-        window.pacienteActivoId = localStorage.getItem('pacienteActivoIdV2') || window.pacientes[0].id;
+        window.pacienteActivoId = localStorage.getItem('pacienteActivoIdV3') || window.pacientes[0].id;
 
-        window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV16')) || [];
+        window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV17')) || [];
         
         let enfermerosDefault = [
             { id: '1', nombre: 'Yael', tipoPago: 'hora', pagoHora: 100, sueldoFijo: 0, diaPago: 'Viernes', dias: { 1:{act:true,ini:'07:00',fin:'19:00'}, 2:{act:true,ini:'07:00',fin:'19:00'}, 3:{act:true,ini:'07:00',fin:'19:00'}, 4:{act:true,ini:'07:00',fin:'19:00'}, 5:{act:true,ini:'07:00',fin:'19:00'}, 6:{act:false,ini:'',fin:''}, 0:{act:false,ini:'',fin:''} } }
         ];
-        window.enfermeros = JSON.parse(localStorage.getItem('enfermerosConfigV8')) || enfermerosDefault;
+        window.enfermeros = JSON.parse(localStorage.getItem('enfermerosConfigV9')) || enfermerosDefault;
         window.notasFijas = localStorage.getItem('notasFijas') || '';
 
         let perfilActual = localStorage.getItem('perfilActivo') || null;
         let rolActual = localStorage.getItem('rolActual') || null;
         window.currentRoom = localStorage.getItem('salaSincronizacion') || null;
         window.currentRoomPass = localStorage.getItem('salaSincronizacionPass') || '';
-        window.esCreadorSala = localStorage.getItem('esCreadorSalaV1') === 'true';
+        window.esCreadorSala = localStorage.getItem('esCreadorSalaV2') === 'true';
 
         window.pushToCloud = async function() {};
         window.conectarSala = function(codigo) {};
@@ -618,7 +660,7 @@
 
         window.cambiarPacienteActivo = function(id) {
             window.pacienteActivoId = id;
-            localStorage.setItem('pacienteActivoIdV2', id);
+            localStorage.setItem('pacienteActivoIdV3', id);
             window.actualizarTarjetaResumenPaciente();
             window.renderizarResumenEnfermeros();
             window.renderizarListaHome();
@@ -641,14 +683,14 @@
             if(!container) return;
             let html = '';
             window.pacientes.forEach(p => {
-                html += '<div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">' +
+                html += '<div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1.5">' +
                     '<div class="flex justify-between items-center">' +
-                        '<span class="text-xs font-bold text-slate-800">🧑‍🦱 ' + p.nombre + ' (' + (p.edad || 'N/A') + ' años)</span>' +
-                        (window.pacientes.length > 1 ? '<button onclick="eliminarPaciente(\'' + p.id + '\')" class="text-red-500 text-xs font-bold hover:underline">Eliminar</button>' : '') +
+                        '<span class="text-xs font-extrabold text-slate-900">🧑‍🦱 ' + p.nombre + ' (' + (p.edad || 'N/A') + ' años)</span>' +
+                        (window.pacientes.length > 1 ? '<button onclick="eliminarPaciente(\'' + p.id + '\')" class="text-rose-600 text-xs font-semibold hover:underline">Eliminar</button>' : '') +
                     '</div>' +
                     '<p class="text-[11px] text-slate-600"><b>Condición:</b> ' + (p.diabetico || 'No especificado') + ' • <b>Padecimientos:</b> ' + (p.padecimientos || 'N/A') + '</p>' +
                     '<p class="text-[11px] text-slate-600"><b>Cirugías:</b> ' + (p.cirugias || 'N/A') + '</p>' +
-                    '<p class="text-[11px] text-red-600 font-medium"><b>Alergias:</b> ' + (p.alergias || 'Ninguna') + '</p>' +
+                    '<p class="text-[11px] text-rose-600 font-medium"><b>Alergias:</b> ' + (p.alergias || 'Ninguna') + '</p>' +
                 '</div>';
             });
             container.innerHTML = html;
@@ -678,7 +720,7 @@
             };
 
             window.pacientes.push(nuevo);
-            localStorage.setItem('pacientesClinicosV2', JSON.stringify(window.pacientes));
+            localStorage.setItem('pacientesClinicosV3', JSON.stringify(window.pacientes));
             
             document.getElementById('nuevo-paciente-nombre').value = '';
             document.getElementById('nuevo-paciente-edad').value = '';
@@ -697,7 +739,7 @@
             if(window.pacienteActivoId === id) {
                 window.pacienteActivoId = window.pacientes[0].id;
             }
-            localStorage.setItem('pacientesClinicosV2', JSON.stringify(window.pacientes));
+            localStorage.setItem('pacientesClinicosV3', JSON.stringify(window.pacientes));
             window.actualizarSelectPacientes();
             window.renderizarListaPacientesModal();
             window.cambiarPacienteActivo(window.pacienteActivoId);
@@ -717,7 +759,7 @@
 
             if(vistaId === 'home') {
                 btnBack.classList.add('hidden');
-                tituloHeader.innerText = 'Control de Medicamentos';
+                tituloHeader.innerText = 'Asistente Digital de Salud';
                 window.renderizarResumenEnfermeros();
                 window.renderizarListaHome();
             } else if(vistaId === 'admin') {
@@ -875,7 +917,7 @@
             if(window.cerrarSesionFirebase) window.cerrarSesionFirebase();
             localStorage.removeItem('perfilActivo');
             localStorage.removeItem('rolActual');
-            localStorage.removeItem('esCreadorSalaV1');
+            localStorage.removeItem('esCreadorSalaV2');
             perfilActual = null;
             rolActual = null;
             window.esCreadorSala = false;
@@ -936,14 +978,14 @@
             let htmlDias = '';
             ordenDias.forEach(d => {
                 const diaInfo = enfData.dias[d] || { act: false, ini: '', fin: '' };
-                htmlDias += '<div class="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-200">' +
+                htmlDias += '<div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">' +
                     '<label class="flex items-center gap-2 w-16 cursor-pointer">' +
                         '<input type="checkbox" id="modal-dia-' + d + '-act" ' + (diaInfo.act ? 'checked' : '') + ' onchange="toggleDiaModal(' + d + ')" class="w-4 h-4 text-blue-600 rounded cursor-pointer">' +
-                        '<span class="text-xs font-bold text-slate-700">' + diasNombres[d] + '</span>' +
+                        '<span class="text-xs font-bold text-slate-800">' + diasNombres[d] + '</span>' +
                     '</label>' +
-                    '<input type="time" id="modal-dia-' + d + '-ini" value="' + diaInfo.ini + '" ' + (!diaInfo.act ? 'disabled' : '') + ' class="flex-1 p-1 border rounded text-[11px] outline-none bg-white">' +
+                    '<input type="time" id="modal-dia-' + d + '-ini" value="' + diaInfo.ini + '" ' + (!diaInfo.act ? 'disabled' : '') + ' class="flex-1 p-1.5 border border-slate-200 rounded-lg text-[11px] outline-none bg-white font-medium">' +
                     '<span class="text-[11px] text-slate-400 font-bold">a</span>' +
-                    '<input type="time" id="modal-dia-' + d + '-fin" value="' + diaInfo.fin + '" ' + (!diaInfo.act ? 'disabled' : '') + ' class="flex-1 p-1 border rounded text-[11px] outline-none bg-white">' +
+                    '<input type="time" id="modal-dia-' + d + '-fin" value="' + diaInfo.fin + '" ' + (!diaInfo.act ? 'disabled' : '') + ' class="flex-1 p-1.5 border border-slate-200 rounded-lg text-[11px] outline-none bg-white font-medium">' +
                 '</div>';
             });
             container.innerHTML = htmlDias;
@@ -1021,7 +1063,7 @@
                 window.enfermeros.push({ id: nuevoId, nombre: nombre, tipoPago: tipoPago, pagoHora: pagoHora, sueldoFijo: sueldoFijo, diaPago: diaPago, dias: diasObj });
             }
 
-            localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
+            localStorage.setItem('enfermerosConfigV9', JSON.stringify(window.enfermeros));
             window.cerrarModalEnfermero();
             window.renderizarResumenEnfermeros();
             window.pushToCloud();
@@ -1030,7 +1072,7 @@
         window.eliminarEnfermero = function(id) {
             if(confirm('¿Seguro que deseas eliminar a este personal?')) {
                 window.enfermeros = window.enfermeros.filter(e => e.id !== id);
-                localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
+                localStorage.setItem('enfermerosConfigV9', JSON.stringify(window.enfermeros));
                 window.renderizarResumenEnfermeros();
                 window.pushToCloud();
             }
@@ -1050,12 +1092,12 @@
             window.enfermeros.forEach(enf => {
                 const diasActivosCount = Object.values(enf.dias).filter(d => d.act).length;
                 const infoPago = enf.tipoPago === 'fijo' ? ('Sueldo fijo: $' + enf.sueldoFijo + '/sem') : ('Pago: $' + enf.pagoHora + '/hr');
-                const botonesMod = '<div class="flex gap-1.5"><button onclick="abrirModalEnfermero(\'' + enf.id + '\')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-blue-600 border border-slate-200 text-xs font-bold rounded-lg shadow-sm">✏️</button><button onclick="eliminarEnfermero(\'' + enf.id + '\')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-red-50 text-red-600 border border-slate-200 text-xs font-bold rounded-lg shadow-sm">🗑️</button></div>';
+                const botonesMod = '<div class="flex gap-1.5"><button onclick="abrirModalEnfermero(\'' + enf.id + '\')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-blue-600 border border-slate-200 text-xs font-semibold rounded-xl shadow-sm">✏️</button><button onclick="eliminarEnfermero(\'' + enf.id + '\')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-rose-50 text-rose-600 border border-slate-200 text-xs font-semibold rounded-xl shadow-sm">🗑️</button></div>';
 
-                html += '<div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200 shadow-sm">' +
+                html += '<div class="flex justify-between items-center bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">' +
                     '<div>' +
-                        '<h4 class="font-bold text-sm text-slate-800">💉 ' + enf.nombre + '</h4>' +
-                        '<p class="text-[11px] text-slate-500">Días activos: ' + diasActivosCount + '/7 • ' + infoPago + ' (' + enf.diaPago + ')</p>' +
+                        '<h4 class="font-extrabold text-sm text-slate-900">💉 ' + enf.nombre + '</h4>' +
+                        '<p class="text-[11px] text-slate-500 font-medium">Días activos: ' + diasActivosCount + '/7 • ' + infoPago + ' (' + enf.diaPago + ')</p>' +
                     '</div>' +
                     botonesMod +
                 '</div>';
@@ -1123,12 +1165,12 @@
                 const diaNombre = diasNombres[dayIdx];
                 
                 if (gaps.length === 1 && gaps[0].esTotal) {
-                    reporteHTML += '<div class="flex justify-between items-center bg-red-100/50 p-1.5 rounded"><span class="font-bold text-red-700 w-10 text-xs">' + diaNombre + ':</span> <span class="text-red-800 text-[11px] text-right font-medium">Sin personal</span></div>';
+                    reporteHTML += '<div class="flex justify-between items-center bg-rose-50 p-2 rounded-xl"><span class="font-bold text-rose-700 w-10 text-xs">' + diaNombre + ':</span> <span class="text-rose-800 text-[11px] text-right font-semibold">Sin personal</span></div>';
                 } else if (gaps.length > 0) {
                     const textoGaps = gaps.map(g => g.inicio + ' a ' + g.fin).join(', ');
-                    reporteHTML += '<div class="flex justify-between items-center bg-orange-50 p-1.5 rounded"><span class="font-bold text-orange-700 w-10 text-xs">' + diaNombre + ':</span> <span class="text-orange-900 text-[11px] text-right font-medium">' + textoGaps + '</span></div>';
+                    reporteHTML += '<div class="flex justify-between items-center bg-amber-50 p-2 rounded-xl"><span class="font-bold text-amber-800 w-10 text-xs">' + diaNombre + ':</span> <span class="text-amber-900 text-[11px] text-right font-semibold">' + textoGaps + '</span></div>';
                 } else {
-                    reporteHTML += '<div class="flex justify-between items-center bg-green-50 p-1.5 rounded"><span class="font-bold text-green-700 w-10 text-xs">' + diaNombre + ':</span> <span class="text-green-800 text-[11px] text-right font-medium">Cubierto ✅</span></div>';
+                    reporteHTML += '<div class="flex justify-between items-center bg-emerald-50 p-2 rounded-xl"><span class="font-bold text-emerald-800 w-10 text-xs">' + diaNombre + ':</span> <span class="text-emerald-900 text-[11px] text-right font-semibold">Cubierto ✅</span></div>';
                 }
             });
             const repEl = document.getElementById('huecos-reporte');
@@ -1188,21 +1230,21 @@
                     detalleSub = '<span class="block text-emerald-600 text-[10px]">Total Estimado (X hora)</span><b class="text-emerald-800">$' + pagoSemanalFinal.toFixed(2) + '</b>';
                 }
 
-                html += '<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">' +
-                    '<div class="flex justify-between items-center border-b pb-2">' +
-                        '<h3 class="font-bold text-sm text-slate-800">💉 ' + enf.nombre + '</h3>' +
-                        '<span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Pago: ' + enf.diaPago + '</span>' +
+                html += '<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">' +
+                    '<div class="flex justify-between items-center border-b border-slate-100 pb-2">' +
+                        '<h3 class="font-extrabold text-sm text-slate-900">💉 ' + enf.nombre + '</h3>' +
+                        '<span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-xl font-bold">Pago: ' + enf.diaPago + '</span>' +
                     '</div>' +
                     '<div class="grid grid-cols-3 gap-2 text-center text-xs">' +
-                        '<div class="bg-slate-50 p-2 rounded">' +
-                            '<span class="block text-slate-400 text-[10px]">Esquema</span>' +
-                            '<b class="text-slate-700 capitalize">' + (enf.tipoPago === 'fijo' ? 'Fijo Semanal' : 'Por Hora') + '</b>' +
+                        '<div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">' +
+                            '<span class="block text-slate-400 text-[10px] font-semibold">Esquema</span>' +
+                            '<b class="text-slate-800 capitalize">' + (enf.tipoPago === 'fijo' ? 'Fijo Semanal' : 'Por Hora') + '</b>' +
                         '</div>' +
-                        '<div class="bg-slate-50 p-2 rounded">' +
-                            '<span class="block text-slate-400 text-[10px]">Horas Semanal</span>' +
-                            '<b class="text-slate-700">' + horasTotalesSemana.toFixed(1) + ' hrs</b>' +
+                        '<div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">' +
+                            '<span class="block text-slate-400 text-[10px] font-semibold">Horas Semanal</span>' +
+                            '<b class="text-slate-800">' + horasTotalesSemana.toFixed(1) + ' hrs</b>' +
                         '</div>' +
-                        '<div class="bg-emerald-50 p-2 rounded border border-emerald-200">' +
+                        '<div class="bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-200">' +
                             detalleSub +
                         '</div>' +
                     '</div>' +
@@ -1358,7 +1400,7 @@
                 const proxB = b.ultimaToma + (b.frecuencia * 3600000);
                 return proxA - proxB;
             });
-            localStorage.setItem('medicamentosPacientesV16', JSON.stringify(window.medicamentos));
+            localStorage.setItem('medicamentosPacientesV17', JSON.stringify(window.medicamentos));
             window.renderizarResumenEnfermeros();
             window.renderizarListaHome();
             window.generarCronograma();
@@ -1425,7 +1467,7 @@
             const medsPaciente = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId);
 
             if (medsPaciente.length === 0) {
-                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6 bg-white rounded-xl border">No hay fármacos para este paciente en el inventario. Usa el botón "+ Añadir Stock".</p>';
+                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6 bg-white rounded-2xl border">No hay fármacos para este paciente en el inventario. Usa el botón "+ Añadir Stock".</p>';
                 return;
             }
 
@@ -1438,24 +1480,24 @@
                 else if (med.via && med.via.includes('Gotas')) unidadTexto = 'gotas / ml';
                 else if (med.via && med.via.includes('Inyectable')) unidadTexto = 'ml / UI';
 
-                contenedor.innerHTML += '<div class="bg-white p-4 rounded-xl border ' + (esCritico ? 'border-red-300 shadow-md bg-red-50/30' : 'border-slate-200 shadow-sm') + ' space-y-2">' +
+                contenedor.innerHTML += '<div class="bg-white p-4 rounded-2xl border ' + (esCritico ? 'border-rose-300 shadow-sm bg-rose-50/20' : 'border-slate-200 shadow-sm') + ' space-y-2.5">' +
                     '<div class="flex justify-between items-start">' +
                         '<div>' +
-                            '<h3 class="font-bold text-sm text-slate-800">' + med.nombre + '</h3>' +
-                            '<span class="text-[10px] text-slate-500">' + (med.via || 'Oral 💊') + (med.esFijo ? ' • Dosis: ' + med.dosis : ' • Solo en Inventario') + '</span>' +
+                            '<h3 class="font-extrabold text-sm text-slate-900">' + med.nombre + '</h3>' +
+                            '<span class="text-[10px] text-slate-500 font-medium">' + (med.via || 'Oral 💊') + (med.esFijo ? ' • Dosis: ' + med.dosis : ' • Solo en Inventario') + '</span>' +
                         '</div>' +
-                        '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-red-600 text-xs">🗑️</button>' +
+                        '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-rose-600 text-xs font-bold">🗑️</button>' +
                     '</div>' +
-                    '<div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border border-slate-100">' +
+                    '<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">' +
                         '<div>' +
-                            '<span class="text-[10px] text-slate-500 block">Existencia Actual</span>' +
-                            '<b class="text-sm ' + (esCritico ? 'text-red-600' : 'text-slate-800') + '">' + stockVal + ' ' + unidadTexto + '</b>' +
+                            '<span class="text-[10px] text-slate-400 font-semibold block">Existencia Actual</span>' +
+                            '<b class="text-sm ' + (esCritico ? 'text-rose-600' : 'text-slate-900') + '">' + stockVal + ' ' + unidadTexto + '</b>' +
                         '</div>' +
                         '<div>' +
-                            '<button onclick="abrirModalStock(\'' + med.id + '\')" class="bg-amber-600 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm hover:bg-amber-700 transition">➕ Surtir / Recargar</button>' +
+                            '<button onclick="abrirModalStock(\'' + med.id + '\')" class="bg-amber-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs shadow-sm hover:bg-amber-700 transition">➕ Surtir / Recargar</button>' +
                         '</div>' +
                     '</div>' +
-                    (esCritico ? '<p class="text-[11px] text-red-600 font-bold text-center">⚠️ ¡Stock bajo o en 0! Recarga las existencias aquí.</p>' : '') +
+                    (esCritico ? '<p class="text-[11px] text-rose-600 font-bold text-center">⚠️ ¡Stock bajo o en 0! Recarga las existencias aquí.</p>' : '') +
                 '</div>';
             });
         };
@@ -1506,17 +1548,17 @@
                 const esManana = toma.fecha.getDate() !== new Date().getDate();
                 const diaStr = esManana ? ' (Mañana)' : '';
                 
-                const dotColor = alerta ? 'bg-red-500 ring-red-200' : 'bg-indigo-500 ring-indigo-200';
-                const textColor = alerta ? 'text-red-700 font-bold' : 'text-slate-700';
+                const dotColor = alerta ? 'bg-rose-500 ring-rose-200' : 'bg-indigo-500 ring-indigo-200';
+                const textColor = alerta ? 'text-rose-700 font-bold' : 'text-slate-900';
                 const warningIcon = alerta ? '⚠️' : '✅';
                 const dosisBadge = toma.dosis ? (' • <b>[' + toma.dosis + ']</b>') : '';
 
                 htmlCronograma += '<div class="relative mb-2.5 transition-all">' +
                     '<div class="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full ring-4 ' + dotColor + '"></div>' +
-                    '<div class="bg-white p-2 rounded shadow-sm border ' + (alerta ? 'border-red-200 bg-red-50' : 'border-slate-100') + ' text-xs flex justify-between items-center">' +
+                    '<div class="bg-white p-3 rounded-2xl shadow-sm border ' + (alerta ? 'border-rose-200 bg-rose-50/40' : 'border-slate-100') + ' text-xs flex justify-between items-center">' +
                         '<div>' +
                             '<span class="' + textColor + '">' + horaStr + diaStr + ' - <b>' + toma.medNombre + '</b>' + dosisBadge + '</span>' +
-                            '<div class="text-[10px] text-slate-500">' + toma.via + '</div>' +
+                            '<div class="text-[10px] text-slate-500 font-medium">' + toma.via + '</div>' +
                         '</div>' +
                         '<span>' + warningIcon + '</span>' +
                     '</div>' +
@@ -1543,16 +1585,16 @@
 
                 const alerta = window.caeEnHorarioSinEnfermero(fechaProximaToma);
                 let estadoClase = 'bg-white border-slate-200';
-                if(tiempoRestante <= 0) estadoClase = 'bg-red-50 border-red-300 parpadeo';
+                if(tiempoRestante <= 0) estadoClase = 'bg-rose-50 border-rose-300 parpadeo';
 
-                listaHome.innerHTML += '<div class="p-3 rounded-xl border ' + estadoClase + ' shadow-sm text-xs space-y-1">' +
-                    '<div class="flex justify-between font-bold text-slate-800">' +
+                listaHome.innerHTML += '<div class="p-3.5 rounded-2xl border ' + estadoClase + ' shadow-sm text-xs space-y-1.5">' +
+                    '<div class="flex justify-between font-bold text-slate-900">' +
                         '<span>' + med.nombre + ' (' + med.dosis + ')</span>' +
-                        '<span class="text-blue-600">' + fechaProximaToma.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
+                        '<span class="text-blue-600 font-extrabold">' + fechaProximaToma.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
                     '</div>' +
-                    '<div class="flex justify-between items-center text-[11px] text-slate-500">' +
+                    '<div class="flex justify-between items-center text-[11px] text-slate-500 font-medium">' +
                         '<span>' + med.via + ' • Cada ' + med.frecuencia + 'h</span>' +
-                        (alerta ? '<span class="text-red-600 font-bold">⚠️ Sin personal</span>' : '<span class="text-green-600 font-bold">Cubierto ✅</span>') +
+                        (alerta ? '<span class="text-rose-600 font-bold">⚠️ Sin personal</span>' : '<span class="text-emerald-600 font-bold">Cubierto ✅</span>') +
                     '</div>' +
                 '</div>';
             });
@@ -1564,18 +1606,18 @@
             lista.innerHTML = '';
             const programados = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId && m.esFijo);
             if (programados.length === 0) {
-                lista.innerHTML = '<p class="text-slate-400 text-xs text-center py-4 bg-white rounded-xl border">No hay horarios de medicamentos registrados para este paciente.</p>';
+                lista.innerHTML = '<p class="text-slate-400 text-xs text-center py-4 bg-white rounded-2xl border">No hay horarios de medicamentos registrados para este paciente.</p>';
                 return;
             }
 
             const ahora = new Date().getTime();
             programados.forEach(med => {
                 const viaBadge = med.via || 'Oral 💊';
-                const dosisBadge = med.dosis ? ('<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Dosis: ' + med.dosis + '</span>') : '';
-                const momentoBadge = med.momento && med.momento !== 'Horario Fijo' ? ('<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-semibold">' + med.momento + '</span>') : '';
+                const dosisBadge = med.dosis ? ('<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-lg text-[10px] font-bold">Dosis: ' + med.dosis + '</span>') : '';
+                const momentoBadge = med.momento && med.momento !== 'Horario Fijo' ? ('<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-lg text-[10px] font-semibold">' + med.momento + '</span>') : '';
 
                 const tarjeta = document.createElement('div');
-                tarjeta.className = "p-3.5 rounded-xl shadow-sm bg-white border border-slate-200 text-xs space-y-2";
+                tarjeta.className = "p-4 rounded-2xl shadow-sm bg-white border border-slate-200 text-xs space-y-2.5";
 
                 const proximaTomaMs = med.ultimaToma + (med.frecuencia * 3600000);
                 const fechaProximaToma = new Date(proximaTomaMs);
@@ -1586,24 +1628,24 @@
                 const mins = Math.floor((Math.abs(tiempoRestante) % 3600000) / 60000);
                 const textoReloj = tiempoRestante <= 0 ? ('Atrasado: ' + horas + 'h ' + mins + 'm') : ('Faltan: ' + horas + 'h ' + mins + 'm');
 
-                const btnAjustar = alertaSin ? ('<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="w-full bg-red-600 text-white py-1.5 rounded font-bold text-[11px] shadow-sm mt-1">🛡️ Ajustar al siguiente turno con personal</button>') : '';
+                const btnAjustar = alertaSin ? ('<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="w-full bg-rose-600 text-white py-2 rounded-xl font-bold text-[11px] shadow-sm mt-1">🛡️ Ajustar al siguiente turno con personal</button>') : '';
 
                 tarjeta.innerHTML = '<div class="flex justify-between items-start">' +
                     '<div>' +
-                        '<h3 class="font-bold text-sm text-slate-800">' + med.nombre + '</h3>' +
-                        '<div class="flex gap-1 mt-1 flex-wrap">' +
-                            '<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-bold">' + viaBadge + '</span>' +
+                        '<h3 class="font-extrabold text-sm text-slate-900">' + med.nombre + '</h3>' +
+                        '<div class="flex gap-1.5 mt-1.5 flex-wrap">' +
+                            '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-lg font-bold">' + viaBadge + '</span>' +
                             dosisBadge + ' ' + momentoBadge +
                         '</div>' +
                     '</div>' +
-                    '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-red-600">🗑️</button>' +
+                    '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-rose-600 font-bold p-1">🗑️</button>' +
                 '</div>' +
-                (alertaSin ? ('<div class="bg-red-500 text-white font-bold p-1.5 rounded text-center text-[11px]">⚠️ Cae en horario sin personal ' + btnAjustar + '</div>') : '') +
-                '<div class="bg-slate-50 p-2 rounded flex justify-between items-center font-mono font-bold text-slate-700">' +
+                (alertaSin ? ('<div class="bg-rose-500 text-white font-bold p-2 rounded-xl text-center text-[11px]">⚠️ Cae en horario sin personal ' + btnAjustar + '</div>') : '') +
+                '<div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex justify-between items-center font-mono font-bold text-slate-800">' +
                     '<span>Próxima: ' + fechaProximaToma.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
-                    '<span class="' + (tiempoRestante <= 0 ? 'text-red-600' : 'text-blue-600') + '">' + textoReloj + '</span>' +
+                    '<span class="' + (tiempoRestante <= 0 ? 'text-rose-600' : 'text-blue-600') + '">' + textoReloj + '</span>' +
                 '</div>' +
-                '<button onclick="administrarAhora(\'' + med.id + '\')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs shadow-sm hover:bg-blue-700 transition">✅ Registrar Toma</button>';
+                '<button onclick="administrarAhora(\'' + med.id + '\')" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-xl text-xs shadow-md shadow-blue-500/20 hover:bg-blue-700 transition">✅ Registrar Toma</button>';
                 
                 lista.appendChild(tarjeta);
             });
@@ -1766,20 +1808,20 @@
                     const esPermanente = u.expira && new Date(u.expira).getFullYear() > 2099;
                     const expStr = esPermanente ? 'Permanente (Vitalicio) ♾️' : (u.expira ? u.expira.slice(0, 10) : 'Indefinido');
                     
-                    html += '<div class="bg-slate-900/80 p-3 rounded-xl border border-indigo-500/30 text-xs space-y-2">' +
+                    html += '<div class="bg-slate-900/90 p-4 rounded-2xl border border-indigo-500/30 text-xs space-y-3 shadow-inner">' +
                         '<div class="flex justify-between items-center">' +
-                            '<b class="text-indigo-200">' + u.email + '</b>' +
-                            '<span class="text-[10px] px-2 py-0.5 rounded font-bold ' + (u.activo !== false ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300') + '">' + (u.activo !== false ? 'Activo' : 'Suspendido') + '</span>' +
+                            '<b class="text-indigo-100 font-semibold">' + u.email + '</b>' +
+                            '<span class="text-[10px] px-2.5 py-1 rounded-full font-bold ' + (u.activo !== false ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30') + '">' + (u.activo !== false ? 'Activo' : 'Suspendido') + '</span>' +
                         '</div>' +
-                        '<div class="flex flex-col gap-1 text-[11px] text-slate-300">' +
-                            '<span>Vencimiento: <b>' + expStr + '</b></span>' +
+                        '<div class="flex flex-col gap-1.5 text-[11px] text-slate-300">' +
+                            '<span>Vencimiento: <b class="text-white">' + expStr + '</b></span>' +
                             '<div class="flex gap-1.5 flex-wrap pt-1">' +
-                                '<button onclick="cambiarEstadoUsuario(\'' + uid + '\', ' + !(u.activo !== false) + ')" class="bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">' + (u.activo !== false ? 'Bloquear' : 'Activar') + '</button>' +
-                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'sumar\', 15)" class="bg-amber-600 hover:bg-amber-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">+15 Días</button>' +
-                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'sumar\', 30)" class="bg-emerald-600 hover:bg-emerald-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">+30 Días (Mes)</button>' +
-                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'restar\', 1)" class="bg-orange-600 hover:bg-orange-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">-1 Día</button>' +
-                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'restar\', 30)" class="bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">-30 Días</button>' +
-                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'permanente\', 0)" class="bg-purple-600 hover:bg-purple-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">♾️ Permanente</button>' +
+                                '<button onclick="cambiarEstadoUsuario(\'' + uid + '\', ' + !(u.activo !== false) + ')" class="bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white transition shadow-sm">' + (u.activo !== false ? 'Bloquear' : 'Activar') + '</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'sumar\', 15)" class="bg-amber-600 hover:bg-amber-500 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white transition shadow-sm">+15 Días</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'sumar\', 30)" class="bg-emerald-600 hover:bg-emerald-500 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white transition shadow-sm">+30 Días (Mes)</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'restar\', 1)" class="bg-orange-600 hover:bg-orange-500 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white transition shadow-sm">-1 Día</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'restar\', 30)" class="bg-rose-600 hover:bg-rose-500 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white transition shadow-sm">-30 Días</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'permanente\', 0)" class="bg-purple-600 hover:bg-purple-500 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white transition shadow-sm">♾️ Permanente</button>' +
                             '</div>' +
                         '</div>' +
                     '</div>';
@@ -1861,7 +1903,7 @@
             window.esCreadorSala = true;
             localStorage.setItem('salaSincronizacion', codigo);
             localStorage.setItem('salaSincronizacionPass', pass);
-            localStorage.setItem('esCreadorSalaV1', 'true');
+            localStorage.setItem('esCreadorSalaV2', 'true');
 
             if(!db) {
                 alert('Modo local activo. Conecta Firebase para sincronizar.');
@@ -1908,7 +1950,7 @@
                 window.esCreadorSala = false;
                 localStorage.setItem('salaSincronizacion', codigo);
                 localStorage.setItem('salaSincronizacionPass', pass);
-                localStorage.setItem('esCreadorSalaV1', 'false');
+                localStorage.setItem('esCreadorSalaV2', 'false');
                 window.iniciarSesionApp('invitado', nombreInvitado + ' (Sala: ' + codigo + ')');
                 return;
             }
@@ -1929,7 +1971,7 @@
                     window.esCreadorSala = false;
                     localStorage.setItem('salaSincronizacion', codigo);
                     localStorage.setItem('salaSincronizacionPass', pass);
-                    localStorage.setItem('esCreadorSalaV1', 'false');
+                    localStorage.setItem('esCreadorSalaV2', 'false');
                     
                     await registrarIngresoSala(codigo, nombreInvitado);
                     window.iniciarSesionApp('invitado', nombreInvitado + ' (Sala: ' + codigo + ')');
@@ -1944,7 +1986,7 @@
                 window.esCreadorSala = false;
                 localStorage.setItem('salaSincronizacion', codigo);
                 localStorage.setItem('salaSincronizacionPass', pass);
-                localStorage.setItem('esCreadorSalaV1', 'false');
+                localStorage.setItem('esCreadorSalaV2', 'false');
                 window.iniciarSesionApp('invitado', nombreInvitado + ' (Sala: ' + codigo + ')');
             }
         };
@@ -1980,7 +2022,7 @@
             window.esCreadorSala = false;
             localStorage.removeItem('salaSincronizacion');
             localStorage.removeItem('salaSincronizacionPass');
-            localStorage.removeItem('esCreadorSalaV1');
+            localStorage.removeItem('esCreadorSalaV2');
             window.cambiarPerfil();
         };
 
@@ -1997,9 +2039,9 @@
                     window.enfermeros = data.enfermeros || window.enfermeros;
                     window.notasFijas = data.notas || '';
                     
-                    localStorage.setItem('pacientesClinicosV2', JSON.stringify(window.pacientes));
-                    localStorage.setItem('medicamentosPacientesV16', JSON.stringify(window.medicamentos));
-                    localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
+                    localStorage.setItem('pacientesClinicosV3', JSON.stringify(window.pacientes));
+                    localStorage.setItem('medicamentosPacientesV17', JSON.stringify(window.medicamentos));
+                    localStorage.setItem('enfermerosConfigV9', JSON.stringify(window.enfermeros));
                     localStorage.setItem('notasFijas', window.notasFijas);
 
                     const txtN = document.getElementById('notas-fijas');
@@ -2012,7 +2054,7 @@
                     if(conectados.length > 0) {
                         let htmlUsr = '';
                         conectados.forEach(u => {
-                            htmlUsr += '<div class="text-[10px] text-slate-700 bg-blue-50 px-2 py-0.5 rounded flex items-center gap-1 font-semibold">🟢 ' + u + '</div>';
+                            htmlUsr += '<div class="text-[10px] text-slate-800 bg-blue-50/80 border border-blue-100 px-2.5 py-1 rounded-xl flex items-center gap-1.5 font-bold">🟢 ' + u + '</div>';
                         });
                         listaConectadosEl.innerHTML = htmlUsr;
                     } else {
