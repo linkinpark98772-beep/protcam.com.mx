@@ -63,6 +63,7 @@
             <!-- Formulario Acceso por Código de Sala -->
             <div id="auth-enfermero-container" class="hidden space-y-3">
                 <p class="text-sm text-slate-600 font-bold text-center">Acceso por Código de Sala</p>
+                <input type="text" id="enfermero-nombre-invitado" placeholder="Tu Nombre / Enfermero(a)" class="w-full p-3 border border-slate-300 rounded-xl text-center text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
                 <input type="text" id="enfermero-room-code" placeholder="Código de Sala Permanente (Ej. CLINICA1)" class="w-full p-3 border border-slate-300 rounded-xl text-center text-sm uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-wider">
                 <input type="password" id="enfermero-room-pass" placeholder="Contraseña de la Sala" class="w-full p-3 border border-slate-300 rounded-xl text-center text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-bold">
                 <div class="flex gap-2">
@@ -96,8 +97,8 @@
 
     <main id="app-main" class="max-w-md mx-auto mt-4 px-4 space-y-6 hidden">
 
-        <!-- Barra de Sincronización en la Nube -->
-        <section class="bg-blue-50 p-4 rounded-xl shadow-sm border border-blue-200 space-y-3">
+        <!-- Barra de Sincronización en la Nube (Solo visible para el Creador / Google) -->
+        <section id="seccion-config-sala" class="bg-blue-50 p-4 rounded-xl shadow-sm border border-blue-200 space-y-3">
             <div class="flex justify-between items-center">
                 <h2 class="text-xs font-bold text-blue-800 flex items-center gap-1"><span>☁️</span> Sincronización en la Nube</h2>
                 <span id="cloud-status" class="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded shadow-sm border border-slate-200">Modo Local</span>
@@ -141,8 +142,8 @@
                 <div id="lista-medicamentos-home" class="space-y-3"></div>
             </section>
 
-            <!-- Selector de Paciente Activo -->
-            <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-2">
+            <!-- Selector de Paciente Activo y Expediente Clínico -->
+            <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-bold text-slate-700 flex items-center gap-1"><span>🧑‍🦱</span> Paciente Activo:</h3>
                     <button onclick="abrirModalPaciente()" class="text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-2.5 py-1 rounded-lg transition">➕ Gestionar Pacientes</button>
@@ -150,6 +151,16 @@
                 <select id="select-paciente-activo" onchange="cambiarPacienteActivo(this.value)" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 bg-slate-50 outline-none">
                     <option value="">-- Selecciona un paciente --</option>
                 </select>
+
+                <!-- Tarjeta Resumen de Ficha Clínica del Paciente Activo -->
+                <div id="resumen-paciente-activo-card" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1.5 hidden">
+                    <div class="flex justify-between items-center border-b pb-1">
+                        <span id="card-paciente-edad" class="font-bold text-slate-700">Edad: --</span>
+                        <button onclick="abrirModalPaciente()" class="text-blue-600 font-semibold hover:underline text-[10px]">Ver Ficha Completa 📋</button>
+                    </div>
+                    <p id="card-paciente-padecimientos" class="text-slate-600"><b>Padecimientos:</b> --</p>
+                    <p id="card-paciente-alergias" class="text-red-600 font-medium"><b>Alergias / Alerta:</b> --</p>
+                </div>
             </section>
 
             <div class="grid grid-cols-2 gap-3">
@@ -408,24 +419,36 @@
 
     </main>
 
-    <!-- Modal Gestión de Pacientes -->
+    <!-- Modal Gestión de Pacientes (Con Ficha Clínica Completa) -->
     <div id="modal-paciente" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-4">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4">
             <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-sm font-bold text-slate-800">🧑‍🦱 Gestión de Pacientes</h3>
+                <h3 class="text-sm font-bold text-slate-800">🧑‍🦱 Expediente y Gestión de Pacientes</h3>
                 <button onclick="cerrarModalPaciente()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
             </div>
-            <div class="space-y-3">
-                <div class="flex gap-2">
-                    <input type="text" id="nuevo-paciente-nombre" placeholder="Nombre y Apellido del Paciente" class="flex-1 p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 font-semibold">
-                    <button onclick="agregarPaciente()" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-xs hover:bg-blue-700">Agregar</button>
+            <div class="space-y-3.5">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2.5">
+                    <h4 class="text-xs font-bold text-blue-700 uppercase">➕ Registrar Nuevo Paciente:</h4>
+                    <input type="text" id="nuevo-paciente-nombre" placeholder="Nombre y Apellido" class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 font-semibold">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="nuevo-paciente-edad" placeholder="Edad (Ej. 65)" class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none">
+                        <select id="nuevo-paciente-diabetico" class="w-full p-2 border border-slate-300 rounded-lg text-xs bg-white outline-none">
+                            <option value="No Diabético">No Diabético</option>
+                            <option value="Diabético Tipo 1">Diabético Tipo 1</option>
+                            <option value="Diabético Tipo 2">Diabético Tipo 2</option>
+                        </select>
+                    </div>
+                    <textarea id="nuevo-paciente-padecimientos" rows="2" placeholder="Padecimientos o enfermedades principales..." class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none"></textarea>
+                    <textarea id="nuevo-paciente-cirugias" rows="2" placeholder="Cirugías previas o antecedentes quirúrgicos..." class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none"></textarea>
+                    <textarea id="nuevo-paciente-alergias" rows="1" placeholder="Alergias a medicamentos u otros..." class="w-full p-2 border border-slate-300 rounded-lg text-xs outline-none text-red-600 font-medium"></textarea>
+                    <button onclick="agregarPaciente()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-blue-700 shadow-sm transition">+ Guardar Ficha del Paciente</button>
                 </div>
                 <div>
-                    <h4 class="text-xs font-bold text-slate-600 mb-2">Pacientes Registrados:</h4>
-                    <div id="lista-pacientes-modal" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                    <h4 class="text-xs font-bold text-slate-600 mb-2">Pacientes Registrados en la Sala:</h4>
+                    <div id="lista-pacientes-modal" class="space-y-2.5 max-h-56 overflow-y-auto"></div>
                 </div>
             </div>
-            <button onclick="cerrarModalPaciente()" class="w-full bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">Cerrar</button>
+            <button onclick="cerrarModalPaciente()" class="w-full bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs">Cerrar</button>
         </div>
     </div>
 
@@ -545,10 +568,10 @@
     <script>
         const diasNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         
-        window.pacientes = JSON.parse(localStorage.getItem('pacientesClinicosV1')) || [
-            { id: '1', nombre: 'Paciente Principal (Ej. Juan Pérez)' }
+        window.pacientes = JSON.parse(localStorage.getItem('pacientesClinicosV2')) || [
+            { id: '1', nombre: 'Paciente Principal (Ej. Juan Pérez)', edad: '70', diabetico: 'No Diabético', padecimientos: 'Hipertensión', cirugias: 'Ninguna', alergias: 'Ninguna' }
         ];
-        window.pacienteActivoId = localStorage.getItem('pacienteActivoIdV1') || window.pacientes[0].id;
+        window.pacienteActivoId = localStorage.getItem('pacienteActivoIdV2') || window.pacientes[0].id;
 
         window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV16')) || [];
         
@@ -562,25 +585,41 @@
         let rolActual = localStorage.getItem('rolActual') || null;
         window.currentRoom = localStorage.getItem('salaSincronizacion') || null;
         window.currentRoomPass = localStorage.getItem('salaSincronizacionPass') || '';
+        window.esCreadorSala = localStorage.getItem('esCreadorSalaV1') === 'true';
 
         window.pushToCloud = async function() {};
         window.conectarSala = function(codigo) {};
 
-        // --- GESTIÓN DE PACIENTES ---
+        // --- GESTIÓN DE PACIENTES Y FICHA CLÍNICA ---
         window.actualizarSelectPacientes = function() {
             const select = document.getElementById('select-paciente-activo');
             if(!select) return;
             let html = '';
             window.pacientes.forEach(p => {
                 const selected = p.id === window.pacienteActivoId ? 'selected' : '';
-                html += '<option value="' + p.id + '" ' + selected + '>🧑‍🦱 ' + p.nombre + '</option>';
+                html += '<option value="' + p.id + '" ' + selected + '>🧑‍🦱 ' + p.nombre + ' (' + (p.edad || 'N/A') + ' años)</option>';
             });
             select.innerHTML = html;
+            window.actualizarTarjetaResumenPaciente();
+        };
+
+        window.actualizarTarjetaResumenPaciente = function() {
+            const card = document.getElementById('resumen-paciente-activo-card');
+            const p = window.pacientes.find(x => x.id === window.pacienteActivoId);
+            if(!p || !card) {
+                if(card) card.classList.add('hidden');
+                return;
+            }
+            card.classList.remove('hidden');
+            document.getElementById('card-paciente-edad').innerText = 'Edad: ' + (p.edad || 'N/A') + ' años • ' + (p.diabetico || 'No especificado');
+            document.getElementById('card-paciente-padecimientos').innerHTML = '<b>Padecimientos:</b> ' + (p.padecimientos || 'Ninguno registrado');
+            document.getElementById('card-paciente-alergias').innerHTML = '<b>Alergias / Alerta:</b> ' + (p.alergias || 'Ninguna');
         };
 
         window.cambiarPacienteActivo = function(id) {
             window.pacienteActivoId = id;
-            localStorage.setItem('pacienteActivoIdV1', id);
+            localStorage.setItem('pacienteActivoIdV2', id);
+            window.actualizarTarjetaResumenPaciente();
             window.renderizarResumenEnfermeros();
             window.renderizarListaHome();
             window.generarCronograma();
@@ -602,22 +641,51 @@
             if(!container) return;
             let html = '';
             window.pacientes.forEach(p => {
-                html += '<div class="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-200">' +
-                    '<span class="text-xs font-bold text-slate-700">🧑‍🦱 ' + p.nombre + '</span>' +
-                    (window.pacientes.length > 1 ? '<button onclick="eliminarPaciente(\'' + p.id + '\')" class="text-red-500 text-xs font-bold hover:underline">Eliminar</button>' : '') +
+                html += '<div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">' +
+                    '<div class="flex justify-between items-center">' +
+                        '<span class="text-xs font-bold text-slate-800">🧑‍🦱 ' + p.nombre + ' (' + (p.edad || 'N/A') + ' años)</span>' +
+                        (window.pacientes.length > 1 ? '<button onclick="eliminarPaciente(\'' + p.id + '\')" class="text-red-500 text-xs font-bold hover:underline">Eliminar</button>' : '') +
+                    '</div>' +
+                    '<p class="text-[11px] text-slate-600"><b>Condición:</b> ' + (p.diabetico || 'No especificado') + ' • <b>Padecimientos:</b> ' + (p.padecimientos || 'N/A') + '</p>' +
+                    '<p class="text-[11px] text-slate-600"><b>Cirugías:</b> ' + (p.cirugias || 'N/A') + '</p>' +
+                    '<p class="text-[11px] text-red-600 font-medium"><b>Alergias:</b> ' + (p.alergias || 'Ninguna') + '</p>' +
                 '</div>';
             });
             container.innerHTML = html;
         };
 
         window.agregarPaciente = function() {
-            const input = document.getElementById('nuevo-paciente-nombre');
-            const nombre = input.value.trim();
-            if(!nombre) return;
-            const nuevo = { id: Date.now().toString(), nombre: nombre };
+            const nombre = document.getElementById('nuevo-paciente-nombre').value.trim();
+            const edad = document.getElementById('nuevo-paciente-edad').value.trim();
+            const diabetico = document.getElementById('nuevo-paciente-diabetico').value;
+            const padecimientos = document.getElementById('nuevo-paciente-padecimientos').value.trim();
+            const cirugias = document.getElementById('nuevo-paciente-cirugias').value.trim();
+            const alergias = document.getElementById('nuevo-paciente-alergias').value.trim();
+
+            if(!nombre) {
+                alert('Escribe el nombre del paciente.');
+                return;
+            }
+
+            const nuevo = {
+                id: Date.now().toString(),
+                nombre,
+                edad,
+                diabetico,
+                padecimientos,
+                cirugias,
+                alergias
+            };
+
             window.pacientes.push(nuevo);
-            localStorage.setItem('pacientesClinicosV1', JSON.stringify(window.pacientes));
-            input.value = '';
+            localStorage.setItem('pacientesClinicosV2', JSON.stringify(window.pacientes));
+            
+            document.getElementById('nuevo-paciente-nombre').value = '';
+            document.getElementById('nuevo-paciente-edad').value = '';
+            document.getElementById('nuevo-paciente-padecimientos').value = '';
+            document.getElementById('nuevo-paciente-cirugias').value = '';
+            document.getElementById('nuevo-paciente-alergias').value = '';
+
             window.actualizarSelectPacientes();
             window.renderizarListaPacientesModal();
             window.pushToCloud();
@@ -629,7 +697,7 @@
             if(window.pacienteActivoId === id) {
                 window.pacienteActivoId = window.pacientes[0].id;
             }
-            localStorage.setItem('pacientesClinicosV1', JSON.stringify(window.pacientes));
+            localStorage.setItem('pacientesClinicosV2', JSON.stringify(window.pacientes));
             window.actualizarSelectPacientes();
             window.renderizarListaPacientesModal();
             window.cambiarPacienteActivo(window.pacienteActivoId);
@@ -760,6 +828,7 @@
             document.getElementById('auth-buttons').classList.remove('hidden');
             document.getElementById('auth-enfermero-container').classList.add('hidden');
             document.getElementById('enfermero-error').classList.add('hidden');
+            document.getElementById('enfermero-nombre-invitado').value = '';
             document.getElementById('enfermero-room-code').value = '';
             document.getElementById('enfermero-room-pass').value = '';
         };
@@ -775,22 +844,25 @@
             document.getElementById('btn-cambiar-perfil').classList.remove('hidden');
             
             const btnTabAdmin = document.getElementById('btn-tab-admin');
+            const seccionConfig = document.getElementById('seccion-config-sala');
 
             if(rol === 'admin' || detalle.toLowerCase() === 'linkinpark98772@gmail.com') {
                 document.getElementById('badge-rol').innerText = '👑 Admin';
                 if(btnTabAdmin) btnTabAdmin.classList.remove('hidden');
+                if(seccionConfig) seccionConfig.classList.remove('hidden');
                 if(window.cargarListaUsuariosAdmin) window.cargarListaUsuariosAdmin();
+            } else if(window.esCreadorSala) {
+                document.getElementById('badge-rol').innerText = '👤 Creador (Sala: ' + window.currentRoom + ')';
+                if(seccionConfig) seccionConfig.classList.remove('hidden');
             } else {
-                document.getElementById('badge-rol').innerText = '👤 Usuario (' + detalle + ')';
-                if(btnTabAdmin) btnTabAdmin.classList.add('hidden');
+                document.getElementById('badge-rol').innerText = '👤 Invitado (' + detalle + ')';
+                if(seccionConfig) seccionConfig.classList.add('hidden');
             }
 
             if(window.currentRoom) {
                 document.getElementById('active-room-code').innerText = window.currentRoom;
                 const inputCode = document.getElementById('input-config-room-code');
-                const inputPass = document.getElementById('input-config-room-pass');
                 if(inputCode) inputCode.value = window.currentRoom;
-                if(inputPass) inputPass.value = window.currentRoomPass;
                 window.conectarSala(window.currentRoom);
             }
 
@@ -803,8 +875,10 @@
             if(window.cerrarSesionFirebase) window.cerrarSesionFirebase();
             localStorage.removeItem('perfilActivo');
             localStorage.removeItem('rolActual');
+            localStorage.removeItem('esCreadorSalaV1');
             perfilActual = null;
             rolActual = null;
+            window.esCreadorSala = false;
             document.getElementById('auth-modal').classList.remove('hidden');
             document.getElementById('app-main').classList.add('hidden');
             document.getElementById('btn-cambiar-perfil').classList.add('hidden');
@@ -1784,8 +1858,10 @@
 
             window.currentRoom = codigo;
             window.currentRoomPass = pass;
+            window.esCreadorSala = true;
             localStorage.setItem('salaSincronizacion', codigo);
             localStorage.setItem('salaSincronizacionPass', pass);
+            localStorage.setItem('esCreadorSalaV1', 'true');
 
             if(!db) {
                 alert('Modo local activo. Conecta Firebase para sincronizar.');
@@ -1807,7 +1883,8 @@
                 await updateDoc(docRef, { password: pass });
             }
 
-            await registrarIngresoSala(codigo);
+            const nombreCreador = usuarioActualObj ? (usuarioActualObj.displayName || usuarioActualObj.email) : 'Creador';
+            await registrarIngresoSala(codigo, nombreCreador);
             window.conectarSala(codigo);
             document.getElementById('active-room-code').innerText = codigo;
             document.getElementById('btn-salir-sala').classList.remove('hidden');
@@ -1815,16 +1892,24 @@
         };
 
         window.verificarEnfermeroSala = async function() {
+            const nombreInvitado = document.getElementById('enfermero-nombre-invitado').value.trim();
             const codigo = document.getElementById('enfermero-room-code').value.toUpperCase().trim();
             const pass = document.getElementById('enfermero-room-pass').value.trim();
+            
+            if(!nombreInvitado) {
+                alert('Por favor ingresa tu nombre.');
+                return;
+            }
             if(!codigo) return;
 
             if(!db) {
                 window.currentRoom = codigo;
                 window.currentRoomPass = pass;
+                window.esCreadorSala = false;
                 localStorage.setItem('salaSincronizacion', codigo);
                 localStorage.setItem('salaSincronizacionPass', pass);
-                window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
+                localStorage.setItem('esCreadorSalaV1', 'false');
+                window.iniciarSesionApp('invitado', nombreInvitado + ' (Sala: ' + codigo + ')');
                 return;
             }
 
@@ -1841,10 +1926,13 @@
                     }
                     window.currentRoom = codigo;
                     window.currentRoomPass = pass;
+                    window.esCreadorSala = false;
                     localStorage.setItem('salaSincronizacion', codigo);
                     localStorage.setItem('salaSincronizacionPass', pass);
-                    await registrarIngresoSala(codigo);
-                    window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
+                    localStorage.setItem('esCreadorSalaV1', 'false');
+                    
+                    await registrarIngresoSala(codigo, nombreInvitado);
+                    window.iniciarSesionApp('invitado', nombreInvitado + ' (Sala: ' + codigo + ')');
                 } else {
                     const err = document.getElementById('enfermero-error');
                     err.innerText = "Sala no encontrada. Verifica el código.";
@@ -1853,17 +1941,18 @@
             } catch(e) {
                 window.currentRoom = codigo;
                 window.currentRoomPass = pass;
+                window.esCreadorSala = false;
                 localStorage.setItem('salaSincronizacion', codigo);
                 localStorage.setItem('salaSincronizacionPass', pass);
-                window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
+                localStorage.setItem('esCreadorSalaV1', 'false');
+                window.iniciarSesionApp('invitado', nombreInvitado + ' (Sala: ' + codigo + ')');
             }
         };
 
-        async function registrarIngresoSala(codigo) {
-            if(!db || !usuarioActualObj) return;
+        async function registrarIngresoSala(codigo, nombreUser) {
+            if(!db || !nombreUser) return;
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
             try {
-                const nombreUser = usuarioActualObj.displayName || usuarioActualObj.email;
                 await updateDoc(docRef, {
                     conectados: arrayUnion(nombreUser)
                 });
@@ -1871,10 +1960,10 @@
         }
 
         async function registrarSalidaSala(codigo) {
-            if(!db || !usuarioActualObj || !codigo) return;
+            if(!db || !codigo) return;
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
             try {
-                const nombreUser = usuarioActualObj.displayName || usuarioActualObj.email;
+                const nombreUser = usuarioActualObj ? (usuarioActualObj.displayName || usuarioActualObj.email) : (perfilActual || 'Usuario');
                 await updateDoc(docRef, {
                     conectados: arrayRemove(nombreUser)
                 });
@@ -1888,8 +1977,10 @@
             if(unsub) unsub();
             window.currentRoom = null;
             window.currentRoomPass = '';
+            window.esCreadorSala = false;
             localStorage.removeItem('salaSincronizacion');
             localStorage.removeItem('salaSincronizacionPass');
+            localStorage.removeItem('esCreadorSalaV1');
             window.cambiarPerfil();
         };
 
@@ -1906,7 +1997,7 @@
                     window.enfermeros = data.enfermeros || window.enfermeros;
                     window.notasFijas = data.notas || '';
                     
-                    localStorage.setItem('pacientesClinicosV1', JSON.stringify(window.pacientes));
+                    localStorage.setItem('pacientesClinicosV2', JSON.stringify(window.pacientes));
                     localStorage.setItem('medicamentosPacientesV16', JSON.stringify(window.medicamentos));
                     localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
                     localStorage.setItem('notasFijas', window.notasFijas);
