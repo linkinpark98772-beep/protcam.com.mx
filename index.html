@@ -3,1234 +3,1660 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control Familiar</title>
-    <!-- Tailwind CSS -->
+    <title>Control Clínico de Medicamentos</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React y ReactDOM -->
-    <script type="importmap">
-        {
-          "imports": {
-            "react": "https://esm.sh/react@18.2.0",
-            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-            "lucide-react": "https://esm.sh/lucide-react@0.263.1",
-            "firebase/app": "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js",
-            "firebase/auth": "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js",
-            "firebase/firestore": "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js",
-            "firebase/analytics": "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"
-          }
-        }
-    </script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 20px; }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .parpadeo { animation: parpadear 1.5s infinite; }
+        @keyframes parpadear {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-[#efeae2]">
-    <div id="root"></div>
+<body class="bg-slate-50 min-h-screen pb-12">
 
-    <script type="text/babel" data-type="module">
-        import React, { useState, useEffect } from 'react';
-        import { createRoot } from 'react-dom/client';
-        import { 
-            Plus, Wallet, TrendingUp, TrendingDown, Calendar as CalendarIcon, 
-            Edit2, Trash2, Save, X, PieChart, BarChart3, ChevronLeft, ChevronRight, 
-            Layers, BarChart2, AlertTriangle, CalendarCheck, Activity, Lock, 
-            CheckCircle2, PiggyBank, Minus, LogOut, User, Users, 
-            Menu, Target, Home, KeyRound, UserPlus, Smile, Download, Moon, Sun,
-            Mail, Copy, Share2
-        } from 'lucide-react';
-        
-        // --- FIREBASE IMPORTS ---
-        import { initializeApp } from "firebase/app";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            signOut, 
-            onAuthStateChanged,
-            deleteUser
-        } from "firebase/auth";
-        import { 
-            getFirestore, collection, addDoc, onSnapshot, query, where, 
-            deleteDoc, doc, updateDoc, getDocs 
-        } from "firebase/firestore";
-        import { getAnalytics } from "firebase/analytics";
+    <!-- Header superior -->
+    <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-20 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <button onclick="irANav('home')" id="btn-home-back" class="text-white font-bold px-2 py-1 rounded hover:bg-blue-700 transition hidden">🏠</button>
+            <h1 class="text-lg font-bold" id="titulo-header">Control de Medicamentos</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="irANav('admin')" id="btn-tab-admin" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded font-bold transition shadow-sm hidden">🛡️ Panel Admin</button>
+            <span id="badge-rol" class="text-[10px] bg-blue-700 px-2 py-1 rounded font-semibold text-white"></span>
+            <button onclick="cambiarPerfil()" class="text-xs bg-white text-blue-600 px-3 py-1 rounded font-bold hover:bg-blue-50 transition shadow-sm hidden" id="btn-cambiar-perfil">👤 Salir</button>
+        </div>
+    </header>
 
-        // ------------------------------------------------------------------
-        // CONFIGURACIÓN DE FIREBASE (Tus Credenciales)
-        // ------------------------------------------------------------------
-        const firebaseConfig = {
-            apiKey: "AIzaSyBI0r0YoRLZ6E-X7liiDaEPOdUi-bC13nI",
-            authDomain: "mi-dominio-slayer.firebaseapp.com",
-            databaseURL: "https://mi-dominio-slayer.firebaseio.com",
-            projectId: "mi-dominio-slayer",
-            storageBucket: "mi-dominio-slayer.firebasestorage.app",
-            messagingSenderId: "18755592564",
-            appId: "1:18755592564:web:b9a596068e88f136000c21",
-            measurementId: "G-R4WCM2Q6C0"
-        };
+    <!-- Modal de Autenticación de Inicio -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex flex-col items-center justify-center px-4 transition-all">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-6">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-slate-800">Bienvenido</h2>
+                <p class="text-slate-500 text-sm mt-1">Identifícate con Google o ingresa con código de sala</p>
+            </div>
+            
+            <div class="space-y-3" id="auth-buttons">
+                <button onclick="loginConGoogle()" class="w-full bg-white border-2 border-slate-200 text-slate-700 font-bold py-3 rounded-xl shadow-sm hover:bg-slate-50 transition flex items-center justify-center gap-2.5">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/>
+                        <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"/>
+                        <path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z"/>
+                        <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5L1.6 17c1.9 3.9 5.8 7 10.4 7z"/>
+                    </svg>
+                    <span>Iniciar sesión con Google</span>
+                </button>
+                
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-3 text-slate-400 text-[10px] uppercase font-bold">O acceso por invitación</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const analytics = getAnalytics(app);
+                <button onclick="mostrarFormEnfermero()" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-md hover:bg-emerald-600 transition flex items-center justify-center gap-2"><span>🔑</span> Sesión por Invitación (Código de Sala)</button>
+                <p id="google-auth-error" class="text-red-500 text-xs text-center hidden font-bold"></p>
+            </div>
 
-        // --- TEMAS ---
-        const THEME = {
-            primary: 'bg-[#008069]', 
-            secondary: 'bg-[#25D366]', 
-            bg: 'bg-[#efeae2]', 
-            white: 'bg-white',
-            textPrimary: 'text-[#111b21]',
-        };
+            <!-- Formulario Acceso por Código de Sala -->
+            <div id="auth-enfermero-container" class="hidden space-y-3">
+                <p class="text-sm text-slate-600 font-bold text-center">Acceso por Código de Sala</p>
+                <input type="text" id="enfermero-room-code" placeholder="Código de Sala (Ej. ABCD)" class="w-full p-3 border border-slate-300 rounded-xl text-center text-lg uppercase outline-none focus:ring-2 focus:ring-emerald-500 font-bold tracking-widest">
+                <div class="flex gap-2">
+                    <button onclick="volverASeleccion()" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-xl hover:bg-slate-300 transition text-xs">Atrás</button>
+                    <button onclick="verificarEnfermeroSala()" class="flex-1 bg-emerald-600 text-white font-bold py-2 rounded-xl shadow-md hover:bg-emerald-700 transition text-xs">Conectar Sala</button>
+                </div>
+                <p id="enfermero-error" class="text-red-500 text-xs text-center hidden font-bold">Sala no encontrada o código inválido.</p>
+            </div>
+        </div>
+    </div>
 
-        // --- HELPERS ---
-        const getLocalDateStr = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        };
-        const formatCurrency = (amount) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(amount);
+    <!-- Modal de Aviso de Licencia Vencida -->
+    <div id="modal-licencia" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center space-y-4">
+            <span class="text-4xl">⏳</span>
+            <h3 class="text-lg font-bold text-slate-800">Tiempo de Uso Expirado</h3>
+            <p class="text-xs text-slate-600">Tu periodo de prueba de 15 días o suscripción ha expirado. Contacta al administrador para renovar tu acceso o adquirir una suscripción mensual o permanente.</p>
+            <button onclick="cerrarSesionFirebase()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs">Cerrar Sesión</button>
+        </div>
+    </div>
 
-        // --- COMPONENTES VISUALES ---
-        const BarChartComponent = ({ title, data, maxVal, isDark }) => (
-            <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border h-full flex flex-col transition-colors`}>
-                <h3 className={`font-bold ${isDark ? 'text-slate-300' : 'text-[#54656f]'} mb-4 flex items-center gap-2 text-sm uppercase tracking-wider`}><BarChart2 className="w-4 h-4" /> {title}</h3>
-                <div className="flex-1 flex items-end justify-between gap-2 h-40 w-full">
-                    {data.map((item, i) => (
-                        <div key={i} className="flex flex-col items-center justify-end h-full w-full group relative">
-                            <div className="flex gap-0.5 sm:gap-1 items-end h-full w-full justify-center">
-                                <div className="w-1.5 sm:w-2 bg-[#008069] rounded-t-sm opacity-80" style={{ height: `${maxVal > 0 ? (item.income / maxVal) * 100 : 0}%` }}></div>
-                                <div className="w-1.5 sm:w-2 bg-red-400 rounded-t-sm opacity-80" style={{ height: `${maxVal > 0 ? (item.expense / maxVal) * 100 : 0}%` }}></div>
-                            </div>
-                            <span className={`text-[9px] ${isDark ? 'text-slate-500' : 'text-slate-400'} mt-1 font-medium truncate w-full text-center`}>{item.label.charAt(0)}</span>
+    <main id="app-main" class="max-w-md mx-auto mt-4 px-4 space-y-6 hidden">
+
+        <!-- Barra de Sincronización en la Nube -->
+        <section class="bg-blue-50 p-4 rounded-xl shadow-sm border border-blue-200">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-xs font-bold text-blue-800 flex items-center gap-1"><span>☁️</span> Sincronización en la Nube</h2>
+                <span id="cloud-status" class="text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded shadow-sm border border-slate-200">Modo Local</span>
+            </div>
+            
+            <div class="flex gap-2 mb-2">
+                <button onclick="crearSalaAdmin()" class="flex-1 bg-blue-600 text-white text-xs font-bold py-2 rounded shadow-sm hover:bg-blue-700 transition">Generar / Actualizar Mi Sala</button>
+            </div>
+
+            <div class="bg-white p-2.5 rounded border border-blue-100 flex justify-between items-center shadow-inner">
+                <p class="text-xs text-slate-600">Código de Sala Activa: <b id="active-room-code" class="text-sm text-blue-700 tracking-wider">---</b></p>
+                <button onclick="salirSala()" id="btn-salir-sala" class="bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold px-2.5 py-1.5 rounded hover:bg-red-100 transition hidden">Desconectar</button>
+            </div>
+        </section>
+
+        <!-- ================= PÁGINA PRINCIPAL (DASHBOARD) ================= -->
+        <div id="vista-home" class="space-y-4">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 rounded-2xl shadow-md">
+                <h2 class="text-xl font-bold mb-1">Panel de Control Clínico</h2>
+                <p class="text-xs text-blue-100">Selecciona una sección para gestionar la atención del paciente.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="irANav('horarios')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-3xl bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition">🧑‍⚕️</span>
+                    <span class="font-bold text-slate-700 text-sm">Horarios y Turnos</span>
+                    <span class="text-[10px] text-slate-400">Personal y descansos</span>
+                </button>
+
+                <button onclick="irANav('finanzas')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-3xl bg-emerald-50 p-3 rounded-xl group-hover:bg-emerald-100 transition">💰</span>
+                    <span class="font-bold text-slate-700 text-sm">Pagos y Sueldos</span>
+                    <span class="text-[10px] text-slate-400">Nómina y tarifas</span>
+                </button>
+
+                <button onclick="irANav('medicamentos')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-3xl bg-amber-50 p-3 rounded-xl group-hover:bg-amber-100 transition">💊</span>
+                    <span class="font-bold text-slate-700 text-sm">Añadir Medicamento</span>
+                    <span class="text-[10px] text-slate-400">Registro y dosis</span>
+                </button>
+
+                <button onclick="irANav('calendario')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-3xl bg-indigo-50 p-3 rounded-xl group-hover:bg-indigo-100 transition">📅</span>
+                    <span class="font-bold text-slate-700 text-sm">Cronograma 24h</span>
+                    <span class="text-[10px] text-slate-400">Línea de tiempo y tomas</span>
+                </button>
+
+                <button onclick="irANav('inventario')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition col-span-2 flex flex-col items-center text-center gap-2 group">
+                    <span class="text-3xl bg-amber-100 p-3 rounded-xl group-hover:bg-amber-200 transition">📦</span>
+                    <span class="font-bold text-slate-700 text-sm">Inventario y Stock Independiente</span>
+                    <span class="text-[10px] text-slate-400">Control de piezas, disparos, gotas y surtir receta</span>
+                </button>
+            </div>
+
+            <!-- Notas Fijas -->
+            <section class="bg-yellow-50 p-4 rounded-xl shadow-sm border border-yellow-200">
+                <h2 class="text-sm font-semibold mb-2 text-yellow-800 flex items-center gap-1"><span>📌</span> Notas y Medicamentos Fijos</h2>
+                <textarea id="notas-fijas" rows="2" placeholder="Ej. Insulina 8:00 AM todos los días..." 
+                          class="w-full p-2.5 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none text-xs bg-yellow-100/50"></textarea>
+            </section>
+
+            <!-- Resumen Próximas Tomas -->
+            <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1.5"><span>⏰</span> Tomas Próximas (Hoy y Mañana)</h2>
+                <div id="lista-medicamentos-home" class="space-y-3"></div>
+            </section>
+        </div>
+
+        <!-- ================= PESTAÑA EXCLUSIVA PANEL DE ADMINISTRACIÓN (SOLO ADMIN) ================= -->
+        <div id="vista-admin" class="space-y-4 hidden">
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-lg border border-indigo-500/30 space-y-3">
+                <div class="flex justify-between items-center border-b border-indigo-800/60 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-2xl">🛡️</span>
+                        <div>
+                            <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-400">Panel de Administración Total</h2>
+                            <p class="text-[10px] text-indigo-200 font-mono">Gestión de Licencias y Usuarios Registrados</p>
                         </div>
-                    ))}
+                    </div>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2.5 py-1 rounded-full font-bold">Admin</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">Desde esta pestaña puedes visualizar todos los usuarios que han iniciado sesión con Google, bloquear/activar cuentas y asignarles prueba de 15 días, suscripción mensual o acceso permanente (vitalicio/regalo).</p>
+                <div>
+                    <h3 class="text-xs font-bold text-amber-300 mb-2.5">👥 Usuarios Registrados en la App:</h3>
+                    <div id="lista-usuarios-admin" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
                 </div>
             </div>
-        );
+        </div>
 
-        // --- WIDGETS FLOTANTES ---
-        const FinancialHealthWidget = ({ transactions, isVisible, onClose, currentYear, isDark }) => {
-            const [isMinimized, setIsMinimized] = useState(false);
-            if (!isVisible) return null;
+        <!-- ================= VISTA HORARIOS Y TURNOS ================= -->
+        <div id="vista-horarios" class="space-y-4 hidden">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div>
+                    <h2 class="font-bold text-slate-800 text-base">Equipo de Enfermería</h2>
+                    <p class="text-xs text-slate-500">Horarios y días laborables.</p>
+                </div>
+                <button onclick="abrirModalEnfermero()" id="btn-add-enf" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2.5 rounded-xl transition shadow-sm flex items-center gap-1">
+                    <span>➕</span> Añadir Personal
+                </button>
+            </div>
 
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            
-            let monthIncome = 0;
-            let monthExpense = 0;
-            let debtReserve = 0;
-            const debtCategories = ['Deuda', 'Préstamos', 'Tarjetas de Crédito', 'Deuda Familiar'];
+            <div class="space-y-3" id="contenedor-enfermeros-resumen"></div>
 
-            transactions.forEach(t => {
-                const tDate = new Date(t.date + 'T00:00:00');
-                if (tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
-                    if (t.type === 'income') {
-                        monthIncome += t.amount;
-                    } else {
-                        const isDebt = debtCategories.includes(t.category);
-                        const isFuture = tDate > new Date(now.setHours(0,0,0,0));
-                        
-                        if (isDebt && isFuture) {
-                            debtReserve += t.amount;
-                        } else {
-                            monthExpense += t.amount;
-                        }
-                    }
-                }
-            });
+            <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
+                <label class="text-xs text-red-800 font-bold block mb-2 border-b border-red-200 pb-1.5">⚠️ Reporte de Horarios SIN Personal:</label>
+                <div id="huecos-reporte" class="space-y-1.5"></div>
+            </div>
 
-            const available = monthIncome - monthExpense;
-            const net = available - debtReserve;
-            const isGood = net >= 0;
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-700 text-xs mb-2">📅 Turnos de Hoy y Mañana</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-blue-50 p-2.5 rounded-lg border border-blue-200">
+                        <h4 id="cal-hoy-titulo" class="font-bold text-blue-800 text-xs mb-1.5 border-b border-blue-200 pb-1">Hoy</h4>
+                        <ul id="lista-cal-hoy" class="text-[11px] space-y-1 text-slate-700"></ul>
+                    </div>
+                    <div class="bg-slate-100 p-2.5 rounded-lg border border-slate-200">
+                        <h4 id="cal-man-titulo" class="font-bold text-slate-600 text-xs mb-1.5 border-b border-slate-200 pb-1">Mañana</h4>
+                        <ul id="lista-cal-man" class="text-[11px] space-y-1 text-slate-600"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            return (
-                <div className={`${isDark ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'} backdrop-blur-md border shadow-xl rounded-2xl overflow-hidden transition-all duration-300 w-full md:w-72 pointer-events-auto`}>
-                    <div className={`p-3 flex justify-between items-center bg-gradient-to-r ${isGood ? 'from-[#008069] to-[#00a884]' : 'from-orange-500 to-red-500'}`}>
-                        <div className="flex items-center gap-2 cursor-pointer w-full" onClick={() => setIsMinimized(!isMinimized)}>
-                            <Activity className="w-3 h-3 text-white" />
-                            <h4 className="text-white text-xs font-bold whitespace-nowrap">
-                                {isMinimized ? formatCurrency(net) : 'Estado Financiero'}
-                            </h4>
+        <!-- ================= VISTA FINANZAS Y PAGOS ================= -->
+        <div id="vista-finanzas" class="space-y-4 hidden">
+            <div class="bg-emerald-600 text-white p-4 rounded-2xl shadow-md">
+                <h2 class="text-base font-bold mb-1">💰 Nómina y Pagos</h2>
+                <p class="text-xs text-emerald-100">Configura sueldo fijo semanal o por hora de cada enfermero.</p>
+            </div>
+
+            <div id="contenedor-finanzas" class="space-y-3"></div>
+        </div>
+
+        <!-- ================= VISTA NUEVO MEDICAMENTO ================= -->
+        <div id="vista-medicamentos" class="space-y-4 hidden">
+            <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-base font-bold text-slate-700 flex items-center gap-1.5"><span>💊</span> Registrar Medicamento</h2>
+                    <button onclick="irANav('calendario')" class="text-xs font-bold text-blue-600 hover:underline">← Volver al Cronograma</button>
+                </div>
+                <form id="form-medicamento" class="space-y-3.5">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-bold text-slate-600">Nombre del Medicamento</label>
+                            <span class="text-[10px] text-blue-600 font-semibold">Elige de stock o escribe uno nuevo</span>
                         </div>
-                        <div className="flex items-center gap-1 ml-3">
-                            <button onClick={() => setIsMinimized(!isMinimized)} className="text-white/80 hover:text-white p-1"><Minus className="w-3 h-3" /></button>
-                            <button onClick={onClose} className="text-white/80 hover:text-white p-1"><X className="w-3 h-3" /></button>
+                        <select id="select-stock-med" onchange="seleccionarMedDeStock(this.value)" class="w-full p-2 mb-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-blue-50/60 text-slate-700 font-medium">
+                            <option value="">-- 📦 Seleccionar de tu inventario o escribir abajo --</option>
+                        </select>
+                        <input type="text" id="nombre" required placeholder="Ej. Paracetamol 500mg" 
+                               class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs font-semibold text-slate-700">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Vía de Administración</label>
+                            <select id="via" onchange="actualizarDosisLabel(this.value)" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-white">
+                                <option value="Oral 💊">Oral 💊</option>
+                                <option value="Inhalado 💨">Inhalado 💨</option>
+                                <option value="Nasal 👃">Nasal 👃</option>
+                                <option value="Inyectable 💉">Inyectable 💉</option>
+                                <option value="Gotas 💧">Gotas 💧</option>
+                                <option value="Topico 🧴">Tópico 🧴</option>
+                            </select>
                         </div>
+                        <div>
+                            <label id="label-dosis" class="block text-xs font-bold text-slate-600 mb-1">Dosis</label>
+                            <input type="text" id="dosis-cantidad" required placeholder="Ej. 1 tableta / 2 puffs" 
+                                   class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Indicación de Tiempo</label>
+                        <select id="momento" onchange="verificarMomento(this.value)" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-white">
+                            <option value="Horario Fijo">Horario Regular (Cada X horas)</option>
+                            <option value="Antes de desayunar">Antes de desayunar</option>
+                            <option value="Después de desayunar">Después de desayunar</option>
+                            <option value="Antes de comer">Antes de comer</option>
+                            <option value="Después de comer">Después de comer</option>
+                            <option value="Antes de cenar">Antes de cenar</option>
+                            <option value="Después de cenar">Después de cenar</option>
+                            <option value="Antes de dormir">Antes de dormir</option>
+                            <option value="PRN (Si es necesario)">PRN (Si es necesario)</option>
+                        </select>
                     </div>
                     
-                    {!isMinimized && (
-                        <div className="p-4 space-y-3">
-                            <div className="flex justify-between items-center text-xs">
-                                <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>Saldo Operativo</span>
-                                <span className={`text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{formatCurrency(available)}</span>
-                            </div>
-                            {debtReserve > 0 && (
-                                <div className="flex justify-between items-center text-orange-600 bg-orange-50 p-2 rounded-lg text-xs">
-                                    <span className="flex items-center gap-1"><Lock className="w-3 h-3"/> Reserva Deuda</span>
-                                    <span className="font-bold">- {formatCurrency(debtReserve)}</span>
-                                </div>
-                            )}
-                            <div className={`pt-2 border-t ${isDark ? 'border-slate-700' : 'border-slate-100'} mt-1 text-center ${isGood ? 'text-[#008069]' : 'text-red-500'}`}>
-                                <p className="text-[10px] uppercase font-bold tracking-wider">{isGood ? 'Saldo Libre Real' : 'Faltante'}</p>
-                                <p className="text-xl font-black">{formatCurrency(Math.abs(net))}</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const BudgetAlertWidget = ({ transactions, budgets, isVisible, onClose, currentYear, isDark }) => {
-            const [isMinimized, setIsMinimized] = useState(false);
-            if (!isVisible) return null;
-            if (!budgets || budgets.length === 0) return null;
-
-            const currentMonth = new Date().getMonth();
-            const currentMonthExpenses = {};
-            transactions.forEach(t => {
-                const tDate = new Date(t.date + 'T00:00:00');
-                if (t.type === 'expense' && tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
-                    currentMonthExpenses[t.category] = (currentMonthExpenses[t.category] || 0) + t.amount;
-                }
-            });
-
-            const alerts = budgets.filter(b => {
-                const spent = currentMonthExpenses[b.category] || 0;
-                return spent >= (b.limit * 0.8);
-            }).map(b => {
-                const spent = currentMonthExpenses[b.category] || 0;
-                return { ...b, spent, percentage: (spent / b.limit) * 100 };
-            });
-
-            if (alerts.length === 0) return null;
-
-            return (
-                <div className={`${isDark ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'} backdrop-blur-md border shadow-xl rounded-2xl overflow-hidden transition-all duration-300 w-full md:w-72 mt-3 pointer-events-auto`}>
-                    <div className="p-3 flex justify-between items-center bg-amber-500">
-                        <div className="flex items-center gap-2 cursor-pointer w-full" onClick={() => setIsMinimized(!isMinimized)}>
-                            <AlertTriangle className="w-3 h-3 text-white" />
-                            <h4 className="text-white text-xs font-bold whitespace-nowrap">Alertas Presupuesto</h4>
-                        </div>
-                        <div className="flex items-center gap-1 ml-2">
-                            <button onClick={() => setIsMinimized(!isMinimized)} className="text-white/80 hover:text-white p-1 rounded-full"><Minus className="w-3 h-3" /></button>
-                            <button onClick={onClose} className="text-white/80 hover:text-white p-1 rounded-full"><X className="w-3 h-3" /></button>
-                        </div>
-                    </div>
-                    {!isMinimized && (
-                        <div className="p-4 space-y-3">
-                            {alerts.map((alert, idx) => (
-                                <div key={idx} className="text-xs">
-                                    <div className="flex justify-between mb-1">
-                                        <span className={`font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{alert.category}</span>
-                                        <span className={`font-bold ${alert.percentage >= 100 ? 'text-red-500' : 'text-amber-600'}`}>
-                                            {Math.round(alert.percentage)}%
-                                        </span>
-                                    </div>
-                                    <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
-                                        <div 
-                                            className={`h-full rounded-full ${alert.percentage >= 100 ? 'bg-red-500' : 'bg-amber-500'}`} 
-                                            style={{ width: `${Math.min(alert.percentage, 100)}%` }}
-                                        ></div>
-                                    </div>
-                                    <p className={`text-[10px] mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                        {formatCurrency(alert.spent)} de {formatCurrency(alert.limit)}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const TopExpensesWidget = ({ transactions, isVisible, onClose, currentYear, isDark }) => {
-            const [isMinimized, setIsMinimized] = useState(false);
-            if (!isVisible) return null;
-
-            const currentMonth = new Date().getMonth();
-            const expensesByCategory = {};
-            let totalExpense = 0;
-
-            transactions.forEach(t => {
-                const tDate = new Date(t.date + 'T00:00:00');
-                if (t.type === 'expense' && tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
-                    expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
-                    totalExpense += t.amount;
-                }
-            });
-
-            const sortedCategories = Object.entries(expensesByCategory).sort(([, a], [, b]) => b - a).slice(0, 3);
-
-            return (
-                <div className={`${isDark ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'} backdrop-blur-md border shadow-xl rounded-2xl overflow-hidden transition-all duration-300 w-full md:w-72 mt-3 pointer-events-auto`}>
-                    <div className={`p-3 flex justify-between items-center ${isDark ? 'bg-slate-900' : 'bg-slate-700'}`}>
-                        <div className="flex items-center gap-2 cursor-pointer w-full" onClick={() => setIsMinimized(!isMinimized)}>
-                            <TrendingDown className="w-3 h-3 text-white" />
-                            <h4 className="text-white text-xs font-bold whitespace-nowrap">Top Gastos (Mes)</h4>
-                        </div>
-                        <div className="flex items-center gap-1 ml-2">
-                            <button onClick={() => setIsMinimized(!isMinimized)} className="text-white/80 hover:text-white p-1 rounded-full"><Minus className="w-3 h-3" /></button>
-                            <button onClick={onClose} className="text-white/80 hover:text-white p-1 rounded-full"><X className="w-3 h-3" /></button>
-                        </div>
-                    </div>
-                    {!isMinimized && (
-                        <div className="p-4">
-                            {sortedCategories.length > 0 ? (
-                                <div className="space-y-3">
-                                    {sortedCategories.map(([cat, amount], i) => (
-                                        <div key={cat} className="flex items-center justify-between text-xs">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-slate-400 w-4">#{i+1}</span>
-                                                <span className={`font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{cat}</span>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{formatCurrency(amount)}</div>
-                                                <div className="text-[9px] text-slate-400">{Math.round((amount / totalExpense) * 100)}%</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-xs text-slate-400 text-center py-2">Sin gastos registrados.</p>
-                            )}
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const SavingsWidget = ({ transactions, isVisible, onClose, currentYear, isDark }) => {
-            const [isMinimized, setIsMinimized] = useState(false);
-            const [goal, setGoal] = useState(() => localStorage.getItem('savingsGoal') || 10000);
-            const [isEditing, setIsEditing] = useState(false);
-            const [tempGoal, setTempGoal] = useState(goal);
-
-            if (!isVisible) return null;
-
-            const saveGoal = () => {
-                setGoal(tempGoal);
-                localStorage.setItem('savingsGoal', tempGoal);
-                setIsEditing(false);
-            };
-
-            let totalIncome = 0;
-            let totalExpense = 0;
-
-            transactions.forEach(t => {
-                const tDate = new Date(t.date + 'T00:00:00');
-                if (tDate.getFullYear() === currentYear) {
-                    if (t.type === 'income') totalIncome += t.amount;
-                    else totalExpense += t.amount;
-                }
-            });
-
-            const currentSavings = totalIncome - totalExpense;
-            const progress = Math.min((currentSavings / goal) * 100, 100);
-
-            return (
-                <div className={`${isDark ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'} backdrop-blur-md border shadow-xl rounded-2xl overflow-hidden transition-all duration-300 w-full md:w-72 mt-3 pointer-events-auto`}>
-                    <div className="p-3 flex justify-between items-center bg-indigo-600">
-                        <div className="flex items-center gap-2 cursor-pointer w-full" onClick={() => setIsMinimized(!isMinimized)}>
-                            <Target className="w-3 h-3 text-white" />
-                            <h4 className="text-white text-xs font-bold whitespace-nowrap">Meta Ahorro {currentYear}</h4>
-                        </div>
-                        <div className="flex items-center gap-1 ml-2">
-                            <button onClick={() => setIsMinimized(!isMinimized)} className="text-white/80 hover:text-white p-1"><Minus className="w-3 h-3" /></button>
-                            <button onClick={onClose} className="text-white/80 hover:text-white p-1"><X className="w-3 h-3" /></button>
-                        </div>
-                    </div>
-                    {!isMinimized && (
-                        <div className="p-4">
-                            <div className="flex justify-between items-end mb-2">
-                                <div>
-                                    <p className="text-xs text-slate-500">Acumulado</p>
-                                    <p className={`text-lg font-bold ${currentSavings >= 0 ? 'text-indigo-500' : 'text-red-500'}`}>{formatCurrency(currentSavings)}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] text-slate-400">Meta</p>
-                                    {isEditing ? (
-                                        <div className="flex items-center gap-1">
-                                            <input type="number" className="w-16 text-xs border rounded px-1 outline-none text-black" value={tempGoal} onChange={(e) => setTempGoal(e.target.value)}/>
-                                            <button onClick={saveGoal} className="text-green-500"><CheckCircle2 className="w-4 h-4"/></button>
-                                        </div>
-                                    ) : (
-                                        <p className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'} cursor-pointer flex items-center gap-1 justify-end`} onClick={() => setIsEditing(true)}>
-                                            {formatCurrency(goal)} <Edit2 className="w-3 h-3 opacity-50"/>
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                            <div className={`w-full ${isDark ? 'bg-slate-700' : 'bg-slate-100'} h-2 rounded-full overflow-hidden mb-1`}>
-                                <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000" style={{ width: `${Math.max(0, progress)}%` }}></div>
-                            </div>
-                            <p className="text-[10px] text-center text-slate-400">{Math.round(progress)}% logrado</p>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        // --- VISTAS ESPECÍFICAS ---
-
-        // 1. MIEMBROS & INVITACIÓN
-        const MembersView = ({ family, familyMembers, isDark }) => {
-            const [newMemberName, setNewMemberName] = useState('');
-            
-            const addVirtualMember = async (e) => {
-                e.preventDefault();
-                if (!newMemberName.trim()) return;
-                const colors = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                await addDoc(collection(db, 'members'), {
-                    familyId: family.id,
-                    name: newMemberName.trim(),
-                    color: randomColor,
-                    isVirtual: true // Marca como miembro sin login (ej. Bebé, Mascota)
-                });
-                setNewMemberName('');
-            };
-
-            const copyCode = () => {
-                navigator.clipboard.writeText(family.joinCode);
-                alert("¡Código copiado! Compártelo con tu familia.");
-            };
-
-            return (
-                <div className="space-y-6 pb-24 animate-fade-in">
-                    {/* Tarjeta de Invitación */}
-                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-2xl shadow-lg text-white">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-lg font-bold flex items-center gap-2"><Share2 className="w-5 h-5"/> Invitar Familiares</h3>
-                                <p className="text-blue-100 text-xs mt-1">Comparte este código para que se unan a {family.name}</p>
-                            </div>
-                            <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-                                <KeyRound className="w-6 h-6" />
-                            </div>
-                        </div>
-                        <div className="bg-white/10 border border-white/20 rounded-xl p-3 flex items-center justify-between">
-                            <span className="text-2xl font-mono font-bold tracking-widest">{family.joinCode}</span>
-                            <button onClick={copyCode} className="bg-white text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition"><Copy className="w-4 h-4"/></button>
-                        </div>
-                    </div>
-
-                    {/* Lista de Miembros */}
-                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-6 rounded-2xl shadow-sm border transition-colors`}>
-                        <h3 className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-4 flex items-center gap-2`}><Users className="w-5 h-5 text-[#008069]" /> Integrantes Activos</h3>
-                        
-                        <div className="space-y-3 mb-6">
-                            {familyMembers.length > 0 ? (
-                                familyMembers.map(member => (
-                                    <div key={member.id} className={`flex items-center justify-between p-3 ${isDark ? 'bg-slate-700/50 border-slate-700' : 'bg-slate-50 border-slate-100'} rounded-xl border`}>
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-sm" style={{ backgroundColor: member.color }}>{member.name.charAt(0).toUpperCase()}</div>
-                                            <div>
-                                                <span className={`font-medium block ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{member.name}</span>
-                                                <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded ${member.isVirtual ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                                                    {member.isVirtual ? 'Virtual' : 'Usuario App'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : <p className="text-slate-400 text-center text-sm">Cargando miembros...</p>}
-                        </div>
-
-                        {/* Agregar Miembro Virtual */}
-                        <div className={`pt-4 border-t ${isDark ? 'border-slate-700' : 'border-slate-100'}`}>
-                            <p className={`text-xs mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Agregar miembro sin cuenta (ej. Hijos pequeños, Mascotas)</p>
-                            <form onSubmit={addVirtualMember} className="flex gap-2">
-                                <input type="text" value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Nombre..." className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`} />
-                                <button type="submit" className="bg-[#008069] text-white p-2 rounded-xl hover:bg-[#005c4b]"><UserPlus className="w-5 h-5" /></button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // 2. AUTH SCREEN (LOGIN/REGISTRO REAL)
-        const AuthScreen = ({ onLogin }) => {
-            const [mode, setMode] = useState('login'); // login, register, join
-            const [data, setData] = useState({ email: '', password: '', familyName: '', joinCode: '', userName: '' });
-            const [error, setError] = useState('');
-            const [loading, setLoading] = useState(false);
-
-            const handleAuth = async (e) => {
-                e.preventDefault();
-                setError('');
-                setLoading(true);
-
-                try {
-                    const auth = getAuth();
-                    const db = getFirestore();
-
-                    if (mode === 'login') {
-                        // 1. Iniciar Sesión Normal
-                        await signInWithEmailAndPassword(auth, data.email, data.password);
-                        // El listener onAuthStateChanged en App manejará el resto
-                    } 
-                    else if (mode === 'register') {
-                        // 2. Crear Familia Nueva
-                        
-                        // A. Crear Auth User PRIMERO
-                        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-                        const user = userCredential.user;
-                        
-                        try {
-                            // B. Generar Código de Familia Único (Simple)
-                            const newJoinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                            
-                            // C. Crear Documento Familia
-                            const familyRef = await addDoc(collection(db, 'families'), {
-                                name: data.familyName,
-                                joinCode: newJoinCode,
-                                createdAt: new Date().toISOString(),
-                                createdBy: user.uid
-                            });
-
-                            // D. Crear Documento Miembro (Vinculado al Auth UID)
-                            await addDoc(collection(db, 'members'), {
-                                uid: user.uid,
-                                familyId: familyRef.id,
-                                name: data.userName,
-                                email: data.email,
-                                role: 'admin',
-                                color: `hsl(${Math.random() * 360}, 70%, 40%)`,
-                                isVirtual: false
-                            });
-                        } catch (dbError) {
-                            // Rollback si falla DB para evitar "Email already used" en reintento
-                            await deleteUser(user);
-                            
-                            if (dbError.code === 'permission-denied') {
-                                throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y pega las reglas: allow read, write: if request.auth != null;");
-                            }
-                            throw new Error("Error guardando datos. Verifica tu conexión.");
-                        }
-                    }
-                    else if (mode === 'join') {
-                        // 3. Unirse a Familia Existente
-                        
-                        // A. Crear Auth User PRIMERO
-                        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-                        const user = userCredential.user;
-
-                        try {
-                            // B. Buscar familia por código
-                            const q = query(collection(db, 'families'), where('joinCode', '==', data.joinCode));
-                            const snapshot = await getDocs(q);
-                            
-                            if (snapshot.empty) {
-                                throw new Error("Código de familia inválido");
-                            }
-                            const familyDoc = snapshot.docs[0];
-
-                            // C. Crear Documento Miembro vinculado a esa familia
-                            await addDoc(collection(db, 'members'), {
-                                uid: user.uid,
-                                familyId: familyDoc.id,
-                                name: data.userName,
-                                email: data.email,
-                                role: 'member',
-                                color: `hsl(${Math.random() * 360}, 70%, 40%)`,
-                                isVirtual: false
-                            });
-                        } catch (err) {
-                            // Rollback
-                            await deleteUser(user);
-                            if (err.message === "Código de familia inválido") throw err;
-                            if (err.code === 'permission-denied') {
-                                throw new Error("PERMISOS DENEGADOS: Ve a Firebase Console -> Firestore Database -> Reglas y pega las reglas: allow read, write: if request.auth != null;");
-                            }
-                            if (err.code === 'failed-precondition') {
-                                console.error("Missing index:", err);
-                                throw new Error("Falta índice en Firebase. Revisa la consola.");
-                            }
-                            throw new Error("Error al unirse. Intenta de nuevo.");
-                        }
-                    }
-                } catch (err) {
-                    console.error(err);
-                    let msg = "Error de autenticación";
-                    if (err.code === 'auth/email-already-in-use') msg = "Este correo ya está registrado";
-                    if (err.code === 'auth/wrong-password') msg = "Contraseña incorrecta";
-                    if (err.code === 'auth/user-not-found') msg = "Usuario no encontrado. ¿Ya te registraste?";
-                    if (err.code === 'auth/operation-not-allowed') msg = "ERROR: Activa 'Correo/Contraseña' en Firebase Console -> Authentication";
-                    if (err.message) msg = err.message;
-                    setError(msg);
-                    setLoading(false);
-                }
-            };
-
-            return (
-                <div className={`min-h-screen flex items-center justify-center ${THEME.bg} p-4`}>
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
-                        <div className={`${THEME.primary} p-8 text-center`}>
-                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm"><Users className="w-8 h-8 text-white" /></div>
-                            <h1 className="text-2xl font-bold text-white mb-1">Control Familiar</h1>
-                            <p className="text-white/80 text-sm">Finanzas compartidas</p>
-                        </div>
-                        
-                        {/* Tabs */}
-                        <div className="flex border-b border-gray-100">
-                            <button onClick={() => {setMode('login'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'login' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Entrar</button>
-                            <button onClick={() => {setMode('register'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'register' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Crear Familia</button>
-                            <button onClick={() => {setMode('join'); setError('');}} className={`flex-1 py-3 text-sm font-bold ${mode === 'join' ? 'text-[#008069] border-b-2 border-[#008069]' : 'text-gray-400'}`}>Unirse</button>
-                        </div>
-
-                        <div className="p-8">
-                            <form onSubmit={handleAuth} className="space-y-4">
-                                
-                                {/* Campos comunes: Email y Pass */}
-                                <div className="space-y-3">
-                                    <div className="flex items-center border-b border-gray-200 py-2">
-                                        <Mail className="w-5 h-5 text-gray-400 mr-2" />
-                                        <input type="email" required value={data.email} onChange={(e) => setData({...data, email: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Correo Electrónico" />
-                                    </div>
-                                    <div className="flex items-center border-b border-gray-200 py-2">
-                                        <Lock className="w-5 h-5 text-gray-400 mr-2" />
-                                        <input type="password" required value={data.password} onChange={(e) => setData({...data, password: e.target.value})} className="w-full outline-none text-gray-700 bg-transparent" placeholder="Contraseña" />
-                                    </div>
-                                </div>
-
-                                {/* Campos Específicos */}
-                                {mode === 'register' && (
-                                    <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100 animate-fade-in">
-                                        <label className="block text-xs font-bold text-blue-800 uppercase mb-2">Nueva Familia</label>
-                                        <input type="text" required value={data.userName} onChange={(e) => setData({...data, userName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent border-b border-blue-200 py-1 mb-2" placeholder="Tu Nombre (Ej. Papá)" />
-                                        <input type="text" required value={data.familyName} onChange={(e) => setData({...data, familyName: e.target.value})} className="w-full outline-none text-blue-900 bg-transparent border-b border-blue-200 py-1" placeholder="Nombre Familia (Ej. Los Pérez)" />
-                                    </div>
-                                )}
-
-                                {mode === 'join' && (
-                                    <div className="mt-4 p-3 bg-orange-50 rounded-xl border border-orange-100 animate-fade-in">
-                                        <label className="block text-xs font-bold text-orange-800 uppercase mb-2">Unirse a Familia</label>
-                                        <input type="text" required value={data.userName} onChange={(e) => setData({...data, userName: e.target.value})} className="w-full outline-none text-orange-900 bg-transparent border-b border-orange-200 py-1 mb-2" placeholder="Tu Nombre (Ej. Mamá)" />
-                                        <input type="text" required value={data.joinCode} onChange={(e) => setData({...data, joinCode: e.target.value.toUpperCase()})} className="w-full outline-none text-orange-900 bg-transparent border-b border-orange-200 py-1 font-mono tracking-widest" placeholder="CÓDIGO DE INVITACIÓN" />
-                                    </div>
-                                )}
-
-                                {error && <p className="text-red-500 text-xs font-medium text-center bg-red-50 p-2 rounded-lg">{error}</p>}
-                                
-                                <button type="submit" disabled={loading} className={`w-full ${THEME.primary} text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition transform active:scale-95 disabled:opacity-50`}>
-                                    {loading ? 'Procesando...' : mode === 'login' ? 'Iniciar Sesión' : mode === 'register' ? 'Crear Familia' : 'Unirse'}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // 4. Presupuestos (Restored)
-        const BudgetsView = ({ transactions, currentYear, family, isDark }) => {
-            const [budgets, setBudgets] = useState([]);
-            const [newBudget, setNewBudget] = useState({ category: '', limit: '' });
-
-            useEffect(() => {
-                const db = getFirestore();
-                const q = query(collection(db, 'budgets'), where('familyId', '==', family.id));
-                const unsubscribe = onSnapshot(q, (snapshot) => {
-                    setBudgets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                }, (error) => {
-                     console.error("Error loading budgets", error);
-                     if (error.code === 'permission-denied') alert("Error: No tienes permiso para ver presupuestos.");
-                });
-                return () => unsubscribe();
-            }, [family.id]);
-
-            const categories = ['Comida', 'Transporte', 'Vivienda', 'Escuela', 'Despensa', 'Tienda', 'Comida a domicilio', 'Servicios', 'Deuda', 'Gastos Hormiga', 'Otros'];
-
-            const currentMonth = new Date().getMonth();
-            const expensesByCategory = {};
-            transactions.forEach(t => {
-                const tDate = new Date(t.date + 'T00:00:00');
-                if (t.type === 'expense' && tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
-                    expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
-                }
-            });
-
-            const handleAddBudget = async (e) => {
-                e.preventDefault();
-                if (!newBudget.category || !newBudget.limit) return;
-                const db = getFirestore();
-                // Verificar si ya existe
-                const existing = budgets.find(b => b.category === newBudget.category);
-                if (existing) {
-                     await updateDoc(doc(db, 'budgets', existing.id), { limit: parseFloat(newBudget.limit) });
-                } else {
-                     await addDoc(collection(db, 'budgets'), {
-                        familyId: family.id,
-                        category: newBudget.category,
-                        limit: parseFloat(newBudget.limit)
-                    });
-                }
-                setNewBudget({ category: '', limit: '' });
-            };
-
-            const removeBudget = async (id) => {
-                if(window.confirm('¿Eliminar presupuesto?')) {
-                    const db = getFirestore();
-                    await deleteDoc(doc(db, 'budgets', id));
-                }
-            };
-
-            return (
-                <div className="space-y-6 pb-24 animate-fade-in">
-                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-6 rounded-2xl shadow-sm border transition-colors`}>
-                        <h3 className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} mb-4 flex items-center gap-2`}><PiggyBank className="w-5 h-5 text-[#008069]" /> Presupuestos Mensuales</h3>
-                        
-                        <form onSubmit={handleAddBudget} className="flex gap-2 mb-6 flex-wrap">
-                            <select 
-                                value={newBudget.category} 
-                                onChange={(e) => setNewBudget({...newBudget, category: e.target.value})}
-                                className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`}
-                            >
-                                <option value="">Categoría</option>
-                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    <div id="bloque-frecuencia" class="grid grid-cols-2 gap-3 transition-all">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Frecuencia</label>
+                            <select id="frecuencia" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs">
+                                <option value="4">Cada 4 hrs</option>
+                                <option value="6">Cada 6 hrs</option>
+                                <option value="8" selected>Cada 8 hrs</option>
+                                <option value="12">Cada 12 hrs</option>
+                                <option value="24">Cada 24 hrs</option>
                             </select>
-                            <input 
-                                type="number" 
-                                value={newBudget.limit} 
-                                onChange={(e) => setNewBudget({...newBudget, limit: e.target.value})} 
-                                placeholder="Límite $"
-                                className={`flex-1 ${isDark ? 'bg-slate-700 text-slate-200 border-slate-600 placeholder-slate-400' : 'bg-slate-50 text-slate-700 border-slate-200'} border rounded-xl px-4 py-2 outline-none focus:border-[#008069] text-sm`}
-                            />
-                            <button type="submit" className="bg-[#008069] text-white p-2 rounded-xl hover:bg-[#005c4b]"><Plus className="w-5 h-5" /></button>
-                        </form>
-
-                        <div className="space-y-4">
-                            {budgets.length > 0 ? (
-                                budgets.map(b => {
-                                    const spent = expensesByCategory[b.category] || 0;
-                                    const percentage = Math.min((spent / b.limit) * 100, 100);
-                                    const remaining = b.limit - spent;
-                                    let color = 'bg-[#008069]';
-                                    if (percentage > 75) color = 'bg-amber-500';
-                                    if (percentage >= 100) color = 'bg-red-500';
-
-                                    return (
-                                        <div key={b.id} className={`p-4 ${isDark ? 'bg-slate-700/50' : 'bg-slate-50'} rounded-xl`}>
-                                            <div className="flex justify-between items-center mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{b.category}</span>
-                                                    {percentage >= 100 && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                                                </div>
-                                                <button onClick={() => removeBudget(b.id)} className="text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-                                            </div>
-                                            <div className={`w-full ${isDark ? 'bg-slate-600' : 'bg-slate-200'} h-2.5 rounded-full overflow-hidden mb-2`}>
-                                                <div className={`h-full rounded-full transition-all duration-1000 ${color}`} style={{ width: `${percentage}%` }}></div>
-                                            </div>
-                                            <div className="flex justify-between text-xs">
-                                                <span className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Gastado: {formatCurrency(spent)}</span>
-                                                <span className={`font-bold ${remaining < 0 ? 'text-red-500' : isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                                                    {remaining < 0 ? `Excedido: ${formatCurrency(Math.abs(remaining))}` : `Quedan: ${formatCurrency(remaining)}`}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )
-                                })
-                            ) : (
-                                <p className="text-center text-slate-400 text-sm py-4">No has definido presupuestos.</p>
-                            )}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1">Estado de Inicio</label>
+                            <select id="modo-inicio" onchange="cambiarModoInicio(this.value)" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-white">
+                                <option value="ultima">Registrar última toma</option>
+                                <option value="nuevo">Nuevo (1ra toma ahora)</option>
+                            </select>
                         </div>
                     </div>
-                </div>
-            );
-        };
 
-        // --- VISTAS RESTANTES ---
-        const CalendarView = ({ transactions, selectedYear, onDateClick, isDark }) => {
-            const [date, setDate] = useState(new Date(selectedYear, new Date().getMonth(), 1));
-
-            useEffect(() => {
-                if (date.getFullYear() !== selectedYear) setDate(new Date(selectedYear, 0, 1));
-            }, [selectedYear]);
-
-            const getDaysInMonth = (d) => {
-                const year = d.getFullYear();
-                const month = d.getMonth();
-                const days = new Date(year, month + 1, 0).getDate();
-                const firstDay = new Date(year, month, 1).getDay(); 
-                return { days, firstDay };
-            };
-
-            const { days, firstDay } = getDaysInMonth(date);
-            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-            const changeMonth = (offset) => {
-                const newDate = new Date(date);
-                newDate.setMonth(newDate.getMonth() + offset);
-                setDate(newDate);
-            };
-
-            const getDayData = (day) => {
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const dateStr = `${date.getFullYear()}-${month}-${String(day).padStart(2, '0')}`;
-                const dayTransactions = transactions.filter(t => t.date === dateStr);
-                const income = dayTransactions.filter(t => t.type === 'income').reduce((acc, curr) => acc + curr.amount, 0);
-                const expense = dayTransactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + curr.amount, 0);
-                return { income, expense };
-            };
-
-            return (
-                <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} rounded-2xl shadow-sm border overflow-hidden animate-fade-in mb-24 transition-colors`}>
-                    <div className={`p-4 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'} flex justify-between items-center border-b`}>
-                        <button onClick={() => changeMonth(-1)} className="p-2 hover:opacity-70 rounded-full text-slate-500"><ChevronLeft className="w-5 h-5"/></button>
-                        <div className="flex items-center gap-2">
-                            <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{monthNames[date.getMonth()]} {date.getFullYear()}</span>
-                            <button onClick={() => setDate(new Date())} className="text-[#008069] bg-[#d9fdd3] p-1 rounded-md text-xs font-bold px-2">Hoy</button>
-                        </div>
-                        <button onClick={() => changeMonth(1)} className="p-2 hover:opacity-70 rounded-full text-slate-500"><ChevronRight className="w-5 h-5"/></button>
+                    <div id="contenedor-hora-toma">
+                        <label id="label-hora-toma" class="block text-xs font-bold text-slate-600 mb-1">Fecha y hora de última toma</label>
+                        <input type="datetime-local" id="ultima-toma" required 
+                               class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-xs">
                     </div>
-                    <div className="p-3">
-                        <div className="grid grid-cols-7 mb-2 text-center text-xs font-bold text-slate-400">
-                            {['D','L','M','M','J','V','S'].map((d, i) => <div key={i} className="py-1">{d}</div>)}
-                        </div>
-                        <div className="grid grid-cols-7 gap-1">
-                            {[...Array(firstDay)].map((_, i) => <div key={`empty-${i}`} className="aspect-square"></div>)}
-                            {[...Array(days)].map((_, i) => {
-                                const day = i + 1;
-                                const { income, expense } = getDayData(day);
-                                const balance = income - expense;
-                                const isToday = new Date().toDateString() === new Date(date.getFullYear(), date.getMonth(), day).toDateString();
-                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                const dateStr = `${date.getFullYear()}-${month}-${String(day).padStart(2, '0')}`;
-                                const hasData = income > 0 || expense > 0;
 
-                                return (
-                                    <button key={day} onClick={() => onDateClick(dateStr)} className={`relative min-h-[70px] border rounded-lg p-1 flex flex-col justify-between transition hover:border-[#008069] ${isToday ? 'bg-[#e7f5f2] border-[#008069]' : isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
-                                        <span className={`text-[10px] font-bold ${isToday ? 'text-[#008069]' : 'text-slate-400'}`}>{day}</span>
-                                        {hasData && (
-                                            <div className="w-full text-center">
-                                                <div className="flex justify-center gap-0.5 mb-0.5">
-                                                    {income > 0 && <div className="w-1.5 h-1.5 rounded-full bg-[#008069]"></div>}
-                                                    {expense > 0 && <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>}
-                                                </div>
-                                                <span className={`block text-[9px] font-bold leading-tight ${balance >= 0 ? 'text-[#008069]' : 'text-red-500'}`}>{formatCurrency(Math.abs(balance))}</span>
-                                            </div>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-md text-xs">
+                        + Registrar Medicamento
+                    </button>
+                </form>
+            </section>
+        </div>
+
+        <!-- ================= VISTA CRONOGRAMA 24H ================= -->
+        <div id="vista-calendario" class="space-y-4 hidden">
+            <section class="bg-indigo-50 p-4 rounded-xl shadow-sm border border-indigo-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-semibold text-indigo-800 flex items-center gap-1.5"><span>📋</span> Cronograma de Medicamentos (24 hrs)</h2>
+                </div>
+                <div id="cronograma-diario" class="space-y-2 relative border-l-2 border-indigo-300 ml-2 pl-4"></div>
+            </section>
+
+            <section>
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-bold text-slate-700">⏰ Lista Completa de Medicamentos</h2>
+                    <button onclick="irANav('medicamentos')" class="bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition">➕ Añadir Medicamento</button>
+                </div>
+                <div id="lista-medicamentos" class="space-y-3"></div>
+            </section>
+        </div>
+
+        <!-- ================= VISTA INVENTARIO Y STOCK INDEPENDIENTE ================= -->
+        <div id="vista-inventario" class="space-y-4 hidden">
+            <div class="bg-amber-600 text-white p-4 rounded-2xl shadow-md flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold mb-1">📦 Inventario y Existencias</h2>
+                    <p class="text-xs text-amber-100">Control independiente de piezas, puffs, gotas y mililitros.</p>
+                </div>
+                <button onclick="abrirModalNuevoStock()" class="bg-white text-amber-700 text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm hover:bg-amber-50">
+                    ➕ Añadir Stock
+                </button>
+            </div>
+
+            <div id="contenedor-inventario" class="space-y-3"></div>
+        </div>
+
+    </main>
+
+    <!-- Modal Editar / Añadir Enfermero -->
+    <div id="modal-enfermero" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 id="modal-enf-titulo" class="text-base font-bold text-slate-800">Añadir Personal</h3>
+                <button onclick="cerrarModalEnfermero()" class="text-slate-400 hover:text-slate-600 font-bold text-base">✕</button>
+            </div>
+            
+            <input type="hidden" id="edit-enf-id" value="">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre del Personal</label>
+                <input type="text" id="input-enf-nombre" placeholder="Ej. Yael" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-slate-700">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo de Pago</label>
+                    <select id="input-enf-tipopago" onchange="cambiarTipoPagoModal(this.value)" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white">
+                        <option value="hora">Por Hora ($)</option>
+                        <option value="fijo">Sueldo Fijo Semanal ($)</option>
+                    </select>
+                </div>
+                <div>
+                    <label id="label-monto-pago" class="block text-xs font-bold text-slate-500 uppercase mb-1">Pago por Hora ($)</label>
+                    <input type="number" id="input-enf-pago" placeholder="Ej. 120" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Día de Pago</label>
+                <select id="input-enf-diapago" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white">
+                    <option value="Lunes">Lunes</option>
+                    <option value="Martes">Martes</option>
+                    <option value="Miércoles">Miércoles</option>
+                    <option value="Jueves">Jueves</option>
+                    <option value="Viernes">Viernes</option>
+                    <option value="Sábado">Sábado</option>
+                    <option value="Domingo">Domingo</option>
+                </select>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label class="text-xs font-bold text-slate-600 uppercase">Horarios por Día</label>
+                    <button onclick="copiarLunesATodos()" type="button" class="text-xs text-blue-600 hover:underline font-bold">📋 Copiar Lunes a todos</button>
+                </div>
+                <div id="modal-dias-container" class="space-y-1.5"></div>
+            </div>
+
+            <div class="flex gap-2 pt-2 border-t">
+                <button onclick="cerrarModalEnfermero()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded-xl hover:bg-slate-300 transition text-xs">Cancelar</button>
+                <button onclick="guardarEnfermeroModal()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl shadow-md hover:bg-blue-700 transition text-xs">💾 Guardar Personal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Surtir / Recargar Stock -->
+    <div id="modal-stock" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-xs w-full space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-sm font-bold text-slate-800">📦 Surtir / Recargar Stock</h3>
+                <button onclick="cerrarModalStock()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <input type="hidden" id="stock-med-id" value="">
+            <div>
+                <label id="label-modal-stock" class="block text-xs font-bold text-slate-600 mb-1">Cantidad a agregar</label>
+                <input type="number" id="input-stock-add" placeholder="Ej. 20" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-amber-500 font-bold">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="cerrarModalStock()" class="flex-1 bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl">Cancelar</button>
+                <button onclick="guardarRecargaStock()" class="flex-1 bg-amber-600 text-white text-xs font-bold py-2 rounded-xl shadow-md hover:bg-amber-700">Guardar Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Registrar Nuevo Artículo en Inventario Independiente -->
+    <div id="modal-nuevo-stock" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-sm font-bold text-slate-800">📦 Registrar Fármaco en Stock</h3>
+                <button onclick="cerrarModalNuevoStock()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nombre del Fármaco / Insumo</label>
+                    <input type="text" id="nuevo-stock-nombre" placeholder="Ej. Salbutamol Spray / Jeringas" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-amber-500 font-semibold">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tipo de Unidad</label>
+                        <select id="nuevo-stock-via" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white outline-none">
+                            <option value="Oral 💊">Pastillas / Piezas 💊</option>
+                            <option value="Inhalado 💨">Puffs / Disparos 💨</option>
+                            <option value="Nasal 👃">Spray Nasal (Disparos) 👃</option>
+                            <option value="Gotas 💧">Gotas / ml 💧</option>
+                            <option value="Inyectable 💉">Ampolletas / ml 💉</option>
+                            <option value="Topico 🧴">Tópico / Piezas 🧴</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Cantidad Inicial</label>
+                        <input type="number" id="nuevo-stock-cant" placeholder="Ej. 200" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-amber-500 font-bold">
                     </div>
                 </div>
-            );
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="cerrarModalNuevoStock()" class="flex-1 bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">Cancelar</button>
+                <button onclick="guardarNuevoStockIndependiente()" class="flex-1 bg-amber-600 text-white text-xs font-bold py-2.5 rounded-xl shadow-md hover:bg-amber-700">Guardar en Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Principal -->
+    <script>
+        const diasNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        
+        window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV15')) || [];
+        
+        let enfermerosDefault = [
+            { id: '1', nombre: 'Yael', tipoPago: 'hora', pagoHora: 100, sueldoFijo: 0, diaPago: 'Viernes', dias: { 1:{act:true,ini:'07:00',fin:'19:00'}, 2:{act:true,ini:'07:00',fin:'19:00'}, 3:{act:true,ini:'07:00',fin:'19:00'}, 4:{act:true,ini:'07:00',fin:'19:00'}, 5:{act:true,ini:'07:00',fin:'19:00'}, 6:{act:false,ini:'',fin:''}, 0:{act:false,ini:'',fin:''} } }
+        ];
+        window.enfermeros = JSON.parse(localStorage.getItem('enfermerosConfigV8')) || enfermerosDefault;
+        window.notasFijas = localStorage.getItem('notasFijas') || '';
+
+        let perfilActual = localStorage.getItem('perfilActivo') || null;
+        let rolActual = localStorage.getItem('rolActual') || null;
+        window.currentRoom = localStorage.getItem('salaSincronizacion') || null;
+
+        window.pushToCloud = async function() {};
+        window.conectarSala = function(codigo) {};
+
+        // --- NAVEGACIÓN ---
+        window.irANav = function(vistaId) {
+            ['home', 'horarios', 'finanzas', 'medicamentos', 'calendario', 'inventario', 'admin'].forEach(v => {
+                const el = document.getElementById('vista-' + v);
+                if(el) el.classList.add('hidden');
+            });
+            document.getElementById('vista-' + vistaId).classList.remove('hidden');
+            
+            const btnBack = document.getElementById('btn-home-back');
+            const tituloHeader = document.getElementById('titulo-header');
+
+            if(vistaId === 'home') {
+                btnBack.classList.add('hidden');
+                tituloHeader.innerText = 'Control de Medicamentos';
+                window.renderizarResumenEnfermeros();
+                window.renderizarListaHome();
+            } else if(vistaId === 'admin') {
+                btnBack.classList.remove('hidden');
+                tituloHeader.innerText = 'Panel de Administración';
+                if(window.cargarListaUsuariosAdmin) window.cargarListaUsuariosAdmin();
+            } else {
+                btnBack.classList.remove('hidden');
+                if(vistaId === 'horarios') tituloHeader.innerText = 'Horarios y Turnos';
+                if(vistaId === 'finanzas') { tituloHeader.innerText = 'Nómina y Pagos'; window.renderizarFinanzas(); }
+                if(vistaId === 'medicamentos') { tituloHeader.innerText = 'Registrar Medicamento'; window.setHoraActualDefecto(); window.actualizarOpcionesStockEnFormulario(); }
+                if(vistaId === 'calendario') { tituloHeader.innerText = 'Cronograma 24h'; window.generarCronograma(); window.renderizarLista(); }
+                if(vistaId === 'inventario') { tituloHeader.innerText = 'Inventario y Stock'; window.renderizarInventario(); }
+            }
+            window.scrollTo(0, 0);
         };
 
-        const HistoryView = ({ transactions, onEdit, onDelete, isDark }) => {
-            const grouped = {};
-            const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-            sorted.forEach(t => { if (!grouped[t.date]) grouped[t.date] = []; grouped[t.date].push(t); });
+        window.actualizarOpcionesStockEnFormulario = function() {
+            const selectEl = document.getElementById('select-stock-med');
+            if (!selectEl) return;
 
-            return (
-                <div className="space-y-4 pb-24 animate-fade-in">
-                    {Object.keys(grouped).length === 0 && <div className="text-center py-10 text-slate-400 opacity-50"><Layers className="w-12 h-12 mx-auto mb-2" /><p>Sin movimientos</p></div>}
-                    {Object.entries(grouped).map(([date, items]) => (
-                        <div key={date}>
-                            <div className="flex justify-center mb-2"><span className="bg-[#e1f3fb] text-slate-600 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">{new Date(date + 'T00:00:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</span></div>
-                            <div className="space-y-1.5">
-                                {items.map(t => (
-                                    <div key={t.id} onClick={() => onEdit(t)} className={`relative flex flex-col p-3 rounded-lg shadow-sm border border-transparent hover:border-slate-200 transition cursor-pointer ${t.type === 'income' ? (isDark ? 'bg-slate-800 text-slate-200 ml-0 mr-8 rounded-tl-none' : 'bg-white ml-0 mr-8 rounded-tl-none') : 'bg-[#d9fdd3] ml-8 mr-0 rounded-tr-none'}`}>
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm" style={{ backgroundColor: t.userColor || '#ccc' }}>{t.userName ? t.userName.charAt(0).toUpperCase() : '?'}</div>
-                                                <span className={`text-xs font-bold ${t.type === 'income' ? 'text-[#008069]' : 'text-slate-700'}`}>{t.category}</span>
-                                            </div>
-                                            <span className={`text-sm font-bold ${t.type === 'income' ? (isDark ? 'text-slate-300' : 'text-slate-600') : 'text-slate-800'}`}>{t.type === 'income' ? '+ ' : '- '}{formatCurrency(t.amount)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-end mt-1">
-                                            <p className="text-[10px] text-slate-500 line-clamp-1">{t.userName} • {t.type === 'expense' ? 'Gasto' : 'Ingreso'}</p>
-                                            <div className="flex gap-2"><button onClick={(e) => { e.stopPropagation(); onDelete(t.id); }} className="text-slate-300 hover:text-red-400 transition"><Trash2 className="w-3 h-3" /></button></div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            );
+            let opcionesSelect = '<option value="">-- 📦 Seleccionar de tu inventario o escribir abajo --</option>';
+            window.medicamentos.forEach(med => {
+                const stockDisp = med.stock !== undefined ? med.stock : 0;
+                const nombreEscapado = med.nombre.replace(/"/g, '&quot;');
+                opcionesSelect += '<option value="' + nombreEscapado + '">📦 ' + med.nombre + ' (Stock: ' + stockDisp + ')</option>';
+            });
+            selectEl.innerHTML = opcionesSelect;
         };
 
-        const DashboardView = ({ transactions, isDark }) => {
-            const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-            const expense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-            const monthlyData = Array(12).fill(0).map((_, i) => {
-                const mTrans = transactions.filter(t => new Date(t.date+'T00:00:00').getMonth() === i);
-                return {
-                    label: new Date(2000, i, 1).toLocaleString('es-MX', { month: 'short' }),
-                    income: mTrans.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-                    expense: mTrans.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+        window.seleccionarMedDeStock = function(nombreMed) {
+            const inputNombre = document.getElementById('nombre');
+            if (!nombreMed) {
+                inputNombre.value = '';
+                inputNombre.focus();
+                return;
+            }
+            inputNombre.value = nombreMed;
+            window.autocompletarViaPorNombre(nombreMed);
+        };
+
+        window.autocompletarViaPorNombre = function(nombreMed) {
+            const med = window.medicamentos.find(m => m.nombre.toLowerCase() === nombreMed.trim().toLowerCase());
+            if (med && med.via) {
+                const selectVia = document.getElementById('via');
+                for (let i = 0; i < selectVia.options.length; i++) {
+                    if (med.via.includes(selectVia.options[i].value.split(' ')[0])) {
+                        selectVia.selectedIndex = i;
+                        window.actualizarDosisLabel(selectVia.value);
+                        break;
+                    }
+                }
+            }
+        };
+
+        window.actualizarDosisLabel = function(via) {
+            const labelDosis = document.getElementById('label-dosis');
+            const inputDosis = document.getElementById('dosis-cantidad');
+            if (via.includes('Inhalado') || via.includes('Nasal')) {
+                labelDosis.innerText = 'Dosis (Puffs / Disparos)';
+                inputDosis.placeholder = 'Ej. 2 puffs';
+            } else if (via.includes('Gotas')) {
+                labelDosis.innerText = 'Dosis (Gotas)';
+                inputDosis.placeholder = 'Ej. 5 gotas';
+            } else if (via.includes('Inyectable')) {
+                labelDosis.innerText = 'Dosis (Mililitros / UI)';
+                inputDosis.placeholder = 'Ej. 10 ml';
+            } else {
+                labelDosis.innerText = 'Dosis (Pastillas / Unidades)';
+                inputDosis.placeholder = 'Ej. 1 tableta';
+            }
+        };
+
+        window.verificarMomento = function(val) {
+            const bloque = document.getElementById('bloque-frecuencia');
+            const contenedorHora = document.getElementById('contenedor-hora-toma');
+            const inputUltima = document.getElementById('ultima-toma');
+            if (val !== 'Horario Fijo') {
+                bloque.classList.add('hidden');
+                contenedorHora.classList.add('hidden');
+                inputUltima.required = false;
+            } else {
+                bloque.classList.remove('hidden');
+                contenedorHora.classList.remove('hidden');
+                inputUltima.required = true;
+            }
+        };
+
+        window.cambiarModoInicio = function(modo) {
+            const labelHora = document.getElementById('label-hora-toma');
+            if (modo === 'nuevo') {
+                labelHora.innerText = 'Hora de inicio (1ra toma)';
+                window.setHoraActualDefecto();
+            } else {
+                labelHora.innerText = 'Fecha y hora de última toma';
+            }
+        };
+
+        // --- AUTENTICACIÓN ---
+        window.mostrarFormEnfermero = function() {
+            document.getElementById('auth-buttons').classList.add('hidden');
+            document.getElementById('auth-enfermero-container').classList.remove('hidden');
+        };
+
+        window.volverASeleccion = function() {
+            document.getElementById('auth-buttons').classList.remove('hidden');
+            document.getElementById('auth-enfermero-container').classList.add('hidden');
+            document.getElementById('enfermero-error').classList.add('hidden');
+            document.getElementById('enfermero-room-code').value = '';
+        };
+
+        window.iniciarSesionApp = function(rol, detalle) {
+            rolActual = rol;
+            perfilActual = detalle;
+            localStorage.setItem('rolActual', rol);
+            localStorage.setItem('perfilActivo', detalle);
+            
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('app-main').classList.remove('hidden');
+            document.getElementById('btn-cambiar-perfil').classList.remove('hidden');
+            
+            const btnTabAdmin = document.getElementById('btn-tab-admin');
+
+            if(rol === 'admin' || detalle.toLowerCase() === 'linkinpark98772@gmail.com') {
+                document.getElementById('badge-rol').innerText = '👑 Admin';
+                if(btnTabAdmin) btnTabAdmin.classList.remove('hidden');
+                if(window.cargarListaUsuariosAdmin) window.cargarListaUsuariosAdmin();
+            } else {
+                document.getElementById('badge-rol').innerText = '👤 Usuario (' + detalle + ')';
+                if(btnTabAdmin) btnTabAdmin.classList.add('hidden');
+            }
+
+            if(window.currentRoom) {
+                document.getElementById('active-room-code').innerText = window.currentRoom;
+                window.conectarSala(window.currentRoom);
+            }
+
+            window.renderizarResumenEnfermeros();
+            window.renderizarListaHome();
+        };
+
+        window.cambiarPerfil = function() {
+            if(window.cerrarSesionFirebase) window.cerrarSesionFirebase();
+            localStorage.removeItem('perfilActivo');
+            localStorage.removeItem('rolActual');
+            perfilActual = null;
+            rolActual = null;
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('app-main').classList.add('hidden');
+            document.getElementById('btn-cambiar-perfil').classList.add('hidden');
+            const btnTabAdmin = document.getElementById('btn-tab-admin');
+            if(btnTabAdmin) btnTabAdmin.classList.add('hidden');
+            window.volverASeleccion();
+        };
+
+        // --- GESTIÓN DE PERSONAL ---
+        window.cambiarTipoPagoModal = function(tipo) {
+            const labelMonto = document.getElementById('label-monto-pago');
+            const inputPago = document.getElementById('input-enf-pago');
+            if(tipo === 'fijo') {
+                labelMonto.innerText = 'Sueldo Fijo Semanal ($)';
+                inputPago.placeholder = 'Ej. 2500';
+            } else {
+                labelMonto.innerText = 'Pago por Hora ($)';
+                inputPago.placeholder = 'Ej. 120';
+            }
+        };
+
+        window.abrirModalEnfermero = function(id) {
+            document.getElementById('edit-enf-id').value = id || '';
+            const titulo = document.getElementById('modal-enf-titulo');
+            const nombreInput = document.getElementById('input-enf-nombre');
+            const tipoPagoSelect = document.getElementById('input-enf-tipopago');
+            const pagoInput = document.getElementById('input-enf-pago');
+            const diaPagoSelect = document.getElementById('input-enf-diapago');
+            const container = document.getElementById('modal-dias-container');
+
+            let enfData = { nombre: '', tipoPago: 'hora', pagoHora: 100, sueldoFijo: 0, diaPago: 'Viernes', dias: {} };
+            const ordenDias = [1, 2, 3, 4, 5, 6, 0];
+            
+            if (id) {
+                titulo.innerText = 'Editar Personal';
+                const found = window.enfermeros.find(e => e.id === id);
+                if (found) enfData = JSON.parse(JSON.stringify(found));
+            } else {
+                titulo.innerText = 'Añadir Personal';
+                ordenDias.forEach(d => {
+                    enfData.dias[d] = { act: d >= 1 && d <= 5, ini: '07:00', fin: '19:00' };
+                });
+            }
+
+            nombreInput.value = enfData.nombre;
+            tipoPagoSelect.value = enfData.tipoPago || 'hora';
+            window.cambiarTipoPagoModal(enfData.tipoPago || 'hora');
+            pagoInput.value = enfData.tipoPago === 'fijo' ? (enfData.sueldoFijo || 0) : (enfData.pagoHora || 100);
+            diaPagoSelect.value = enfData.diaPago || 'Viernes';
+
+            let htmlDias = '';
+            ordenDias.forEach(d => {
+                const diaInfo = enfData.dias[d] || { act: false, ini: '', fin: '' };
+                htmlDias += '<div class="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-200">' +
+                    '<label class="flex items-center gap-2 w-16 cursor-pointer">' +
+                        '<input type="checkbox" id="modal-dia-' + d + '-act" ' + (diaInfo.act ? 'checked' : '') + ' onchange="toggleDiaModal(' + d + ')" class="w-4 h-4 text-blue-600 rounded cursor-pointer">' +
+                        '<span class="text-xs font-bold text-slate-700">' + diasNombres[d] + '</span>' +
+                    '</label>' +
+                    '<input type="time" id="modal-dia-' + d + '-ini" value="' + diaInfo.ini + '" ' + (!diaInfo.act ? 'disabled' : '') + ' class="flex-1 p-1 border rounded text-[11px] outline-none bg-white">' +
+                    '<span class="text-[11px] text-slate-400 font-bold">a</span>' +
+                    '<input type="time" id="modal-dia-' + d + '-fin" value="' + diaInfo.fin + '" ' + (!diaInfo.act ? 'disabled' : '') + ' class="flex-1 p-1 border rounded text-[11px] outline-none bg-white">' +
+                '</div>';
+            });
+            container.innerHTML = htmlDias;
+            document.getElementById('modal-enfermero').classList.remove('hidden');
+        };
+
+        window.toggleDiaModal = function(d) {
+            const act = document.getElementById('modal-dia-' + d + '-act').checked;
+            document.getElementById('modal-dia-' + d + '-ini').disabled = !act;
+            document.getElementById('modal-dia-' + d + '-fin').disabled = !act;
+        };
+
+        window.copiarLunesATodos = function() {
+            const actL = document.getElementById('modal-dia-1-act').checked;
+            const iniL = document.getElementById('modal-dia-1-ini').value;
+            const finL = document.getElementById('modal-dia-1-fin').value;
+            [2, 3, 4, 5, 6, 0].forEach(d => {
+                document.getElementById('modal-dia-' + d + '-act').checked = actL;
+                document.getElementById('modal-dia-' + d + '-ini').value = iniL;
+                document.getElementById('modal-dia-' + d + '-fin').value = finL;
+                window.toggleDiaModal(d);
+            });
+        };
+
+        window.cerrarModalEnfermero = function() {
+            document.getElementById('modal-enfermero').classList.add('hidden');
+        };
+
+        window.guardarEnfermeroModal = function() {
+            const id = document.getElementById('edit-enf-id').value;
+            const nombre = document.getElementById('input-enf-nombre').value.trim() || 'Personal';
+            const tipoPago = document.getElementById('input-enf-tipopago').value;
+            const montoInput = parseFloat(document.getElementById('input-enf-pago').value) || 0;
+            const diaPago = document.getElementById('input-enf-diapago').value;
+            
+            let pagoHora = 100;
+            let sueldoFijo = 0;
+            const ordenDias = [1, 2, 3, 4, 5, 6, 0];
+
+            if (tipoPago === 'fijo') {
+                sueldoFijo = montoInput;
+                let horasTemp = 0;
+                ordenDias.forEach(d => {
+                    const act = document.getElementById('modal-dia-' + d + '-act').checked;
+                    const ini = document.getElementById('modal-dia-' + d + '-ini').value;
+                    const fin = document.getElementById('modal-dia-' + d + '-fin').value;
+                    if(act && ini && fin) {
+                        const mIni = parseInt(ini.split(':')[0]) * 60 + parseInt(ini.split(':')[1]);
+                        const mFin = parseInt(fin.split(':')[0]) * 60 + parseInt(fin.split(':')[1]);
+                        const diff = mFin >= mIni ? (mFin - mIni) : (1440 - mIni + mFin);
+                        horasTemp += (diff / 60);
+                    }
+                });
+                pagoHora = horasTemp > 0 ? (sueldoFijo / horasTemp) : 100;
+            } else {
+                pagoHora = montoInput;
+            }
+
+            const diasObj = {};
+            ordenDias.forEach(d => {
+                diasObj[d] = {
+                    act: document.getElementById('modal-dia-' + d + '-act').checked,
+                    ini: document.getElementById('modal-dia-' + d + '-ini').value,
+                    fin: document.getElementById('modal-dia-' + d + '-fin').value
                 };
             });
-            const maxVal = Math.max(...monthlyData.map(d => Math.max(d.income, d.expense))) || 100;
 
-            return (
-                <div className="space-y-4 animate-fade-in pb-24">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex flex-col justify-between h-28 relative overflow-hidden`}>
-                            <div className="absolute top-0 right-0 p-3 opacity-10"><Wallet className="w-12 h-12 text-[#008069]" /></div>
-                            <p className="text-xs font-bold text-slate-400 uppercase">Balance Anual</p>
-                            <p className={`text-3xl font-black ${income - expense >= 0 ? (isDark ? 'text-slate-200' : 'text-[#111b21]') : 'text-red-500'}`}>{formatCurrency(income - expense)}</p>
-                        </div>
-                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex items-center justify-between`}>
-                            <div><p className="text-xs text-slate-400 font-bold uppercase">Ingresos</p><p className="text-xl font-bold text-[#008069]">{formatCurrency(income)}</p></div>
-                            <div className="bg-[#d9fdd3] p-2 rounded-full"><TrendingUp className="w-5 h-5 text-[#008069]" /></div>
-                        </div>
-                        <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} p-4 rounded-2xl shadow-sm border flex items-center justify-between`}>
-                            <div><p className="text-xs text-slate-400 font-bold uppercase">Gastos</p><p className="text-xl font-bold text-red-500">{formatCurrency(expense)}</p></div>
-                            <div className="bg-red-50 p-2 rounded-full"><TrendingDown className="w-5 h-5 text-red-500" /></div>
-                        </div>
-                    </div>
-                    <div className="h-64">
-                        <BarChartComponent title={`Flujo de Efectivo Anual`} data={monthlyData} maxVal={maxVal} isDark={isDark} />
-                    </div>
-                </div>
-            );
+            if (id) {
+                const index = window.enfermeros.findIndex(e => e.id === id);
+                if (index !== -1) {
+                    window.enfermeros[index] = { id: id, nombre: nombre, tipoPago: tipoPago, pagoHora: pagoHora, sueldoFijo: sueldoFijo, diaPago: diaPago, dias: diasObj };
+                }
+            } else {
+                const nuevoId = Date.now().toString();
+                window.enfermeros.push({ id: nuevoId, nombre: nombre, tipoPago: tipoPago, pagoHora: pagoHora, sueldoFijo: sueldoFijo, diaPago: diaPago, dias: diasObj });
+            }
+
+            localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
+            window.cerrarModalEnfermero();
+            window.renderizarResumenEnfermeros();
+            window.pushToCloud();
         };
 
-        // --- APP PRINCIPAL ---
-        const App = () => {
-            const [user, setUser] = useState(null); 
-            const [memberProfile, setMemberProfile] = useState(null); 
-            const [family, setFamily] = useState(null); 
-            
-            const [loading, setLoading] = useState(true);
-            const [view, setView] = useState('dashboard');
-            
-            const [transactions, setTransactions] = useState([]);
-            const [familyMembers, setFamilyMembers] = useState([]);
-            
-            // Estado para presupuestos cargados en tiempo real
-            const [budgets, setBudgets] = useState([]);
+        window.eliminarEnfermero = function(id) {
+            if(confirm('¿Seguro que deseas eliminar a este personal?')) {
+                window.enfermeros = window.enfermeros.filter(e => e.id !== id);
+                localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
+                window.renderizarResumenEnfermeros();
+                window.pushToCloud();
+            }
+        };
 
-            const [isFormOpen, setIsFormOpen] = useState(false);
-            const initialFormState = { amount: '', type: 'expense', category: 'Comida', date: getLocalDateStr(new Date()), memberId: '' };
-            const [formData, setFormData] = useState(initialFormState);
-            const [editingId, setEditingId] = useState(null);
-            const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-            const [isDarkMode, setIsDarkMode] = useState(false);
-            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-            const [widgets, setWidgets] = useState({ health: true, topExpenses: true, savings: true, budgetAlert: true });
+        // --- CÁLCULOS CLÍNICOS Y FINANZAS ---
+        window.renderizarResumenEnfermeros = function() {
+            const contenedor = document.getElementById('contenedor-enfermeros-resumen');
+            if (!contenedor) return;
+            if (window.enfermeros.length === 0) {
+                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-2">No hay personal registrado.</p>';
+                window.calcularGapsYCalendario();
+                return;
+            }
 
-            const [deleteModal, setDeleteModal] = useState({ show: false, id: null });
+            let html = '';
+            window.enfermeros.forEach(enf => {
+                const diasActivosCount = Object.values(enf.dias).filter(d => d.act).length;
+                const infoPago = enf.tipoPago === 'fijo' ? ('Sueldo fijo: $' + enf.sueldoFijo + '/sem') : ('Pago: $' + enf.pagoHora + '/hr');
+                const botonesMod = '<div class="flex gap-1.5"><button onclick="abrirModalEnfermero(\'' + enf.id + '\')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-blue-600 border border-slate-200 text-xs font-bold rounded-lg shadow-sm">✏️</button><button onclick="eliminarEnfermero(\'' + enf.id + '\')" class="px-2.5 py-1.5 bg-slate-50 hover:bg-red-50 text-red-600 border border-slate-200 text-xs font-bold rounded-lg shadow-sm">🗑️</button></div>';
 
-            // 1. ESCUCHAR AUTH
-            useEffect(() => {
-                const unsubscribe = onAuthStateChanged(auth, async (u) => {
-                    if (u) {
-                        setUser(u);
-                        const q = query(collection(db, 'members'), where('uid', '==', u.uid));
-                        
-                        try {
-                            const snapshot = await getDocs(q);
-                            if (!snapshot.empty) {
-                                const memDoc = snapshot.docs[0];
-                                const memData = { id: memDoc.id, ...memDoc.data() };
-                                setMemberProfile(memData);
-                            } else {
-                                // Caso Raro: Autenticado pero sin perfil (posiblemente borrado manual)
-                                console.warn("Usuario sin perfil de miembro encontrado");
-                            }
-                        } catch (e) {
-                            console.error("Error leyendo miembro:", e);
-                            if (e.code === 'permission-denied') {
-                                alert("Error de permisos: Asegúrate de configurar las reglas en Firestore Database.");
-                            }
-                        }
+                html += '<div class="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200 shadow-sm">' +
+                    '<div>' +
+                        '<h4 class="font-bold text-sm text-slate-800">💉 ' + enf.nombre + '</h4>' +
+                        '<p class="text-[11px] text-slate-500">Días activos: ' + diasActivosCount + '/7 • ' + infoPago + ' (' + enf.diaPago + ')</p>' +
+                    '</div>' +
+                    botonesMod +
+                '</div>';
+            });
+            contenedor.innerHTML = html;
+            window.calcularGapsYCalendario();
+        };
+
+        window.calcularGapsDelDia = function(dayIdx) {
+            const minutosCubiertos = new Array(1440).fill(false);
+            let hayTurnosRegistrados = false;
+
+            window.enfermeros.forEach(enf => {
+                const diaInfo = enf.dias[dayIdx];
+                if(diaInfo && diaInfo.act && diaInfo.ini && diaInfo.fin) {
+                    hayTurnosRegistrados = true;
+                    const mIni = parseInt(diaInfo.ini.split(':')[0]) * 60 + parseInt(diaInfo.ini.split(':')[1]);
+                    const mFin = parseInt(diaInfo.fin.split(':')[0]) * 60 + parseInt(diaInfo.fin.split(':')[1]);
+                    
+                    if (mIni < mFin) {
+                        for(let m = mIni; m < mFin; m++) minutosCubiertos[m] = true;
                     } else {
-                        setUser(null);
-                        setMemberProfile(null);
-                        setFamily(null);
+                        for(let m = mIni; m < 1440; m++) minutosCubiertos[m] = true;
+                        for(let m = 0; m < mFin; m++) minutosCubiertos[m] = true;
                     }
-                    setLoading(false);
-                });
-                return () => unsubscribe();
-            }, []);
+                }
+            });
 
-            // 2. CARGAR DATOS
-            useEffect(() => {
-                if (!memberProfile) return;
+            if(!hayTurnosRegistrados) return [{inicio: '00:00', fin: '23:59', esTotal: true}];
 
-                const unsubFamily = onSnapshot(doc(db, 'families', memberProfile.familyId), (doc) => {
-                    if(doc.exists()) setFamily({ id: doc.id, ...doc.data() });
-                }, (error) => {
-                    console.error("Family fetch error", error);
-                    if (error.code === 'permission-denied') alert("Error de permisos. Verifica las reglas en Firebase.");
-                });
-
-                const qMembers = query(collection(db, 'members'), where('familyId', '==', memberProfile.familyId));
-                const unsubMembers = onSnapshot(qMembers, (snapshot) => {
-                    setFamilyMembers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-                });
-
-                const qTrans = query(collection(db, 'transactions'), where('familyId', '==', memberProfile.familyId));
-                const unsubTrans = onSnapshot(qTrans, (snapshot) => {
-                    const t = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    setTransactions(t);
-                });
-                
-                // Cargar Presupuestos
-                const qBudgets = query(collection(db, 'budgets'), where('familyId', '==', memberProfile.familyId));
-                const unsubBudgets = onSnapshot(qBudgets, (snapshot) => {
-                    setBudgets(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-                });
-
-                return () => { unsubFamily(); unsubMembers(); unsubTrans(); unsubBudgets(); };
-            }, [memberProfile]);
-
-            const handleLogout = async () => { await signOut(auth); };
+            let inGap = false;
+            let gapStart = -1;
+            const gaps = [];
             
-            const handleSubmit = async (e) => {
-                e.preventDefault();
-                if (!formData.amount) return;
+            for(let m = 0; m < 1440; m++) {
+                if (!minutosCubiertos[m] && !inGap) {
+                    inGap = true;
+                    gapStart = m;
+                } else if (minutosCubiertos[m] && inGap) {
+                    inGap = false;
+                    gaps.push({start: gapStart, end: m});
+                }
+            }
+            if (inGap) gaps.push({start: gapStart, end: 1440});
+            
+            if (gaps.length > 1 && gaps[0].start === 0 && gaps[gaps.length-1].end === 1440) {
+                gaps[0].start = gaps[gaps.length-1].start;
+                gaps.pop();
+            }
 
-                let targetMember = memberProfile; 
-                if (formData.memberId) {
-                    const found = familyMembers.find(m => m.id === formData.memberId);
-                    if (found) targetMember = found;
+            return gaps.map(g => {
+                const sh = Math.floor(g.start / 60).toString().padStart(2, '0');
+                const sm = (g.start % 60).toString().padStart(2, '0');
+                let eh = Math.floor(g.end / 60).toString().padStart(2, '0');
+                const em = (g.end % 60).toString().padStart(2, '0');
+                if(eh === '24') eh = '00';
+                return {inicio: sh + ':' + sm, fin: eh + ':' + em, esTotal: false};
+            });
+        };
+
+        window.calcularGapsYCalendario = function() {
+            let reporteHTML = '';
+            [1, 2, 3, 4, 5, 6, 0].forEach(dayIdx => {
+                const gaps = window.calcularGapsDelDia(dayIdx);
+                const diaNombre = diasNombres[dayIdx];
+                
+                if (gaps.length === 1 && gaps[0].esTotal) {
+                    reporteHTML += '<div class="flex justify-between items-center bg-red-100/50 p-1.5 rounded"><span class="font-bold text-red-700 w-10 text-xs">' + diaNombre + ':</span> <span class="text-red-800 text-[11px] text-right font-medium">Sin personal</span></div>';
+                } else if (gaps.length > 0) {
+                    const textoGaps = gaps.map(g => g.inicio + ' a ' + g.fin).join(', ');
+                    reporteHTML += '<div class="flex justify-between items-center bg-orange-50 p-1.5 rounded"><span class="font-bold text-orange-700 w-10 text-xs">' + diaNombre + ':</span> <span class="text-orange-900 text-[11px] text-right font-medium">' + textoGaps + '</span></div>';
+                } else {
+                    reporteHTML += '<div class="flex justify-between items-center bg-green-50 p-1.5 rounded"><span class="font-bold text-green-700 w-10 text-xs">' + diaNombre + ':</span> <span class="text-green-800 text-[11px] text-right font-medium">Cubierto ✅</span></div>';
+                }
+            });
+            const repEl = document.getElementById('huecos-reporte');
+            if(repEl) repEl.innerHTML = reporteHTML;
+
+            const hoyIdx = new Date().getDay();
+            const mananaIdx = (hoyIdx + 1) % 7;
+
+            document.getElementById('cal-hoy-titulo').innerText = 'Hoy (' + diasNombres[hoyIdx] + ')';
+            document.getElementById('cal-man-titulo').innerText = 'Mañana (' + diasNombres[mananaIdx] + ')';
+
+            let htmlHoy = '', htmlManana = '';
+            window.enfermeros.forEach(enf => {
+                const hDia = enf.dias[hoyIdx];
+                if(hDia && hDia.act && hDia.ini && hDia.fin) {
+                    htmlHoy += '<li><span class="font-bold block">' + enf.nombre + '</span> ' + hDia.ini + ' a ' + hDia.fin + '</li>';
+                }
+                const mDia = enf.dias[mananaIdx];
+                if(mDia && mDia.act && mDia.ini && mDia.fin) {
+                    htmlManana += '<li><span class="font-bold block">' + enf.nombre + '</span> ' + mDia.ini + ' a ' + mDia.fin + '</li>';
+                }
+            });
+
+            document.getElementById('lista-cal-hoy').innerHTML = htmlHoy || '<li class="text-slate-400 italic">Descanso general</li>';
+            document.getElementById('lista-cal-man').innerHTML = htmlManana || '<li class="text-slate-400 italic">Descanso general</li>';
+        };
+
+        window.renderizarFinanzas = function() {
+            const contenedor = document.getElementById('contenedor-finanzas');
+            if(!contenedor) return;
+            if(window.enfermeros.length === 0) {
+                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">No hay personal registrado para calcular nómina.</p>';
+                return;
+            }
+
+            let html = '';
+            window.enfermeros.forEach(enf => {
+                let horasTotalesSemana = 0;
+                Object.values(enf.dias).forEach(d => {
+                    if(d.act && d.ini && d.fin) {
+                        const mIni = parseInt(d.ini.split(':')[0]) * 60 + parseInt(d.ini.split(':')[1]);
+                        const mFin = parseInt(d.fin.split(':')[0]) * 60 + parseInt(d.fin.split(':')[1]);
+                        const diffMins = mFin >= mIni ? (mFin - mIni) : (1440 - mIni + mFin);
+                        horasTotalesSemana += (diffMins / 60);
+                    }
+                });
+
+                let pagoSemanalFinal = 0;
+                let detalleSub = '';
+
+                if(enf.tipoPago === 'fijo') {
+                    pagoSemanalFinal = enf.sueldoFijo || 0;
+                    const tarifaEstimadaHora = horasTotalesSemana > 0 ? (pagoSemanalFinal / horasTotalesSemana) : 0;
+                    detalleSub = '<span class="block text-emerald-600 text-[10px]">Sueldo Fijo Semanal</span><b class="text-emerald-800">$' + pagoSemanalFinal.toFixed(2) + '</b><span class="block text-[9px] text-slate-400 mt-0.5">Equiv. $' + tarifaEstimadaHora.toFixed(1) + '/hr</span>';
+                } else {
+                    pagoSemanalFinal = horasTotalesSemana * (enf.pagoHora || 100);
+                    detalleSub = '<span class="block text-emerald-600 text-[10px]">Total Estimado (X hora)</span><b class="text-emerald-800">$' + pagoSemanalFinal.toFixed(2) + '</b>';
                 }
 
-                const newTransaction = {
-                    familyId: family.id,
-                    ...formData,
-                    amount: parseFloat(formData.amount),
-                    userId: user.uid,
-                    userName: targetMember.name,
-                    userColor: targetMember.color,
-                    createdAt: new Date().toISOString()
+                html += '<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">' +
+                    '<div class="flex justify-between items-center border-b pb-2">' +
+                        '<h3 class="font-bold text-sm text-slate-800">💉 ' + enf.nombre + '</h3>' +
+                        '<span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Pago: ' + enf.diaPago + '</span>' +
+                    '</div>' +
+                    '<div class="grid grid-cols-3 gap-2 text-center text-xs">' +
+                        '<div class="bg-slate-50 p-2 rounded">' +
+                            '<span class="block text-slate-400 text-[10px]">Esquema</span>' +
+                            '<b class="text-slate-700 capitalize">' + (enf.tipoPago === 'fijo' ? 'Fijo Semanal' : 'Por Hora') + '</b>' +
+                        '</div>' +
+                        '<div class="bg-slate-50 p-2 rounded">' +
+                            '<span class="block text-slate-400 text-[10px]">Horas Semanal</span>' +
+                            '<b class="text-slate-700">' + horasTotalesSemana.toFixed(1) + ' hrs</b>' +
+                        '</div>' +
+                        '<div class="bg-emerald-50 p-2 rounded border border-emerald-200">' +
+                            detalleSub +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            });
+            contenedor.innerHTML = html;
+        };
+
+        window.caeEnHorarioSinEnfermero = function(fechaProximaToma) {
+            const dayIdx = fechaProximaToma.getDay();
+            const gaps = window.calcularGapsDelDia(dayIdx);
+            if(gaps.length === 1 && gaps[0].esTotal) return true; 
+            if(gaps.length === 0) return false; 
+
+            const horaToma = fechaProximaToma.getHours() * 60 + fechaProximaToma.getMinutes();
+            for (let i = 0; i < gaps.length; i++) {
+                const gap = gaps[i];
+                const partesI = gap.inicio.split(':').map(Number);
+                const partesF = gap.fin.split(':').map(Number);
+                const minI = partesI[0] * 60 + partesI[1];
+                const minF = partesF[0] * 60 + partesF[1];
+                if (minI < minF) {
+                    if (horaToma >= minI && horaToma <= minF) return true;
+                } else { 
+                    if (horaToma >= minI || horaToma <= minF) return true;
+                }
+            }
+            return false;
+        };
+
+        window.setHoraActualDefecto = function() {
+            const ahora = new Date();
+            ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+            const el = document.getElementById('ultima-toma');
+            if(el) el.value = ahora.toISOString().slice(0, 16);
+        };
+
+        // --- FORMULARIO MEDICAMENTOS ---
+        const form = document.getElementById('form-medicamento');
+        const txtNotas = document.getElementById('notas-fijas');
+
+        txtNotas.value = window.notasFijas;
+        let timeoutNotas;
+        txtNotas.addEventListener('input', function() {
+            window.notasFijas = txtNotas.value;
+            localStorage.setItem('notasFijas', window.notasFijas);
+            clearTimeout(timeoutNotas);
+            timeoutNotas = setTimeout(function() { window.pushToCloud(); }, 1500);
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const momentoSel = document.getElementById('momento').value;
+            const dosisVal = document.getElementById('dosis-cantidad').value;
+            const nombreVal = document.getElementById('nombre').value.trim();
+            const viaVal = document.getElementById('via').value;
+
+            const existenteIdx = window.medicamentos.findIndex(m => m.nombre.toLowerCase() === nombreVal.toLowerCase());
+            const stockConservado = existenteIdx !== -1 ? (window.medicamentos[existenteIdx].stock || 0) : 0;
+
+            let nuevoMed;
+            if (momentoSel !== 'Horario Fijo') {
+                nuevoMed = {
+                    id: existenteIdx !== -1 ? window.medicamentos[existenteIdx].id : Date.now().toString(),
+                    nombre: nombreVal,
+                    dosis: dosisVal,
+                    via: viaVal,
+                    momento: momentoSel,
+                    stock: stockConservado,
+                    esFijo: false
+                };
+            } else {
+                const modoInicio = document.getElementById('modo-inicio').value;
+                let tiempoToma = new Date().getTime();
+                if (modoInicio === 'ultima') {
+                    tiempoToma = new Date(document.getElementById('ultima-toma').value).getTime();
+                }
+                nuevoMed = {
+                    id: existenteIdx !== -1 ? window.medicamentos[existenteIdx].id : Date.now().toString(),
+                    nombre: nombreVal,
+                    dosis: dosisVal,
+                    via: viaVal,
+                    momento: momentoSel,
+                    frecuencia: parseInt(document.getElementById('frecuencia').value),
+                    ultimaToma: tiempoToma,
+                    historial: [tiempoToma],
+                    stock: stockConservado,
+                    esFijo: true
+                };
+            }
+
+            if (existenteIdx !== -1) {
+                window.medicamentos[existenteIdx] = nuevoMed;
+            } else {
+                window.medicamentos.push(nuevoMed);
+            }
+
+            window.guardarYRenderizar();
+            form.reset();
+            window.verificarMomento('Horario Fijo');
+            window.actualizarDosisLabel('Oral 💊');
+            window.setHoraActualDefecto();
+            window.irANav('calendario');
+        });
+
+        // --- INVENTARIO Y STOCK INDEPENDIENTE ---
+        window.abrirModalNuevoStock = function() {
+            document.getElementById('nuevo-stock-nombre').value = '';
+            document.getElementById('nuevo-stock-cant').value = '';
+            document.getElementById('modal-nuevo-stock').classList.remove('hidden');
+        };
+
+        window.cerrarModalNuevoStock = function() {
+            document.getElementById('modal-nuevo-stock').classList.add('hidden');
+        };
+
+        window.guardarNuevoStockIndependiente = function() {
+            const nombre = document.getElementById('nuevo-stock-nombre').value.trim();
+            const via = document.getElementById('nuevo-stock-via').value;
+            const cant = parseFloat(document.getElementById('nuevo-stock-cant').value) || 0;
+            if(!nombre) return;
+
+            const existente = window.medicamentos.find(m => m.nombre.toLowerCase() === nombre.toLowerCase());
+
+            if (existente) {
+                existente.stock = (existente.stock || 0) + cant;
+                existente.via = via;
+            } else {
+                window.medicamentos.push({
+                    id: Date.now().toString(),
+                    nombre: nombre,
+                    dosis: 'Segun indicación',
+                    via: via,
+                    momento: 'Control de Stock',
+                    stock: cant,
+                    esFijo: false
+                });
+            }
+
+            window.cerrarModalNuevoStock();
+            window.guardarYRenderizar();
+        };
+
+        window.guardarYRenderizar = function() {
+            window.medicamentos.sort((a, b) => {
+                if(!a.esFijo) return 1;
+                if(!b.esFijo) return -1;
+                const proxA = a.ultimaToma + (a.frecuencia * 3600000);
+                const proxB = b.ultimaToma + (b.frecuencia * 3600000);
+                return proxA - proxB;
+            });
+            localStorage.setItem('medicamentosPacientesV15', JSON.stringify(window.medicamentos));
+            window.renderizarListaHome();
+            window.generarCronograma();
+            window.renderizarLista();
+            window.renderizarInventario();
+            window.actualizarOpcionesStockEnFormulario();
+        };
+
+        window.eliminar = function(id) {
+            if(confirm('¿Eliminar este registro?')) {
+                window.medicamentos = window.medicamentos.filter(m => m.id !== id);
+                window.guardarYRenderizar();
+            }
+        };
+
+        window.administrarAhora = function(id) {
+            const med = window.medicamentos.find(m => m.id === id);
+            if(med && med.esFijo) {
+                const ahora = new Date().getTime();
+                med.ultimaToma = ahora;
+                if (!med.historial) med.historial = [];
+                med.historial.push(ahora);
+
+                if (med.stock !== undefined && med.stock > 0) {
+                    const numExtraido = parseFloat(med.dosis);
+                    const descuento = (!isNaN(numExtraido) && numExtraido > 0) ? numExtraido : 1;
+                    med.stock = Math.max(0, med.stock - descuento);
+                }
+
+                window.guardarYRenderizar();
+            }
+        };
+
+        window.abrirModalStock = function(id) {
+            document.getElementById('stock-med-id').value = id;
+            const med = window.medicamentos.find(m => m.id === id);
+            if(med) {
+                document.getElementById('label-modal-stock').innerText = 'Añadir existencias a: ' + med.nombre;
+            }
+            document.getElementById('input-stock-add').value = '';
+            document.getElementById('modal-stock').classList.remove('hidden');
+        };
+
+        window.cerrarModalStock = function() {
+            document.getElementById('modal-stock').classList.add('hidden');
+        };
+
+        window.guardarRecargaStock = function() {
+            const id = document.getElementById('stock-med-id').value;
+            const cantidad = parseFloat(document.getElementById('input-stock-add').value) || 0;
+            const med = window.medicamentos.find(m => m.id === id);
+            if(med) {
+                med.stock = Math.max(0, (med.stock || 0) + cantidad);
+                window.guardarYRenderizar();
+            }
+            window.cerrarModalStock();
+        };
+
+        window.renderizarInventario = function() {
+            const contenedor = document.getElementById('contenedor-inventario');
+            if(!contenedor) return;
+            contenedor.innerHTML = '';
+
+            if (window.medicamentos.length === 0) {
+                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6 bg-white rounded-xl border">No hay fármacos en el inventario. Usa el botón "+ Añadir Stock" para registrar existencias.</p>';
+                return;
+            }
+
+            window.medicamentos.forEach(med => {
+                const stockVal = med.stock !== undefined ? med.stock : 0;
+                const esCritico = stockVal <= 5;
+
+                let unidadTexto = 'piezas';
+                if (med.via && (med.via.includes('Inhalado') || med.via.includes('Nasal'))) unidadTexto = 'puffs / disparos';
+                else if (med.via && med.via.includes('Gotas')) unidadTexto = 'gotas / ml';
+                else if (med.via && med.via.includes('Inyectable')) unidadTexto = 'ml / UI';
+
+                contenedor.innerHTML += '<div class="bg-white p-4 rounded-xl border ' + (esCritico ? 'border-red-300 shadow-md bg-red-50/30' : 'border-slate-200 shadow-sm') + ' space-y-2">' +
+                    '<div class="flex justify-between items-start">' +
+                        '<div>' +
+                            '<h3 class="font-bold text-sm text-slate-800">' + med.nombre + '</h3>' +
+                            '<span class="text-[10px] text-slate-500">' + (med.via || 'Oral 💊') + (med.esFijo ? ' • Dosis: ' + med.dosis : ' • Solo en Inventario') + '</span>' +
+                        '</div>' +
+                        '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-red-600 text-xs">🗑️</button>' +
+                    '</div>' +
+                    '<div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border border-slate-100">' +
+                        '<div>' +
+                            '<span class="text-[10px] text-slate-500 block">Existencia Actual</span>' +
+                            '<b class="text-sm ' + (esCritico ? 'text-red-600' : 'text-slate-800') + '">' + stockVal + ' ' + unidadTexto + '</b>' +
+                        '</div>' +
+                        '<div>' +
+                            '<button onclick="abrirModalStock(\'' + med.id + '\')" class="bg-amber-600 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm hover:bg-amber-700 transition">➕ Surtir / Recargar</button>' +
+                        '</div>' +
+                    '</div>' +
+                    (esCritico ? '<p class="text-[11px] text-red-600 font-bold text-center">⚠️ ¡Stock bajo o en 0! Recarga las existencias aquí.</p>' : '') +
+                '</div>';
+            });
+        };
+
+        window.ajustarAlSiguienteEnfermero = function(id) {
+            const med = window.medicamentos.find(m => m.id === id);
+            if (!med || !med.esFijo) return;
+            let proximaMs = med.ultimaToma + (med.frecuencia * 3600000);
+            let intentos = 0;
+            while (window.caeEnHorarioSinEnfermero(new Date(proximaMs)) && intentos < 24) {
+                proximaMs += 3600000;
+                intentos++;
+            }
+            med.ultimaToma = proximaMs - (med.frecuencia * 3600000);
+            window.guardarYRenderizar();
+        };
+
+        window.generarCronograma = function() {
+            const contenedor = document.getElementById('cronograma-diario');
+            if(!contenedor) return;
+            const ahora = new Date().getTime();
+            const limite24h = ahora + (24 * 3600000);
+            const tomasProyectadas = [];
+
+            window.medicamentos.forEach(med => {
+                if(!med.esFijo) return;
+                let proximaMs = med.ultimaToma + (med.frecuencia * 3600000);
+                while (proximaMs <= limite24h) {
+                    if (proximaMs > ahora) { 
+                        tomasProyectadas.push({
+                            medNombre: med.nombre,
+                            dosis: med.dosis || '',
+                            via: med.via || 'Oral 💊',
+                            tiempoMs: proximaMs,
+                            fecha: new Date(proximaMs)
+                        });
+                    }
+                    proximaMs += (med.frecuencia * 3600000);
+                }
+            });
+
+            tomasProyectadas.sort((a, b) => a.tiempoMs - b.tiempoMs);
+
+            let htmlCronograma = '';
+            tomasProyectadas.forEach(toma => {
+                const alerta = window.caeEnHorarioSinEnfermero(toma.fecha);
+                const horaStr = toma.fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const esManana = toma.fecha.getDate() !== new Date().getDate();
+                const diaStr = esManana ? ' (Mañana)' : '';
+                
+                const dotColor = alerta ? 'bg-red-500 ring-red-200' : 'bg-indigo-500 ring-indigo-200';
+                const textColor = alerta ? 'text-red-700 font-bold' : 'text-slate-700';
+                const warningIcon = alerta ? '⚠️' : '✅';
+                const dosisBadge = toma.dosis ? (' • <b>[' + toma.dosis + ']</b>') : '';
+
+                htmlCronograma += '<div class="relative mb-2.5 transition-all">' +
+                    '<div class="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full ring-4 ' + dotColor + '"></div>' +
+                    '<div class="bg-white p-2 rounded shadow-sm border ' + (alerta ? 'border-red-200 bg-red-50' : 'border-slate-100') + ' text-xs flex justify-between items-center">' +
+                        '<div>' +
+                            '<span class="' + textColor + '">' + horaStr + diaStr + ' - <b>' + toma.medNombre + '</b>' + dosisBadge + '</span>' +
+                            '<div class="text-[10px] text-slate-500">' + toma.via + '</div>' +
+                        '</div>' +
+                        '<span>' + warningIcon + '</span>' +
+                    '</div>' +
+                '</div>';
+            });
+            contenedor.innerHTML = htmlCronograma || '<p class="text-slate-500 text-xs italic">No hay tomas programadas en las próximas 24 hrs.</p>';
+        };
+
+        window.renderizarListaHome = function() {
+            const listaHome = document.getElementById('lista-medicamentos-home');
+            if(!listaHome) return;
+            listaHome.innerHTML = '';
+            const fijos = window.medicamentos.filter(m => m.esFijo);
+            if (fijos.length === 0) {
+                listaHome.innerHTML = '<p class="text-slate-400 text-xs text-center py-2">No hay medicamentos con horario activo.</p>';
+                return;
+            }
+
+            const ahora = new Date().getTime();
+            fijos.forEach(med => {
+                const proximaTomaMs = med.ultimaToma + (med.frecuencia * 3600000);
+                const fechaProximaToma = new Date(proximaTomaMs);
+                const tiempoRestante = proximaTomaMs - ahora;
+
+                const alerta = window.caeEnHorarioSinEnfermero(fechaProximaToma);
+                let estadoClase = 'bg-white border-slate-200';
+                if(tiempoRestante <= 0) estadoClase = 'bg-red-50 border-red-300 parpadeo';
+
+                listaHome.innerHTML += '<div class="p-3 rounded-xl border ' + estadoClase + ' shadow-sm text-xs space-y-1">' +
+                    '<div class="flex justify-between font-bold text-slate-800">' +
+                        '<span>' + med.nombre + ' (' + med.dosis + ')</span>' +
+                        '<span class="text-blue-600">' + fechaProximaToma.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
+                    '</div>' +
+                    '<div class="flex justify-between items-center text-[11px] text-slate-500">' +
+                        '<span>' + med.via + ' • Cada ' + med.frecuencia + 'h</span>' +
+                        (alerta ? '<span class="text-red-600 font-bold">⚠️ Sin personal</span>' : '<span class="text-green-600 font-bold">Cubierto ✅</span>') +
+                    '</div>' +
+                '</div>';
+            });
+        };
+
+        window.renderizarLista = function() {
+            const lista = document.getElementById('lista-medicamentos');
+            if(!lista) return;
+            lista.innerHTML = '';
+            const programados = window.medicamentos.filter(m => m.esFijo);
+            if (programados.length === 0) {
+                lista.innerHTML = '<p class="text-slate-400 text-xs text-center py-4 bg-white rounded-xl border">No hay horarios de medicamentos registrados.</p>';
+                return;
+            }
+
+            const ahora = new Date().getTime();
+            programados.forEach(med => {
+                const viaBadge = med.via || 'Oral 💊';
+                const dosisBadge = med.dosis ? ('<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Dosis: ' + med.dosis + '</span>') : '';
+                const momentoBadge = med.momento && med.momento !== 'Horario Fijo' ? ('<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-semibold">' + med.momento + '</span>') : '';
+
+                const tarjeta = document.createElement('div');
+                tarjeta.className = "p-3.5 rounded-xl shadow-sm bg-white border border-slate-200 text-xs space-y-2";
+
+                const proximaTomaMs = med.ultimaToma + (med.frecuencia * 3600000);
+                const fechaProximaToma = new Date(proximaTomaMs);
+                const tiempoRestante = proximaTomaMs - ahora;
+                const alertaSin = window.caeEnHorarioSinEnfermero(fechaProximaToma);
+
+                const horas = Math.floor(Math.abs(tiempoRestante) / 3600000);
+                const mins = Math.floor((Math.abs(tiempoRestante) % 3600000) / 60000);
+                const textoReloj = tiempoRestante <= 0 ? ('Atrasado: ' + horas + 'h ' + mins + 'm') : ('Faltan: ' + horas + 'h ' + mins + 'm');
+
+                const btnAjustar = alertaSin ? ('<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="w-full bg-red-600 text-white py-1.5 rounded font-bold text-[11px] shadow-sm mt-1">🛡️ Ajustar al siguiente turno con personal</button>') : '';
+
+                tarjeta.innerHTML = '<div class="flex justify-between items-start">' +
+                    '<div>' +
+                        '<h3 class="font-bold text-sm text-slate-800">' + med.nombre + '</h3>' +
+                        '<div class="flex gap-1 mt-1 flex-wrap">' +
+                            '<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-bold">' + viaBadge + '</span>' +
+                            dosisBadge + ' ' + momentoBadge +
+                        '</div>' +
+                    '</div>' +
+                    '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-red-600">🗑️</button>' +
+                '</div>' +
+                (alertaSin ? ('<div class="bg-red-500 text-white font-bold p-1.5 rounded text-center text-[11px]">⚠️ Cae en horario sin personal ' + btnAjustar + '</div>') : '') +
+                '<div class="bg-slate-50 p-2 rounded flex justify-between items-center font-mono font-bold text-slate-700">' +
+                    '<span>Próxima: ' + fechaProximaToma.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
+                    '<span class="' + (tiempoRestante <= 0 ? 'text-red-600' : 'text-blue-600') + '">' + textoReloj + '</span>' +
+                '</div>' +
+                '<button onclick="administrarAhora(\'' + med.id + '\')" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs shadow-sm hover:bg-blue-700 transition">✅ Registrar Toma</button>';
+                
+                lista.appendChild(tarjeta);
+            });
+        };
+
+        if(perfilActual && rolActual) {
+            window.iniciarSesionApp(rolActual, perfilActual);
+        } else {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('app-main').classList.add('hidden');
+        }
+
+        window.renderizarResumenEnfermeros();
+        window.setHoraActualDefecto();
+        
+        setInterval(function() {
+            window.renderizarListaHome();
+        }, 1000);
+    </script>
+
+    <!-- Módulo de Sincronización Firebase Auth con Google, Control de Licencias y Usuarios -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6lWwHLvxi2NdiNeVzSBg3_1i5L5dWOYM",
+            authDomain: "controlclinico-6cd49.firebaseapp.com",
+            projectId: "controlclinico-6cd49",
+            storageBucket: "controlclinico-6cd49.firebasestorage.app",
+            messagingSenderId: "246246205729",
+            appId: "1:246246205729:web:efcf4a44db3ab4a2da7660",
+            measurementId: "G-THJ2MH4TR4"
+        };
+
+        const ADMIN_EMAIL = "linkinpark98772@gmail.com";
+        const appId = 'controlclinico-6cd49';
+        let db = null;
+        let auth = null;
+        let unsub = null;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            getRedirectResult(auth).then(async function(result) {
+                if (result && result.user && result.user.email) {
+                    await registrarYVerificarUsuario(result.user);
+                }
+            }).catch(function(error) {
+                console.warn("Redirección Google:", error);
+            });
+
+            onAuthStateChanged(auth, async function(user) {
+                if (user && user.email) {
+                    await registrarYVerificarUsuario(user);
+                }
+            });
+        } catch(e) {
+            console.warn("Firebase init error:", e);
+        }
+
+        async function registrarYVerificarUsuario(user) {
+            const email = user.email.toLowerCase();
+            const isAdmin = email === ADMIN_EMAIL.toLowerCase();
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'usuarios_app', user.uid);
+            
+            try {
+                const snap = await getDoc(userRef);
+                let licenciaData = {
+                    email: user.email,
+                    nombre: user.displayName || user.email,
+                    activo: true,
+                    expira: new Date(Date.now() + 15 * 24 * 3600000).toISOString(), // 15 días de prueba inicial
+                    ultimoAcceso: new Date().toISOString()
                 };
 
-                if (editingId) {
-                    await updateDoc(doc(db, 'transactions', editingId), newTransaction);
+                if (!snap.exists()) {
+                    await setDoc(userRef, licenciaData);
                 } else {
-                    await addDoc(collection(db, 'transactions'), newTransaction);
+                    licenciaData = snap.data();
+                    await updateDoc(userRef, { ultimoAcceso: new Date().toISOString() });
                 }
-                closeForm();
-            };
 
-            const deleteTransaction = async (id) => {
-                await deleteDoc(doc(db, 'transactions', id));
-            };
-
-            const openForm = (t = null, date = null) => {
-                if (t) { 
-                    const extraMemberId = familyMembers.find(m => m.name === t.userName)?.id || '';
-                    setFormData({ ...t, memberId: extraMemberId }); 
-                    setEditingId(t.id); 
-                } else { 
-                    const d = date || getLocalDateStr(new Date());
-                    const initialType = date ? 'income' : 'expense';
-                    const initialCategory = initialType === 'income' ? 'Salario' : 'Comida';
-                    setFormData({ ...initialFormState, date: d, type: initialType, category: initialCategory, memberId: '' }); 
-                    setEditingId(null);
+                // Verificar si expiró la licencia (si no es admin)
+                if (!isAdmin && licenciaData.expira) {
+                    const expTime = new Date(licenciaData.expira).getTime();
+                    // Si expira es muy lejano o menor a hoy (y no es permanente)
+                    if (expTime < Date.now() || licenciaData.activo === false) {
+                        document.getElementById('modal-licencia').classList.remove('hidden');
+                        return;
+                    }
                 }
-                setIsFormOpen(true);
-            };
-            const closeForm = () => { setIsFormOpen(false); setEditingId(null); };
-            const toggleWidget = (key) => setWidgets(prev => ({ ...prev, [key]: !prev[key] }));
-            const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
-            const exportData = () => {
-                const headers = ["Fecha", "Tipo", "Categoría", "Monto", "Miembro"];
-                const rows = transactions.map(t => [t.date, t.type === 'income' ? 'Ingreso' : 'Gasto', t.category, t.amount, t.userName]);
-                const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `finanzas_${family.name}_${selectedYear}.csv`);
-                document.body.appendChild(link);
-                link.click();
-            };
+                document.getElementById('cloud-status').innerHTML = '🟢 Conectado';
+                if (isAdmin) {
+                    window.iniciarSesionApp('admin', user.email);
+                    window.cargarListaUsuariosAdmin();
+                } else {
+                    window.iniciarSesionApp('usuario', user.email);
+                }
+            } catch(e) {
+                console.error("Error registrando usuario:", e);
+                window.iniciarSesionApp('usuario', user.email);
+            }
+        }
 
-            const currentYearData = transactions.filter(t => new Date(t.date + 'T00:00:00').getFullYear() === selectedYear);
+        window.loginConGoogle = async function() {
+            const errEl = document.getElementById('google-auth-error');
+            if (errEl) errEl.classList.add('hidden');
+            if (!auth) return;
 
-            if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#efeae2]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#008069]"></div></div>;
-            if (!user || !memberProfile || !family) return <AuthScreen onLogin={() => {}} />;
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
 
-            const BgColor = isDarkMode ? 'bg-slate-900' : THEME.bg;
-            const TextColor = isDarkMode ? 'text-slate-200' : 'text-slate-800';
-            const CardBg = isDarkMode ? 'bg-slate-800' : 'bg-white';
-            const BorderColor = isDarkMode ? 'border-slate-700' : 'border-slate-200';
-
-            return (
-                <div className={`min-h-screen ${BgColor} ${TextColor} font-sans flex overflow-hidden transition-colors duration-300`}>
-                    {/* Sidebar */}
-                    <aside className={`fixed inset-y-0 left-0 z-50 w-72 ${CardBg} border-r ${BorderColor} transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static flex flex-col`}>
-                        <div className={`h-16 ${isDarkMode ? 'bg-slate-900' : 'bg-[#f0f2f5]'} flex items-center px-4 justify-between border-b ${BorderColor}`}>
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold shadow-sm" style={{ backgroundColor: memberProfile.color }}>{memberProfile.name.charAt(0).toUpperCase()}</div>
-                                <div className="overflow-hidden">
-                                    <p className={`text-sm font-bold ${TextColor} truncate w-32`}>{memberProfile.name}</p>
-                                    <p className="text-[10px] opacity-60 truncate">{family.name}</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-1">
-                                <button onClick={handleLogout} className="p-2 opacity-60 hover:opacity-100 transition" title="Salir"><LogOut className="w-4 h-4" /></button>
-                                <button onClick={() => setIsSidebarOpen(false)} className="p-2 md:hidden"><X className="w-5 h-5"/></button>
-                            </div>
-                        </div>
-                        
-                        <div className="p-4 flex-1 overflow-y-auto">
-                            <div className="mb-6">
-                                <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Menú Principal</h3>
-                                <nav className="space-y-1">
-                                    <button onClick={() => { setView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'dashboard' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><PieChart className="w-4 h-4" /> Resumen</button>
-                                    <button onClick={() => { setView('calendar'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'calendar' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><CalendarIcon className="w-4 h-4" /> Calendario</button>
-                                    <button onClick={() => { setView('history'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'history' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><Layers className="w-4 h-4" /> Historial</button>
-                                    <button onClick={() => { setView('budgets'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'budgets' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><PiggyBank className="w-4 h-4" /> Presupuestos</button>
-                                    <button onClick={() => { setView('members'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition ${view === 'members' ? 'bg-[#e7f5f2] text-[#008069]' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}><Users className="w-4 h-4" /> Miembros Extra</button>
-                                </nav>
-                            </div>
-
-                            <div className="mb-6">
-                                <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Utilidades</h3>
-                                <button onClick={exportData} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-700 mb-2 ${TextColor}`}><Download className="w-4 h-4" /> Exportar Datos</button>
-                                <button onClick={toggleDarkMode} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-700 ${TextColor}`}>{isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />} {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
-                            </div>
-                            <div className="mb-6">
-                                <h3 className="text-xs font-bold text-[#008069] uppercase mb-2 px-2">Widgets</h3>
-                                <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-100'} rounded-xl p-3 space-y-3 border`}>
-                                    {[{k:'health',l:'Estado',i:Activity}, {k:'topExpenses',l:'Top Gastos',i:TrendingDown}, {k:'savings',l:'Ahorro',i:Target}, {k:'budgetAlert',l:'Alertas',i:AlertTriangle}].map(w => (
-                                        <label key={w.k} className="flex items-center justify-between cursor-pointer group">
-                                            <span className={`text-sm flex items-center gap-2 ${TextColor}`}><w.i className="w-4 h-4 opacity-50" /> {w.l}</span>
-                                            <div className={`w-9 h-5 flex items-center bg-gray-300 rounded-full p-1 duration-300 ease-in-out ${widgets[w.k] ? 'bg-[#008069]' : ''}`} onClick={() => toggleWidget(w.k)}>
-                                                <div className={`bg-white w-3 h-3 rounded-full shadow-md transform duration-300 ease-in-out ${widgets[w.k] ? 'translate-x-4' : ''}`}></div>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-
-                    {isSidebarOpen && <div className="fixed inset-0 bg-black/30 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>}
-
-                    <div className="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
-                        <header className={`${THEME.primary} h-16 flex items-center justify-between px-4 shadow-md z-20`}>
-                            <div className="flex items-center gap-3">
-                                <button onClick={() => setIsSidebarOpen(true)} className="md:hidden text-white p-1"><Menu className="w-6 h-6" /></button>
-                                <div className="flex flex-col"><h1 className="text-white font-bold text-lg leading-tight">{family.name}</h1><p className="text-white/70 text-xs">Control de Gastos</p></div>
-                            </div>
-                            <div className="flex items-center bg-black/10 rounded-full px-2 py-1">
-                                <button onClick={() => setSelectedYear(y => y - 1)} className="text-white/70 hover:text-white"><ChevronLeft className="w-4 h-4" /></button>
-                                <span className="px-2 text-sm font-medium text-white">{selectedYear}</span>
-                                <button onClick={() => setSelectedYear(y => y + 1)} className="text-white/70 hover:text-white"><ChevronRight className="w-4 h-4" /></button>
-                            </div>
-                        </header>
-
-                        <main className="flex-1 overflow-y-auto p-4 relative" style={{ backgroundImage: `radial-gradient(${isDarkMode ? '#334155' : '#cbd5e1'} 1px, transparent 1px)`, backgroundSize: '20px 20px' }}>
-                            <div className="max-w-4xl mx-auto pb-24">
-                                {view === 'dashboard' && (
-                                    <>
-                                        <DashboardView transactions={currentYearData} isDark={isDarkMode} />
-                                        <div className="fixed bottom-20 right-4 z-30 flex flex-col-reverse gap-3 items-end md:bottom-8 pointer-events-none">
-                                            <FinancialHealthWidget transactions={currentYearData} isVisible={widgets.health} onClose={() => toggleWidget('health')} currentYear={selectedYear} isDark={isDarkMode} />
-                                            <BudgetAlertWidget transactions={currentYearData} budgets={budgets} isVisible={widgets.budgetAlert} onClose={() => toggleWidget('budgetAlert')} currentYear={selectedYear} isDark={isDarkMode} />
-                                            <TopExpensesWidget transactions={currentYearData} isVisible={widgets.topExpenses} onClose={() => toggleWidget('topExpenses')} currentYear={selectedYear} isDark={isDarkMode} />
-                                            <SavingsWidget transactions={currentYearData} isVisible={widgets.savings} onClose={() => toggleWidget('savings')} currentYear={selectedYear} isDark={isDarkMode} />
-                                        </div>
-                                    </>
-                                )}
-                                {view === 'calendar' && <CalendarView transactions={currentYearData} selectedYear={selectedYear} onDateClick={(d) => openForm(null, d)} isDark={isDarkMode} />}
-                                {view === 'history' && <HistoryView transactions={currentYearData} onEdit={openForm} onDelete={deleteTransaction} isDark={isDarkMode} />}
-                                {view === 'members' && <MembersView family={family} familyMembers={familyMembers} isDark={isDarkMode} />}
-                                {view === 'budgets' && <BudgetsView transactions={currentYearData} currentYear={selectedYear} family={family} isDark={isDarkMode} />}
-                            </div>
-                        </main>
-
-                        {/* Botón flotante eliminado según solicitud del usuario */}
-
-                        <div className={`md:hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-t h-16 flex justify-around items-center px-2 z-50 fixed bottom-0 left-0 right-0`}>
-                            <button onClick={() => setView('dashboard')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'dashboard' ? 'text-[#008069]' : 'text-slate-400'}`}><PieChart className="w-6 h-6" /><span className="text-[10px] font-medium">Estado</span></button>
-                            <button onClick={() => setView('calendar')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'calendar' ? 'text-[#008069]' : 'text-slate-400'}`}><CalendarIcon className="w-6 h-6" /><span className="text-[10px] font-medium">Cal.</span></button>
-                            <button onClick={() => setView('history')} className={`flex flex-col items-center gap-1 p-2 rounded-lg transition ${view === 'history' ? 'text-[#008069]' : 'text-slate-400'}`}><Layers className="w-6 h-6" /><span className="text-[10px] font-medium">Historial</span></button>
-                        </div>
-                    </div>
-
-                    {/* Modal Form */}
-                    {isFormOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-                            <div className={`w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-slide-up ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
-                                <div className={`${THEME.primary} p-4 flex justify-between items-center text-white`}>
-                                    <h3 className="font-bold">{editingId ? 'Editar' : 'Nuevo Movimiento'}</h3>
-                                    <button onClick={closeForm}><X className="w-5 h-5" /></button>
-                                </div>
-                                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                                    <div className={`flex p-1 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-                                        <button type="button" onClick={() => setFormData({...formData, type: 'income', category: 'Salario'})} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${formData.type === 'income' ? 'bg-white text-[#008069] shadow-sm' : 'text-slate-400'}`}>Ingreso</button>
-                                        <button type="button" onClick={() => setFormData({...formData, type: 'expense', category: 'Comida'})} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${formData.type === 'expense' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400'}`}>Gasto</button>
-                                    </div>
-                                    <div className="relative">
-                                        <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-2xl font-light ${formData.type === 'income' ? 'text-[#008069]' : 'text-red-500'}`}>$</span>
-                                        <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} className={`w-full text-center text-4xl font-bold bg-transparent border-b-2 outline-none pb-2 ${isDarkMode ? 'text-white border-slate-600' : 'text-slate-800 border-slate-100'}`} placeholder="0.00" autoFocus />
-                                    </div>
-                                    
-                                    <div className="text-center text-xs text-slate-400">
-                                        Registrando como: <span className="font-bold text-[#008069]">{memberProfile.name}</span>
-                                    </div>
-                                    {familyMembers.filter(m => m.uid !== user.uid).length > 0 && (
-                                         <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'} p-2 rounded-lg border`}>
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">¿O es para alguien más?</label>
-                                            <select value={formData.memberId || ''} onChange={e => setFormData({...formData, memberId: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                                                <option value="" className={isDarkMode ? 'text-black' : ''}>{memberProfile.name} (Yo)</option>
-                                                {familyMembers.filter(m => m.uid !== user.uid).map(m => (
-                                                    <option key={m.id} value={m.id} className={isDarkMode ? 'text-black' : ''}>{m.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    )}
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'} p-2 rounded-lg border`}>
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Categoría</label>
-                                            <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                                                {formData.type === 'expense' ? (
-                                                    <><option>Comida</option><option>Transporte</option><option>Vivienda</option><option>Escuela</option><option>Despensa</option><option>Tienda</option><option>Comida a domicilio</option><option>Servicios</option><option>Deuda</option><option>Préstamos</option><option>Tarjetas de Crédito</option><option>Deuda Familiar</option><option>Gastos Hormiga</option><option>Otros</option></>
-                                                ) : (
-                                                    <><option>Salario</option><option>Negocio</option><option>Ventas</option><option>Extra</option><option>Otros</option></>
-                                                )}
-                                            </select>
-                                        </div>
-                                        <div className={`${isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'} p-2 rounded-lg border`}>
-                                            <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Fecha</label>
-                                            <input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className={`w-full bg-transparent text-sm font-semibold outline-none ${isDarkMode ? 'text-slate-200' : 'text-slate-700'}`} />
-                                        </div>
-                                    </div>
-                                    <button type="submit" className={`w-full py-3 rounded-xl font-bold text-white shadow-md active:scale-95 transition ${formData.type === 'income' ? THEME.primary : 'bg-red-500'}`}>{editingId ? 'Actualizar' : 'Enviar'}</button>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-                    {deleteModal.show && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                            <div className={`${isDarkMode ? 'bg-slate-800' : 'bg-white'} p-6 rounded-2xl shadow-xl max-w-xs w-full text-center space-y-4`}>
-                                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-500"><Trash2 /></div>
-                                <h3 className={`font-bold ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>¿Eliminar mensaje?</h3>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setDeleteModal({show:false, id:null})} className={`flex-1 py-2 border rounded-xl ${isDarkMode ? 'text-slate-300 border-slate-600' : 'text-slate-600'}`}>Cancelar</button>
-                                    <button onClick={deleteItem} className="flex-1 py-2 bg-red-500 text-white rounded-xl">Eliminar</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
+            try {
+                const result = await signInWithPopup(auth, provider);
+                if (result && result.user && result.user.email) {
+                    await registrarYVerificarUsuario(result.user);
+                }
+            } catch (error) {
+                if (error.code === 'auth/popup-blocked') {
+                    try {
+                        await signInWithRedirect(auth, provider);
+                        return;
+                    } catch (redirErr) { console.error(redirErr); }
+                }
+                if (errEl) {
+                    errEl.innerText = "Error: " + error.message;
+                    errEl.classList.remove('hidden');
+                }
+            }
         };
 
-        const root = createRoot(document.getElementById('root'));
-        root.render(<App />);
+        window.cerrarSesionFirebase = async function() {
+            if (auth && auth.currentUser) {
+                try { await signOut(auth); } catch (e) { console.error(e); }
+            }
+        };
+
+        window.cargarListaUsuariosAdmin = async function() {
+            if (!db) return;
+            try {
+                const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'usuarios_app');
+                const querySnap = await getDocs(colRef);
+                const contenedor = document.getElementById('lista-usuarios-admin');
+                if(!contenedor) return;
+
+                let html = '';
+                querySnap.forEach((docSnap) => {
+                    const u = docSnap.data();
+                    const uid = docSnap.id;
+                    const esPermanente = u.expira && new Date(u.expira).getFullYear() > 2099;
+                    const expStr = esPermanente ? 'Permanente (Vitalicio) ♾️' : (u.expira ? u.expira.slice(0, 10) : 'Indefinido');
+                    
+                    html += '<div class="bg-slate-900/80 p-3 rounded-xl border border-indigo-500/30 text-xs space-y-2">' +
+                        '<div class="flex justify-between items-center">' +
+                            '<b class="text-indigo-200">' + u.email + '</b>' +
+                            '<span class="text-[10px] px-2 py-0.5 rounded font-bold ' + (u.activo !== false ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300') + '">' + (u.activo !== false ? 'Activo' : 'Suspendido') + '</span>' +
+                        '</div>' +
+                        '<div class="flex flex-col gap-1 text-[11px] text-slate-300">' +
+                            '<span>Vencimiento: <b>' + expStr + '</b></span>' +
+                            '<div class="flex gap-1.5 flex-wrap pt-1">' +
+                                '<button onclick="cambiarEstadoUsuario(\'' + uid + '\', ' + !(u.activo !== false) + ')" class="bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">' + (u.activo !== false ? 'Bloquear' : 'Activar') + '</button>' +
+                                '<button onclick="otorgarPlanUsuario(\'' + uid + '\', \'prueba\')" class="bg-amber-600 hover:bg-amber-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">+15 Días Prueba</button>' +
+                                '<button onclick="otorgarPlanUsuario(\'' + uid + '\', \'mensual\')" class="bg-emerald-600 hover:bg-emerald-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">+30 Días (Mes)</button>' +
+                                '<button onclick="otorgarPlanUsuario(\'' + uid + '\', \'permanente\')" class="bg-purple-600 hover:bg-purple-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">♾️ Permanente</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                });
+                contenedor.innerHTML = html || '<p class="text-slate-400 text-xs italic">No hay usuarios registrados aún.</p>';
+            } catch(e) { console.error("Error cargando usuarios admin:", e); }
+        };
+
+        window.cambiarEstadoUsuario = async function(uid, nuevoEstado) {
+            if (!db) return;
+            try {
+                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'usuarios_app', uid);
+                await updateDoc(userRef, { activo: nuevoEstado });
+                window.cargarListaUsuariosAdmin();
+                alert('¡Estado del usuario actualizado!');
+            } catch(e) { console.error(e); }
+        };
+
+        window.otorgarPlanUsuario = async function(uid, tipoPlan) {
+            if (!db) return;
+            try {
+                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'usuarios_app', uid);
+                const snap = await getDoc(userRef);
+                if(snap.exists()) {
+                    const data = snap.data();
+                    let nuevoExp;
+                    let mensajeExito = "";
+
+                    if (tipoPlan === 'permanente') {
+                        // Fecha en el año 3000 para indicar vitalicio / permanente
+                        nuevoExp = new Date('3000-01-01T00:00:00.000Z').toISOString();
+                        mensajeExito = "¡Acceso Permanente (Vitalicio/Regalo) otorgado con éxito!";
+                    } else {
+                        let diasASumar = tipoPlan === 'prueba' ? 15 : 30;
+                        let baseTime = data.expira && new Date(data.expira).getFullYear() < 2099 ? new Date(data.expira).getTime() : Date.now();
+                        if(baseTime < Date.now()) baseTime = Date.now();
+                        nuevoExp = new Date(baseTime + diasASumar * 24 * 3600000).toISOString();
+                        mensajeExito = tipoPlan === 'prueba' ? "¡Se han sumado 15 días de prueba!" : "¡Se ha extendido la suscripción mensual por 30 días!";
+                    }
+
+                    await updateDoc(userRef, { expira: nuevoExp, activo: true });
+                    window.cargarListaUsuariosAdmin();
+                    alert(mensajeExito);
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.pushToCloud = async function() {
+            if(!db || !window.currentRoom) return;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', window.currentRoom);
+            try {
+                await setDoc(docRef, {
+                    medicamentos: window.medicamentos,
+                    enfermeros: window.enfermeros,
+                    notas: window.notasFijas
+                });
+            } catch(e) { console.error("Error al subir datos:", e); }
+        };
+
+        window.crearSalaAdmin = async function() {
+            if(!db) {
+                alert('Servidor de nube no disponible.');
+                return;
+            }
+            const codigo = window.currentRoom || Math.random().toString(36).substring(2, 6).toUpperCase();
+            window.currentRoom = codigo;
+            localStorage.setItem('salaSincronizacion', codigo);
+            await window.pushToCloud();
+            window.conectarSala(codigo);
+            alert('¡Sala sincronizada con éxito!\nComparte este código de sala con quien desees: ' + codigo);
+        };
+
+        window.verificarEnfermeroSala = async function() {
+            const codigo = document.getElementById('enfermero-room-code').value.toUpperCase().trim();
+            if(!codigo) return;
+            if(!db) {
+                window.currentRoom = codigo;
+                localStorage.setItem('salaSincronizacion', codigo);
+                window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
+                return;
+            }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
+                const docSnap = await getDoc(docRef);
+                if(docSnap.exists()) {
+                    window.currentRoom = codigo;
+                    localStorage.setItem('salaSincronizacion', codigo);
+                    window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
+                } else {
+                    const err = document.getElementById('enfermero-error');
+                    err.innerText = "Sala no encontrada. Verifica el código.";
+                    err.classList.remove('hidden');
+                }
+            } catch(e) {
+                window.currentRoom = codigo;
+                localStorage.setItem('salaSincronizacion', codigo);
+                window.iniciarSesionApp('invitado', 'Sala: ' + codigo);
+            }
+        };
+
+        window.salirSala = function() {
+            if(unsub) unsub();
+            window.currentRoom = null;
+            localStorage.removeItem('salaSincronizacion');
+            window.cambiarPerfil();
+        };
+
+        window.conectarSala = function(codigo) {
+            if(!db) return;
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', codigo);
+            if(unsub) unsub();
+            
+            unsub = onSnapshot(docRef, function(docSnap) {
+                if(docSnap.exists()) {
+                    const data = docSnap.data();
+                    window.medicamentos = data.medicamentos || [];
+                    window.enfermeros = data.enfermeros || window.enfermeros;
+                    window.notasFijas = data.notas || '';
+                    
+                    localStorage.setItem('medicamentosPacientesV15', JSON.stringify(window.medicamentos));
+                    localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
+                    localStorage.setItem('notasFijas', window.notasFijas);
+
+                    const txtN = document.getElementById('notas-fijas');
+                    if(txtN) txtN.value = window.notasFijas;
+
+                    window.renderizarResumenEnfermeros();
+                    window.renderizarListaHome();
+                    window.generarCronograma();
+                    window.renderizarLista();
+                    window.renderizarInventario();
+                    window.actualizarOpcionesStockEnFormulario();
+                    
+                    const cloudStatus = document.getElementById('cloud-status');
+                    if(cloudStatus) cloudStatus.innerHTML = '🟢 Conectado';
+                    const activeRoom = document.getElementById('active-room-code');
+                    if(activeRoom) activeRoom.innerText = codigo;
+                }
+            });
+        };
     </script>
 </body>
 </html>
