@@ -73,6 +73,16 @@
         </div>
     </div>
 
+    <!-- Modal de Bienvenida con Prueba de 15 Días -->
+    <div id="modal-bienvenida-prueba" class="fixed inset-0 bg-slate-900 bg-opacity-90 z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center space-y-4">
+            <span class="text-4xl">🎁</span>
+            <h3 class="text-lg font-bold text-slate-800">¡Bienvenido a la App!</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">Te has registrado exitosamente. Como regalo de bienvenida, se te han otorgado <b>15 días de prueba gratis</b> para explorar todas las funciones de control clínico y gestión en la nube.</p>
+            <button onclick="cerrarModalPrueba()" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md hover:bg-blue-700 transition">Comenzar a Usar</button>
+        </div>
+    </div>
+
     <!-- Modal de Aviso de Licencia Vencida -->
     <div id="modal-licencia" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex items-center justify-center px-4 hidden">
         <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center space-y-4">
@@ -168,7 +178,7 @@
                     </div>
                     <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2.5 py-1 rounded-full font-bold">Admin</span>
                 </div>
-                <p class="text-xs text-slate-300 leading-relaxed">Desde esta pestaña puedes visualizar todos los usuarios que han iniciado sesión con Google, bloquear/activar cuentas y asignarles prueba de 15 días, suscripción mensual o acceso permanente (vitalicio/regalo).</p>
+                <p class="text-xs text-slate-300 leading-relaxed">Desde esta pestaña puedes visualizar todos los usuarios que han iniciado sesión con Google, bloquear/activar cuentas y asignarles prueba de 15 días, suscripción mensual, acceso permanente o descontar días/meses.</p>
                 <div>
                     <h3 class="text-xs font-bold text-amber-300 mb-2.5">👥 Usuarios Registrados en la App:</h3>
                     <div id="lista-usuarios-admin" class="space-y-2.5 max-h-96 overflow-y-auto pr-1"></div>
@@ -458,7 +468,7 @@
     <script>
         const diasNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         
-        window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV15')) || [];
+        window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV16')) || [];
         
         let enfermerosDefault = [
             { id: '1', nombre: 'Yael', tipoPago: 'hora', pagoHora: 100, sueldoFijo: 0, diaPago: 'Viernes', dias: { 1:{act:true,ini:'07:00',fin:'19:00'}, 2:{act:true,ini:'07:00',fin:'19:00'}, 3:{act:true,ini:'07:00',fin:'19:00'}, 4:{act:true,ini:'07:00',fin:'19:00'}, 5:{act:true,ini:'07:00',fin:'19:00'}, 6:{act:false,ini:'',fin:''}, 0:{act:false,ini:'',fin:''} } }
@@ -640,6 +650,10 @@
             const btnTabAdmin = document.getElementById('btn-tab-admin');
             if(btnTabAdmin) btnTabAdmin.classList.add('hidden');
             window.volverASeleccion();
+        };
+
+        window.cerrarModalPrueba = function() {
+            document.getElementById('modal-bienvenida-prueba').classList.add('hidden');
         };
 
         // --- GESTIÓN DE PERSONAL ---
@@ -1105,7 +1119,7 @@
                 const proxB = b.ultimaToma + (b.frecuencia * 3600000);
                 return proxA - proxB;
             });
-            localStorage.setItem('medicamentosPacientesV15', JSON.stringify(window.medicamentos));
+            localStorage.setItem('medicamentosPacientesV16', JSON.stringify(window.medicamentos));
             window.renderizarListaHome();
             window.generarCronograma();
             window.renderizarLista();
@@ -1429,6 +1443,8 @@
 
                 if (!snap.exists()) {
                     await setDoc(userRef, licenciaData);
+                    // Mostrar modal de bienvenida de 15 días para nuevo usuario
+                    document.getElementById('modal-bienvenida-prueba').classList.remove('hidden');
                 } else {
                     licenciaData = snap.data();
                     await updateDoc(userRef, { ultimoAcceso: new Date().toISOString() });
@@ -1437,7 +1453,6 @@
                 // Verificar si expiró la licencia (si no es admin)
                 if (!isAdmin && licenciaData.expira) {
                     const expTime = new Date(licenciaData.expira).getTime();
-                    // Si expira es muy lejano o menor a hoy (y no es permanente)
                     if (expTime < Date.now() || licenciaData.activo === false) {
                         document.getElementById('modal-licencia').classList.remove('hidden');
                         return;
@@ -1514,9 +1529,11 @@
                             '<span>Vencimiento: <b>' + expStr + '</b></span>' +
                             '<div class="flex gap-1.5 flex-wrap pt-1">' +
                                 '<button onclick="cambiarEstadoUsuario(\'' + uid + '\', ' + !(u.activo !== false) + ')" class="bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">' + (u.activo !== false ? 'Bloquear' : 'Activar') + '</button>' +
-                                '<button onclick="otorgarPlanUsuario(\'' + uid + '\', \'prueba\')" class="bg-amber-600 hover:bg-amber-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">+15 Días Prueba</button>' +
-                                '<button onclick="otorgarPlanUsuario(\'' + uid + '\', \'mensual\')" class="bg-emerald-600 hover:bg-emerald-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">+30 Días (Mes)</button>' +
-                                '<button onclick="otorgarPlanUsuario(\'' + uid + '\', \'permanente\')" class="bg-purple-600 hover:bg-purple-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">♾️ Permanente</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'sumar\', 15)" class="bg-amber-600 hover:bg-amber-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">+15 Días</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'sumar\', 30)" class="bg-emerald-600 hover:bg-emerald-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">+30 Días (Mes)</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'restar\', 1)" class="bg-orange-600 hover:bg-orange-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">-1 Día</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'restar\', 30)" class="bg-red-600 hover:bg-red-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">-30 Días</button>' +
+                                '<button onclick="modificarTiempoUsuario(\'' + uid + '\', \'permanente\', 0)" class="bg-purple-600 hover:bg-purple-500 px-2 py-1 rounded text-[10px] font-bold text-white transition">♾️ Permanente</button>' +
                             '</div>' +
                         '</div>' +
                     '</div>';
@@ -1535,7 +1552,7 @@
             } catch(e) { console.error(e); }
         };
 
-        window.otorgarPlanUsuario = async function(uid, tipoPlan) {
+        window.modificarTiempoUsuario = async function(uid, operacion, cantidadDias) {
             if (!db) return;
             try {
                 const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'usuarios_app', uid);
@@ -1545,16 +1562,19 @@
                     let nuevoExp;
                     let mensajeExito = "";
 
-                    if (tipoPlan === 'permanente') {
-                        // Fecha en el año 3000 para indicar vitalicio / permanente
+                    if (operacion === 'permanente') {
                         nuevoExp = new Date('3000-01-01T00:00:00.000Z').toISOString();
                         mensajeExito = "¡Acceso Permanente (Vitalicio/Regalo) otorgado con éxito!";
                     } else {
-                        let diasASumar = tipoPlan === 'prueba' ? 15 : 30;
                         let baseTime = data.expira && new Date(data.expira).getFullYear() < 2099 ? new Date(data.expira).getTime() : Date.now();
                         if(baseTime < Date.now()) baseTime = Date.now();
-                        nuevoExp = new Date(baseTime + diasASumar * 24 * 3600000).toISOString();
-                        mensajeExito = tipoPlan === 'prueba' ? "¡Se han sumado 15 días de prueba!" : "¡Se ha extendido la suscripción mensual por 30 días!";
+                        
+                        let msCambio = cantidadDias * 24 * 3600000;
+                        let finalTime = operacion === 'sumar' ? (baseTime + msCambio) : (baseTime - msCambio);
+                        if(finalTime < Date.now()) finalTime = Date.now();
+
+                        nuevoExp = new Date(finalTime).toISOString();
+                        mensajeExito = operacion === 'sumar' ? ('¡Se han sumado ' + cantidadDias + ' días!') : ('¡Se han restado ' + cantidadDias + ' días!');
                     }
 
                     await updateDoc(userRef, { expira: nuevoExp, activo: true });
@@ -1636,7 +1656,7 @@
                     window.enfermeros = data.enfermeros || window.enfermeros;
                     window.notasFijas = data.notas || '';
                     
-                    localStorage.setItem('medicamentosPacientesV15', JSON.stringify(window.medicamentos));
+                    localStorage.setItem('medicamentosPacientesV16', JSON.stringify(window.medicamentos));
                     localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
                     localStorage.setItem('notasFijas', window.notasFijas);
 
