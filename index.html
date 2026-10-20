@@ -171,19 +171,19 @@
         <!-- ================= PÁGINA PRINCIPAL (DASHBOARD) ================= -->
         <div id="vista-home" class="space-y-4">
             <section class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-                <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5"><span>⏰</span> Tomas Próximas (Hoy y Mañana)</h2>
+                <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5"><span>⏰</span> Ministraciones Próximas (24 hrs)</h2>
                 <div id="lista-medicamentos-home" class="space-y-2.5"></div>
             </section>
 
             <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-6 rounded-3xl shadow-md">
-                <h2 class="text-base sm:text-lg font-bold mb-1">Panel de Control Clínico</h2>
-                <p class="text-xs text-blue-100 font-medium">Selecciona una sección para gestionar la atención del paciente.</p>
+                <h2 class="text-base sm:text-lg font-bold mb-1">Panel de Gestión Clínica y Enfermería</h2>
+                <p class="text-xs text-blue-100 font-medium">Selecciona un módulo para supervisar el plan terapéutico y asistencial del paciente.</p>
             </div>
 
             <section class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 space-y-3">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1"><span>🧑‍🦱</span> Paciente Activo:</h3>
-                    <button onclick="abrirModalPaciente()" class="text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold px-3 py-1.5 rounded-xl transition">➕ Gestionar Pacientes</button>
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1"><span>🧑‍🦱</span> Paciente en Atención:</h3>
+                    <button onclick="abrirModalPaciente()" class="text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold px-3 py-1.5 rounded-xl transition">➕ Expediente Clínico</button>
                 </div>
                 <select id="select-paciente-activo" onchange="cambiarPacienteActivo(this.value)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 outline-none focus:border-blue-600 transition">
                     <option value="">-- Selecciona un paciente --</option>
@@ -192,48 +192,58 @@
                 <div id="resumen-paciente-activo-card" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-1.5 hidden">
                     <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                         <span id="card-paciente-edad" class="font-bold text-slate-800">Edad: --</span>
-                        <button onclick="abrirModalPaciente()" class="text-blue-600 font-semibold hover:underline text-[10px]">Ver Ficha Completa 📋</button>
+                        <div class="flex gap-2">
+                            <button onclick="abrirModalSignos()" class="text-emerald-600 font-bold hover:underline text-[10px]">❤️ Signos Vitales</button>
+                            <button onclick="abrirModalPaciente()" class="text-blue-600 font-semibold hover:underline text-[10px]">Expediente 📋</button>
+                        </div>
                     </div>
-                    <p id="card-paciente-padecimientos" class="text-slate-600"><b>Padecimientos:</b> --</p>
-                    <p id="card-paciente-alergias" class="text-rose-600 font-medium"><b>Alergias / Alerta:</b> --</p>
+                    <p id="card-paciente-padecimientos" class="text-slate-600"><b>Diagnósticos Clínicos:</b> --</p>
+                    <p id="card-paciente-alergias" class="text-rose-600 font-medium"><b>Alergias / RAM:</b> --</p>
+                    <div id="card-paciente-signos-resumen" class="pt-1.5 border-t border-slate-200/80 flex flex-wrap gap-1.5 text-[10px] text-slate-600"></div>
                 </div>
             </section>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button onclick="irANav('horarios')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
                     <span class="text-2xl bg-blue-50 p-3.5 rounded-2xl group-hover:bg-blue-100 transition">🧑‍⚕️</span>
-                    <span class="font-bold text-slate-800 text-xs">Mis Horarios y Turnos</span>
-                    <span class="text-[10px] text-slate-400">Personal y descansos</span>
+                    <span class="font-bold text-slate-800 text-xs">Guardias y Personal de Enfermería</span>
+                    <span class="text-[10px] text-slate-400">Cobertura asistencial y turnos</span>
                 </button>
 
                 <button onclick="irANav('finanzas')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
                     <span class="text-2xl bg-emerald-50 p-3.5 rounded-2xl group-hover:bg-emerald-100 transition">💰</span>
-                    <span class="font-bold text-slate-800 text-xs">Pagos y Sueldos</span>
-                    <span class="text-[10px] text-slate-400">Nómina y tarifas</span>
+                    <span class="font-bold text-slate-800 text-xs">Honorarios y Nómina</span>
+                    <span class="text-[10px] text-slate-400">Gestión de pagos al personal</span>
                 </button>
 
                 <button onclick="irANav('medicamentos')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
                     <span class="text-2xl bg-amber-50 p-3.5 rounded-2xl group-hover:bg-amber-100 transition">💊</span>
-                    <span class="font-bold text-slate-800 text-xs">Añadir Medicamento</span>
-                    <span class="text-[10px] text-slate-400">Registro y dosis</span>
+                    <span class="font-bold text-slate-800 text-xs">Prescripción Farmacológica</span>
+                    <span class="text-[10px] text-slate-400">Posología y esquema terapéutico</span>
                 </button>
 
                 <button onclick="irANav('calendario')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
                     <span class="text-2xl bg-indigo-50 p-3.5 rounded-2xl group-hover:bg-indigo-100 transition">📅</span>
-                    <span class="font-bold text-slate-800 text-xs">Cronograma 24h</span>
-                    <span class="text-[10px] text-slate-400">Línea de tiempo y tomas</span>
+                    <span class="font-bold text-slate-800 text-xs">Kárdex de Ministración (24h)</span>
+                    <span class="text-[10px] text-slate-400">Cronograma horario y bitácora</span>
                 </button>
 
-                <button onclick="irANav('inventario')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition sm:col-span-2 flex flex-col items-center text-center gap-2 group">
+                <button onclick="irANav('inventario')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
                     <span class="text-2xl bg-amber-100 p-3.5 rounded-2xl group-hover:bg-amber-200 transition">📦</span>
-                    <span class="font-bold text-slate-800 text-xs">Inventario y Stock Independiente</span>
-                    <span class="text-[10px] text-slate-400">Control de piezas, disparos, gotas y surtir receta</span>
+                    <span class="font-bold text-slate-800 text-xs">Insumos y Stock Farmacéutico</span>
+                    <span class="text-[10px] text-slate-400">Control de unidades, dosis y reabastecimiento</span>
+                </button>
+
+                <button onclick="abrirModalSignos()" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
+                    <span class="text-2xl bg-rose-50 p-3.5 rounded-2xl group-hover:bg-rose-100 transition">🩺</span>
+                    <span class="font-bold text-slate-800 text-xs">Monitoreo de Signos Vitales</span>
+                    <span class="text-[10px] text-slate-400">TA, FC, SpO2, Temperatura y Glucemia</span>
                 </button>
             </div>
 
             <section class="bg-amber-50/50 p-5 rounded-3xl shadow-sm border border-amber-200/60">
-                <h2 class="text-xs font-bold mb-2 text-amber-900 flex items-center gap-1.5"><span>📌</span> Notas y Medicamentos Fijos</h2>
-                <textarea id="notas-fijas" rows="2" placeholder="Ej. Insulina 8:00 AM todos los días..." 
+                <h2 class="text-xs font-bold mb-2 text-amber-900 flex items-center gap-1.5"><span>📌</span> Indicaciones Médicas Generales y Cuidados de Enfermería</h2>
+                <textarea id="notas-fijas" rows="2" placeholder="Ej. Posición Semi-Fowler, vigilar glucemia capilar preprandial, curación de herida cada 24h..." 
                           class="w-full p-3 border border-amber-300 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs bg-white/80 font-medium"></textarea>
             </section>
         </div>
@@ -322,23 +332,23 @@
         <div id="vista-medicamentos" class="space-y-4 hidden">
             <div class="flex justify-between items-center bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
                 <button onclick="irANav('calendario')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-4 py-2.5 rounded-2xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
-                <span class="text-xs font-bold text-slate-500">Registro de Fármacos</span>
+                <span class="text-xs font-bold text-slate-500">Prescripción Farmacológica</span>
             </div>
 
             <section class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-1.5"><span>💊</span> Registrar Medicamento</h2>
+                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-1.5"><span>💊</span> Prescripción y Registro Farmacológico</h2>
                 </div>
                 <form id="form-medicamento" class="space-y-4">
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="block text-xs font-bold text-slate-700">Nombre del Medicamento</label>
+                            <label class="block text-xs font-bold text-slate-700">Principio Activo / Denominación y Gramaje</label>
                             <span class="text-[10px] text-blue-600 font-semibold">Elige de stock o escribe uno nuevo</span>
                         </div>
                         <select id="select-stock-med" onchange="seleccionarMedDeStock(this.value)" class="w-full p-3 mb-2 border border-blue-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-xs bg-blue-50/50 text-slate-800 font-semibold">
-                            <option value="">-- 📦 Seleccionar de tu inventario o escribir abajo --</option>
+                            <option value="">-- 📦 Seleccionar de tu inventario farmacéutico o escribir abajo --</option>
                         </select>
-                        <input type="text" id="nombre" required placeholder="Ej. Paracetamol 500mg" 
+                        <input type="text" id="nombre" required placeholder="Ej. Paracetamol 500 mg / Losartán 50 mg" 
                                class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white outline-none text-xs font-semibold text-slate-800 transition">
                     </div>
 
@@ -346,81 +356,84 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Vía de Administración</label>
                             <select id="via" onchange="actualizarDosisLabel(this.value)" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 outline-none text-xs font-medium">
-                                <option value="Oral 💊">Oral 💊</option>
-                                <option value="Intramuscular 💉">Intramuscular 💉</option>
-                                <option value="Intravenosa 💉">Intravenosa 💉</option>
-                                <option value="Subcutánea 💉">Subcutánea 💉</option>
-                                <option value="Inhalado 💨">Inhalado 💨</option>
-                                <option value="Nebulización 💨">Nebulización 💨</option>
-                                <option value="Nasal 👃">Nasal 👃</option>
+                                <option value="Vía Oral (VO) 💊">Vía Oral (VO) 💊</option>
+                                <option value="Sublingual (SL) 👅">Sublingual (SL) 👅</option>
+                                <option value="Intramuscular (IM) 💉">Intramuscular (IM) 💉</option>
+                                <option value="Intravenosa (IV) 💉">Intravenosa (IV) 💉</option>
+                                <option value="Subcutánea (SC) 💉">Subcutánea (SC) 💉</option>
+                                <option value="Intradérmica (ID) 💉">Intradérmica (ID) 💉</option>
+                                <option value="Inhalatoria (IDM) 💨">Inhalatoria (IDM) 💨</option>
+                                <option value="Micronebulización (MNB) 💨">Micronebulización (MNB) 💨</option>
+                                <option value="Intranasal 👃">Intranasal 👃</option>
                                 <option value="Oftálmica 👁️">Oftálmica 👁️</option>
-                                <option value="Gotas 💧">Gotas 💧</option>
-                                <option value="Tópico 🧴">Tópico 🧴</option>
-                                <option value="Intradérmica 💉">Intradérmica 💉</option>
-                                <option value="Enterales 🧪">Enterales 🧪</option>
+                                <option value="Ótica 👂">Ótica 👂</option>
+                                <option value="Tópica / Cutánea 🧴">Tópica / Cutánea 🧴</option>
+                                <option value="Transdérmica (Parche) 🩹">Transdérmica (Parche) 🩹</option>
+                                <option value="Sonda Nasogástrica (SNG) 🩺">Sonda Nasogástrica (SNG) 🩺</option>
+                                <option value="Sonda Orogástrica (SOG) 🩺">Sonda Orogástrica (SOG) 🩺</option>
+                                <option value="Gastrostomía / Enteral 🧪">Gastrostomía / Enteral 🧪</option>
+                                <option value="Rectal 💊">Rectal 💊</option>
                                 <option value="Vaginal 🌸">Vaginal 🌸</option>
-                                <option value="Nasogástrica 🩺">Nasogástrica 🩺</option>
-                                <option value="Orogástrica 🩺">Orogástrica 🩺</option>
-                                <option value="Parenteral 🩸">Parenteral 🩸</option>
+                                <option value="Parenteral / Infusión Continua 🩸">Parenteral / Infusión Continua 🩸</option>
                             </select>
                         </div>
                         <div>
-                            <label id="label-dosis" class="block text-xs font-bold text-slate-700 mb-1">Dosis</label>
-                            <input type="text" id="dosis-cantidad" required placeholder="Ej. 1 tableta / 2 puffs" 
+                            <label id="label-dosis" class="block text-xs font-bold text-slate-700 mb-1">Posología / Dosis Prescrita</label>
+                            <input type="text" id="dosis-cantidad" required placeholder="Ej. 1 comprimido / 5 ml / 2 disparos" 
                                    class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white outline-none text-xs font-medium transition">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Indicación de Tiempo</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Régimen e Indicación Terapéutica</label>
                             <select id="momento" onchange="verificarMomento(this.value)" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 outline-none text-xs font-medium">
-                                <option value="Horario Fijo">Horario Regular (Cada X horas)</option>
-                                <option value="Antes de desayunar">Antes de desayunar</option>
-                                <option value="Después de desayunar">Después de desayunar</option>
-                                <option value="Antes de comer">Antes de comer</option>
-                                <option value="Después de comer">Después de comer</option>
-                                <option value="Antes de cenar">Antes de cenar</option>
-                                <option value="Después de cenar">Después de cenar</option>
-                                <option value="Antes de dormir">Antes de dormir</option>
-                                <option value="PRN (Si es necesario)">PRN (Si es necesario)</option>
+                                <option value="Horario Fijo">Pauta Horaria Estricta (Intervalo regular)</option>
+                                <option value="Preprandial (Desayuno)">Preprandial - Antes del desayuno (En ayunas)</option>
+                                <option value="Posprandial (Desayuno)">Posprandial - Después del desayuno</option>
+                                <option value="Preprandial (Comida)">Preprandial - Antes de la comida</option>
+                                <option value="Posprandial (Comida)">Posprandial - Después de la comida</option>
+                                <option value="Preprandial (Cena)">Preprandial - Antes de la cena</option>
+                                <option value="Posprandial (Cena)">Posprandial - Después de la cena</option>
+                                <option value="Nocturno (Al acostarse)">Nocturno (Antes de dormir / HS)</option>
+                                <option value="PRN (Por Razón Necesaria)">PRN (Por Razón Necesaria / Rescate)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Duración (¿Por cuántos días?)</label>
-                            <input type="number" id="duracion-dias" placeholder="Ej. 7 (Dejar en blanco si es indefinido)" 
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Duración del Tratamiento (Días)</label>
+                            <input type="number" id="duracion-dias" placeholder="Ej. 7 (Dejar vacío si es tratamiento crónico)" 
                                    class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white outline-none text-xs font-semibold transition">
                         </div>
                     </div>
                     
                     <div id="bloque-frecuencia" class="grid grid-cols-1 sm:grid-cols-2 gap-3 transition-all">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Frecuencia</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Intervalo Terapéutico (Frecuencia)</label>
                             <select id="frecuencia" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 outline-none text-xs font-medium">
-                                <option value="4">Cada 4 hrs</option>
-                                <option value="6">Cada 6 hrs</option>
-                                <option value="8" selected>Cada 8 hrs</option>
-                                <option value="12">Cada 12 hrs</option>
-                                <option value="24">Cada 24 hrs</option>
+                                <option value="4">Cada 4 hrs (c/4h)</option>
+                                <option value="6">Cada 6 hrs (c/6h)</option>
+                                <option value="8" selected>Cada 8 hrs (c/8h)</option>
+                                <option value="12">Cada 12 hrs (c/12h)</option>
+                                <option value="24">Cada 24 hrs (c/24h)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Estado de Inicio</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Inicio del Esquema</label>
                             <select id="modo-inicio" onchange="cambiarModoInicio(this.value)" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 outline-none text-xs font-medium">
-                                <option value="ultima">Registrar última toma</option>
-                                <option value="nuevo">Nuevo (1ra toma ahora)</option>
+                                <option value="ultima">Registrar última ministración realizada</option>
+                                <option value="nuevo">Iniciar esquema ahora (1ra dosis)</option>
                             </select>
                         </div>
                     </div>
 
                     <div id="contenedor-hora-toma">
-                        <label id="label-hora-toma" class="block text-xs font-bold text-slate-700 mb-1">Fecha y hora de última toma</label>
+                        <label id="label-hora-toma" class="block text-xs font-bold text-slate-700 mb-1">Fecha y hora de última ministración</label>
                         <input type="datetime-local" id="ultima-toma" required 
                                class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:border-blue-600 focus:bg-white outline-none text-xs font-medium transition">
                     </div>
 
                     <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-4 rounded-2xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 text-xs">
-                        + Registrar Medicamento
+                        + Guardar Prescripción en Kárdex
                     </button>
                 </form>
             </section>
@@ -430,22 +443,27 @@
         <div id="vista-calendario" class="space-y-4 hidden">
             <div class="flex justify-between items-center bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
                 <button onclick="irANav('home')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-4 py-2.5 rounded-2xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
-                <span class="text-xs font-bold text-slate-500">Cronograma 24h</span>
+                <span class="text-xs font-bold text-slate-500">Kárdex de Ministración 24h</span>
             </div>
 
             <section class="bg-indigo-50/70 p-5 rounded-3xl shadow-sm border border-indigo-200">
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-sm font-bold text-indigo-900 flex items-center gap-1.5"><span>📋</span> Cronograma de Medicamentos (24 hrs)</h2>
+                    <h2 class="text-sm font-bold text-indigo-900 flex items-center gap-1.5"><span>📋</span> Kárdex de Ministración Farmacológica (24 hrs)</h2>
                 </div>
                 <div id="cronograma-diario" class="space-y-3 relative border-l-2 border-indigo-300 ml-2 pl-4"></div>
             </section>
 
             <section>
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-sm font-bold text-slate-900">⏰ Lista Completa de Medicamentos</h2>
-                    <button onclick="irANav('medicamentos')" class="bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-sm hover:bg-blue-700 transition">➕ Añadir Medicamento</button>
+                    <h2 class="text-sm font-bold text-slate-900">⏰ Esquema Farmacológico Activo</h2>
+                    <button onclick="irANav('medicamentos')" class="bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-sm hover:bg-blue-700 transition">➕ Prescribir Fármaco</button>
                 </div>
                 <div id="lista-medicamentos" class="space-y-3"></div>
+            </section>
+
+            <section class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
+                <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-1.5"><span>📝</span> Bitácora Clínica de Ministraciones Recientes</h2>
+                <div id="bitacora-ministraciones" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             </section>
         </div>
 
@@ -453,16 +471,16 @@
         <div id="vista-inventario" class="space-y-4 hidden">
             <div class="flex justify-between items-center bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
                 <button onclick="irANav('home')" class="text-xs bg-slate-100 text-slate-700 font-semibold px-4 py-2.5 rounded-2xl hover:bg-slate-200 transition flex items-center gap-1.5"><span>⬅️</span> Volver Atrás</button>
-                <span class="text-xs font-bold text-slate-500">Inventario y Stock</span>
+                <span class="text-xs font-bold text-slate-500">Insumos y Stock Farmacéutico</span>
             </div>
 
             <div class="bg-amber-600 text-white p-6 rounded-3xl shadow-md flex justify-between items-center">
                 <div>
-                    <h2 class="text-base font-bold mb-1">📦 Inventario y Existencias</h2>
-                    <p class="text-xs text-amber-100 font-medium">Control independiente de piezas, puffs, gotas y mililitros.</p>
+                    <h2 class="text-base font-bold mb-1">📦 Control de Insumos y Stock Farmacéutico</h2>
+                    <p class="text-xs text-amber-100 font-medium">Contabilidad de unidades, ampolletas, dosis inhaladas y mililitros.</p>
                 </div>
                 <button onclick="abrirModalNuevoStock()" class="bg-white text-amber-800 text-xs font-bold px-4 py-3 rounded-2xl transition shadow-sm hover:bg-amber-50">
-                    ➕ Añadir Stock
+                    ➕ Registrar Insumo
                 </button>
             </div>
 
@@ -471,36 +489,95 @@
 
     </main>
 
-    <!-- Modal Pacientes -->
+    <!-- Modal Pacientes (Expediente Clínico) -->
     <div id="modal-paciente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
         <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 animate-fade-in">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <h3 class="text-sm font-extrabold text-slate-900">🧑‍🦱 Expediente y Gestión de Pacientes</h3>
+                <h3 class="text-sm font-extrabold text-slate-900">🧑‍🦱 Expediente Clínico del Paciente</h3>
                 <button onclick="cerrarModalPaciente()" class="text-slate-400 hover:text-slate-700 font-bold p-1.5">✕</button>
             </div>
             <div class="space-y-4">
                 <div class="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3">
-                    <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wider">➕ Registrar Nuevo Paciente:</h4>
-                    <input type="text" id="nuevo-paciente-nombre" placeholder="Nombre y Apellido del Paciente" class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none focus:border-blue-600 font-semibold transition">
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <input type="number" id="nuevo-paciente-edad" placeholder="Edad (Ej. 65)" class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none focus:border-blue-600 transition">
-                        <select id="nuevo-paciente-diabetico" class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none font-medium">
-                            <option value="No Diabético">No Diabético</option>
-                            <option value="Diabético Tipo 1">Diabético Tipo 1</option>
-                            <option value="Diabético Tipo 2">Diabético Tipo 2</option>
+                    <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wider">➕ Apertura de Expediente Clínico:</h4>
+                    <input type="text" id="nuevo-paciente-nombre" placeholder="Nombre completo del paciente" class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none focus:border-blue-600 font-semibold transition">
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="number" id="nuevo-paciente-edad" placeholder="Edad (años)" class="w-full p-3 bg-white border border-slate-200 rounded-2xl text-xs outline-none focus:border-blue-600 transition">
+                        <input type="number" step="0.1" id="nuevo-paciente-peso" placeholder="Peso (kg)" class="w-full p-3 bg-white border border-slate-200 rounded-2xl text-xs outline-none focus:border-blue-600 transition">
+                        <select id="nuevo-paciente-sangre" class="w-full p-3 bg-white border border-slate-200 rounded-2xl text-xs outline-none font-bold text-rose-700">
+                            <option value="Grupo Sanguíneo N/E">Tipo Sangre</option>
+                            <option value="O+">O Rh(+)</option>
+                            <option value="O-">O Rh(-)</option>
+                            <option value="A+">A Rh(+)</option>
+                            <option value="A-">A Rh(-)</option>
+                            <option value="B+">B Rh(+)</option>
+                            <option value="B-">B Rh(-)</option>
+                            <option value="AB+">AB Rh(+)</option>
+                            <option value="AB-">AB Rh(-)</option>
                         </select>
                     </div>
-                    <textarea id="nuevo-paciente-padecimientos" rows="2" placeholder="Padecimientos o enfermedades principales..." class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none transition"></textarea>
-                    <textarea id="nuevo-paciente-cirugias" rows="2" placeholder="Cirugías previas o antecedentes quirúrgicos..." class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none transition"></textarea>
-                    <textarea id="nuevo-paciente-alergias" rows="1" placeholder="Alergias a medicamentos u otros..." class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none text-rose-600 font-medium transition"></textarea>
-                    <button onclick="agregarPaciente()" class="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-2xl text-xs hover:bg-blue-700 shadow-md shadow-blue-500/20 transition">+ Guardar Ficha del Paciente</button>
+                    <select id="nuevo-paciente-diabetico" class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none font-medium">
+                        <option value="Normoglucémico (Sin Diabetes)">Normoglucémico (Sin Diabetes Mellitus)</option>
+                        <option value="Diabetes Mellitus Tipo 1">Diabetes Mellitus Tipo 1 (DM1)</option>
+                        <option value="Diabetes Mellitus Tipo 2">Diabetes Mellitus Tipo 2 (DM2)</option>
+                        <option value="Pre-diabetes / Resistencia a Insulina">Resistencia a la Insulina / Prediabetes</option>
+                    </select>
+                    <textarea id="nuevo-paciente-padecimientos" rows="2" placeholder="Diagnósticos médicos y patologías crónicas (Ej. HAS, EPOC, IRC)..." class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none transition"></textarea>
+                    <textarea id="nuevo-paciente-cirugias" rows="2" placeholder="Antecedentes quirúrgicos y hospitalizaciones previas..." class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none transition"></textarea>
+                    <textarea id="nuevo-paciente-alergias" rows="1" placeholder="Alergias medicamentosas o alimentarias (RAM)..." class="w-full p-3.5 bg-white border border-slate-200 rounded-2xl text-xs outline-none text-rose-600 font-medium transition"></textarea>
+                    <button onclick="agregarPaciente()" class="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-2xl text-xs hover:bg-blue-700 shadow-md shadow-blue-500/20 transition">+ Guardar en Expediente Clínico</button>
                 </div>
                 <div>
-                    <h4 class="text-xs font-bold text-slate-700 mb-2">Pacientes Registrados:</h4>
+                    <h4 class="text-xs font-bold text-slate-700 mb-2">Expedientes Registrados:</h4>
                     <div id="lista-pacientes-modal" class="space-y-2.5 max-h-56 overflow-y-auto pr-1"></div>
                 </div>
             </div>
             <button onclick="cerrarModalPaciente()" class="w-full bg-slate-100 text-slate-700 font-semibold py-3.5 rounded-2xl text-xs hover:bg-slate-200 transition">Cerrar Ventana</button>
+        </div>
+    </div>
+
+    <!-- Modal Monitoreo de Signos Vitales / Somatometría -->
+    <div id="modal-signos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4 border border-slate-100 animate-fade-in">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900">🩺 Registro de Signos Vitales</h3>
+                    <p class="text-[11px] text-slate-500 font-medium">Monitoreo hemodinámico y glucemia capilar</p>
+                </div>
+                <button onclick="cerrarModalSignos()" class="text-slate-400 hover:text-slate-700 font-bold p-1.5">✕</button>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-3xl border border-slate-200 space-y-3">
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Tensión Arterial (mmHg)</label>
+                        <input type="text" id="sv-ta" placeholder="Ej. 120/80" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Frec. Cardíaca (lpm)</label>
+                        <input type="number" id="sv-fc" placeholder="Ej. 74" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Saturación SpO2 (%)</label>
+                        <input type="number" id="sv-spo2" placeholder="Ej. 98" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Temperatura (°C)</label>
+                        <input type="number" step="0.1" id="sv-temp" placeholder="Ej. 36.5" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-600">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Glucemia Capilar / Dextrostix (mg/dL)</label>
+                        <input type="number" id="sv-glucosa" placeholder="Ej. 95 (Opcional)" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-600">
+                    </div>
+                </div>
+                <button onclick="guardarSignosVitales()" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-2xl text-xs hover:bg-blue-700 shadow-md shadow-blue-500/20 transition">+ Registrar Signos Vitales</button>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-bold text-slate-700 mb-2">Historial Reciente de Signos Vitales:</h4>
+                <div id="lista-historial-signos" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+            </div>
+
+            <button onclick="cerrarModalSignos()" class="w-full bg-slate-100 text-slate-700 font-semibold py-3 rounded-2xl text-xs hover:bg-slate-200 transition">Cerrar</button>
         </div>
     </div>
 
@@ -693,7 +770,7 @@
         const diasNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         
         window.pacientes = JSON.parse(localStorage.getItem('pacientesClinicosV3')) || [
-            { id: '1', nombre: 'Paciente Principal (Ej. Juan Pérez)', edad: '70', diabetico: 'No Diabético', padecimientos: 'Hipertensión', cirugias: 'Ninguna', alergias: 'Ninguna' }
+            { id: '1', nombre: 'Paciente Principal (Ej. Juan Pérez)', edad: '70', peso: '72', sangre: 'O+', diabetico: 'Normoglucémico (Sin Diabetes)', padecimientos: 'Hipertensión Arterial Sistémica (HAS)', cirugias: 'Ninguna', alergias: 'Ninguna conocida (RAM negadas)', signos: [] }
         ];
         window.pacienteActivoId = localStorage.getItem('pacienteActivoIdV3') || window.pacientes[0].id;
         window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV17')) || [];
@@ -723,6 +800,187 @@
             });
             select.innerHTML = html;
             window.actualizarTarjetaResumenPaciente();
+        };
+
+        window.actualizarTarjetaResumenPaciente = function() {
+            const card = document.getElementById('resumen-paciente-activo-card');
+            const p = window.pacientes.find(x => x.id === window.pacienteActivoId);
+            if(!p || !card) {
+                if(card) card.classList.add('hidden');
+                return;
+            }
+            card.classList.remove('hidden');
+            const infoPeso = p.peso ? (' • ' + p.peso + ' kg') : '';
+            const infoSangre = (p.sangre && !p.sangre.includes('N/E')) ? (' • 🩸 ' + p.sangre) : '';
+            document.getElementById('card-paciente-edad').innerText = 'Edad: ' + (p.edad || 'N/A') + ' años' + infoPeso + infoSangre + ' • ' + (p.diabetico || 'No especificado');
+            document.getElementById('card-paciente-padecimientos').innerHTML = '<b>Diagnósticos Clínicos:</b> ' + (p.padecimientos || 'Sin antecedentes patológicos registrados');
+            document.getElementById('card-paciente-alergias').innerHTML = '<b>Alergias / RAM:</b> ' + (p.alergias || 'Negadas');
+
+            const contSignos = document.getElementById('card-paciente-signos-resumen');
+            if (contSignos) {
+                if (p.signos && p.signos.length > 0) {
+                    const ult = p.signos[0];
+                    contSignos.innerHTML = '<span class="font-bold text-slate-700">Últimos Signos (' + ult.hora + '):</span>' +
+                        (ult.ta ? '<span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200"><b>TA:</b> ' + ult.ta + '</span>' : '') +
+                        (ult.fc ? '<span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200"><b>FC:</b> ' + ult.fc + ' lpm</span>' : '') +
+                        (ult.spo2 ? '<span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200"><b>SpO2:</b> ' + ult.spo2 + '%</span>' : '') +
+                        (ult.temp ? '<span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200"><b>Temp:</b> ' + ult.temp + '°C</span>' : '') +
+                        (ult.glucosa ? '<span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200"><b>DxTx:</b> ' + ult.glucosa + ' mg/dL</span>' : '');
+                } else {
+                    contSignos.innerHTML = '<span class="text-slate-400 italic">Sin registro reciente de signos vitales.</span>';
+                }
+            }
+        };
+
+        window.abrirModalSignos = function() {
+            window.renderizarHistorialSignos();
+            document.getElementById('modal-signos').classList.remove('hidden');
+        };
+
+        window.cerrarModalSignos = function() {
+            document.getElementById('modal-signos').classList.add('hidden');
+        };
+
+        window.guardarSignosVitales = function() {
+            const p = window.pacientes.find(x => x.id === window.pacienteActivoId);
+            if (!p) return;
+
+            const ta = document.getElementById('sv-ta').value.trim();
+            const fc = document.getElementById('sv-fc').value.trim();
+            const spo2 = document.getElementById('sv-spo2').value.trim();
+            const temp = document.getElementById('sv-temp').value.trim();
+            const glucosa = document.getElementById('sv-glucosa').value.trim();
+
+            if (!ta && !fc && !spo2 && !temp && !glucosa) {
+                window.mostrarNotificacion('⚠️ Ingresa al menos un parámetro clínico', 'alerta');
+                return;
+            }
+
+            if (!p.signos) p.signos = [];
+            const ahora = new Date();
+            p.signos.unshift({
+                id: Date.now().toString(),
+                fecha: ahora.toLocaleDateString(),
+                hora: ahora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                ta, fc, spo2, temp, glucosa,
+                registradoPor: perfilActual || 'Personal en turno'
+            });
+
+            if (p.signos.length > 30) p.signos.pop();
+
+            localStorage.setItem('pacientesClinicosV3', JSON.stringify(window.pacientes));
+            document.getElementById('sv-ta').value = '';
+            document.getElementById('sv-fc').value = '';
+            document.getElementById('sv-spo2').value = '';
+            document.getElementById('sv-temp').value = '';
+            document.getElementById('sv-glucosa').value = '';
+
+            window.actualizarTarjetaResumenPaciente();
+            window.renderizarHistorialSignos();
+            window.pushToCloud();
+            window.mostrarNotificacion('🩺 Signos vitales registrados en el expediente', 'exito');
+        };
+
+        window.renderizarHistorialSignos = function() {
+            const cont = document.getElementById('lista-historial-signos');
+            const p = window.pacientes.find(x => x.id === window.pacienteActivoId);
+            if (!cont || !p) return;
+
+            if (!p.signos || p.signos.length === 0) {
+                cont.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-3">No hay registros hemodinámicos previos.</p>';
+                return;
+            }
+
+            let html = '';
+            p.signos.forEach(s => {
+                html += '<div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-[11px] space-y-1">' +
+                    '<div class="flex justify-between text-slate-500 font-bold">' +
+                        '<span>📅 ' + s.fecha + ' - ' + s.hora + '</span>' +
+                        '<span>🧑‍⚕️ ' + (s.registradoPor || 'Enfermería') + '</span>' +
+                    '</div>' +
+                    '<div class="flex flex-wrap gap-2 pt-1 text-slate-800">' +
+                        (s.ta ? '<span><b>TA:</b> ' + s.ta + ' mmHg</span>' : '') +
+                        (s.fc ? '<span><b>FC:</b> ' + s.fc + ' lpm</span>' : '') +
+                        (s.spo2 ? '<span><b>SpO2:</b> ' + s.spo2 + '%</span>' : '') +
+                        (s.temp ? '<span><b>Temp:</b> ' + s.temp + '°C</span>' : '') +
+                        (s.glucosa ? '<span class="text-indigo-700"><b>Glucemia:</b> ' + s.glucosa + ' mg/dL</span>' : '') +
+                    '</div>' +
+                '</div>';
+            });
+            cont.innerHTML = html;
+        };
+
+        window.cambiarPacienteActivo = function(id) {
+            window.pacienteActivoId = id;
+            localStorage.setItem('pacienteActivoIdV3', id);
+            window.actualizarTarjetaResumenPaciente();
+            window.renderizarResumenEnfermeros();
+            window.renderizarListaHome();
+            window.generarCronograma();
+            window.renderizarLista();
+            window.renderizarInventario();
+            window.pushToCloud();
+        };
+
+        window.abrirModalPaciente = function() {
+            window.renderizarListaPacientesModal();
+            document.getElementById('modal-paciente').classList.remove('hidden');
+        };
+
+        window.cerrarModalPaciente = function() {
+            document.getElementById('modal-paciente').classList.add('hidden');
+        };
+
+        window.renderizarListaPacientesModal = function() {
+            const container = document.getElementById('lista-pacientes-modal');
+            if(!container) return;
+            let html = '';
+            window.pacientes.forEach(p => {
+                const pesoStr = p.peso ? (' • ' + p.peso + ' kg') : '';
+                const sangreStr = (p.sangre && !p.sangre.includes('N/E')) ? (' • Tipo ' + p.sangre) : '';
+                html += '<div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-1.5">' +
+                    '<div class="flex justify-between items-center">' +
+                        '<span class="text-xs font-extrabold text-slate-900">🧑‍🦱 ' + p.nombre + ' (' + (p.edad || 'N/A') + ' años' + pesoStr + sangreStr + ')</span>' +
+                        (window.pacientes.length > 1 ? '<button onclick="eliminarPaciente(\'' + p.id + '\')" class="text-rose-600 text-xs font-semibold hover:underline">Eliminar</button>' : '') +
+                    '</div>' +
+                    '<p class="text-[11px] text-slate-600"><b>Condición Metabólica:</b> ' + (p.diabetico || 'No especificado') + ' • <b>Diagnósticos:</b> ' + (p.padecimientos || 'N/A') + '</p>' +
+                    '<p class="text-[11px] text-slate-600"><b>Antecedentes Quirúrgicos:</b> ' + (p.cirugias || 'Ninguno') + '</p>' +
+                    '<p class="text-[11px] text-rose-600 font-medium"><b>Alergias (RAM):</b> ' + (p.alergias || 'Negadas') + '</p>' +
+                '</div>';
+            });
+            container.innerHTML = html;
+        };
+
+        window.agregarPaciente = function() {
+            const nombre = document.getElementById('nuevo-paciente-nombre').value.trim();
+            const edad = document.getElementById('nuevo-paciente-edad').value.trim();
+            const peso = document.getElementById('nuevo-paciente-peso').value.trim();
+            const sangre = document.getElementById('nuevo-paciente-sangre').value;
+            const diabetico = document.getElementById('nuevo-paciente-diabetico').value;
+            const padecimientos = document.getElementById('nuevo-paciente-padecimientos').value.trim();
+            const cirugias = document.getElementById('nuevo-paciente-cirugias').value.trim();
+            const alergias = document.getElementById('nuevo-paciente-alergias').value.trim();
+
+            if(!nombre) {
+                window.mostrarNotificacion('⚠️ Escribe el nombre completo del paciente', 'alerta');
+                return;
+            }
+
+            const nuevo = { id: Date.now().toString(), nombre, edad, peso, sangre, diabetico, padecimientos, cirugias, alergias, signos: [] };
+            window.pacientes.push(nuevo);
+            localStorage.setItem('pacientesClinicosV3', JSON.stringify(window.pacientes));
+            
+            document.getElementById('nuevo-paciente-nombre').value = '';
+            document.getElementById('nuevo-paciente-edad').value = '';
+            document.getElementById('nuevo-paciente-peso').value = '';
+            document.getElementById('nuevo-paciente-padecimientos').value = '';
+            document.getElementById('nuevo-paciente-cirugias').value = '';
+            document.getElementById('nuevo-paciente-alergias').value = '';
+
+            window.actualizarSelectPacientes();
+            window.renderizarListaPacientesModal();
+            window.pushToCloud();
+            window.mostrarNotificacion('✅ Expediente clínico registrado correctamente', 'exito');
         };
 
         window.actualizarTarjetaResumenPaciente = function() {
@@ -890,18 +1148,18 @@
         window.actualizarDosisLabel = function(via) {
             const labelDosis = document.getElementById('label-dosis');
             const inputDosis = document.getElementById('dosis-cantidad');
-            if (via.includes('Inhalado') || via.includes('Nebulización') || via.includes('Nasal')) {
-                labelDosis.innerText = 'Dosis (Puffs / Disparos)';
-                inputDosis.placeholder = 'Ej. 2 puffs';
-            } else if (via.includes('Gotas') || via.includes('Oftálmica')) {
-                labelDosis.innerText = 'Dosis (Gotas)';
-                inputDosis.placeholder = 'Ej. 2 gotas';
-            } else if (via.includes('Intramuscular') || via.includes('Intravenosa') || via.includes('Subcutánea') || via.includes('Parenteral')) {
-                labelDosis.innerText = 'Dosis (Mililitros / UI)';
-                inputDosis.placeholder = 'Ej. 5 ml';
+            if (via.includes('Inhalatoria') || via.includes('Inhalado') || via.includes('Micronebulización') || via.includes('Nebulización') || via.includes('Intranasal')) {
+                labelDosis.innerText = 'Posología (Puffs / Disparos / ml)';
+                inputDosis.placeholder = 'Ej. 2 disparos / 3 ml solución';
+            } else if (via.includes('Gotas') || via.includes('Oftálmica') || via.includes('Ótica')) {
+                labelDosis.innerText = 'Posología (Gotas)';
+                inputDosis.placeholder = 'Ej. 2 gotas en cada ojo/oído';
+            } else if (via.includes('Intramuscular') || via.includes('Intravenosa') || via.includes('Subcutánea') || via.includes('Parenteral') || via.includes('Intradérmica')) {
+                labelDosis.innerText = 'Posología (Mililitros / UI / Ampolletas)';
+                inputDosis.placeholder = 'Ej. 1 ampolleta (5 ml) / 10 UI';
             } else {
-                labelDosis.innerText = 'Dosis (Pastillas / Unidades)';
-                inputDosis.placeholder = 'Ej. 1 tableta';
+                labelDosis.innerText = 'Posología (Comprimidos / Cápsulas / Unidades)';
+                inputDosis.placeholder = 'Ej. 1 comprimido / 1 cápsula';
             }
         };
 
@@ -1525,6 +1783,14 @@
                 if (!med.historial) med.historial = [];
                 med.historial.push(ahora);
 
+                if (!med.bitacora) med.bitacora = [];
+                med.bitacora.unshift({
+                    fechaMs: ahora,
+                    responsable: perfilActual || 'Enfermería en turno',
+                    dosis: med.dosis || '1 dosis'
+                });
+                if (med.bitacora.length > 25) med.bitacora.pop();
+
                 // Descontar del stock si tiene números en la dosis
                 const numMatch = (med.dosis || '').match(/(\d+(\.\d+)?)/);
                 const cantDescontar = numMatch ? parseFloat(numMatch[1]) : 1;
@@ -1533,7 +1799,7 @@
                 }
 
                 window.guardarYRenderizar();
-                window.mostrarNotificacion('✅ Toma registrada correctamente', 'exito');
+                window.mostrarNotificacion('✅ Ministración registrada en Kárdex y descontada de stock', 'exito');
             }
         };
 
@@ -1927,26 +2193,42 @@
             const lista = document.getElementById('lista-medicamentos');
             if(!lista) return;
             lista.innerHTML = '';
-            const programados = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId && m.esFijo);
-            if (programados.length === 0) {
-                lista.innerHTML = '<p class="text-slate-400 text-xs text-center py-4 bg-white rounded-3xl border">No hay horarios de medicamentos registrados para este paciente.</p>';
+            const todosMeds = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId && m.momento !== 'Control de Stock');
+            if (todosMeds.length === 0) {
+                lista.innerHTML = '<p class="text-slate-400 text-xs text-center py-4 bg-white rounded-3xl border">No hay prescripciones activas registradas en el Kárdex para este paciente.</p>';
+                window.renderizarBitacoraMinistraciones();
                 return;
             }
 
             const ahora = new Date().getTime();
-            programados.forEach(med => {
-                if (med.duracionDias) {
+            todosMeds.forEach(med => {
+                if (med.duracionDias && med.ultimaToma) {
                     const diasMs = med.duracionDias * 24 * 3600000;
                     if (ahora > (med.ultimaToma + diasMs)) return;
                 }
 
-                const viaBadge = med.via || 'Oral 💊';
-                const dosisBadge = med.dosis ? ('<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl text-[10px] font-bold">Dosis: ' + med.dosis + '</span>') : '';
+                const viaBadge = med.via || 'Vía Oral (VO) 💊';
+                const dosisBadge = med.dosis ? ('<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl text-[10px] font-bold">Posología: ' + med.dosis + '</span>') : '';
                 const momentoBadge = med.momento && med.momento !== 'Horario Fijo' ? ('<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-xl text-[10px] font-semibold">' + med.momento + '</span>') : '';
-                const duracionBadge = med.duracionDias ? ('<span class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-xl text-[10px] font-semibold">Duración: ' + med.duracionDias + ' días</span>') : '';
+                const duracionBadge = med.duracionDias ? ('<span class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-xl text-[10px] font-semibold">Esquema: ' + med.duracionDias + ' días</span>') : '';
 
                 const tarjeta = document.createElement('div');
                 tarjeta.className = "p-5 rounded-3xl shadow-sm bg-white border border-slate-200 text-xs space-y-3";
+
+                if (!med.esFijo) {
+                    tarjeta.innerHTML = '<div class="flex justify-between items-start">' +
+                        '<div>' +
+                            '<h3 class="font-extrabold text-sm text-slate-900">' + med.nombre + '</h3>' +
+                            '<div class="flex gap-2 mt-2 flex-wrap">' +
+                                '<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-xl font-bold">' + viaBadge + '</span>' +
+                                dosisBadge + ' ' + momentoBadge + ' ' + duracionBadge +
+                            '</div>' +
+                        '</div>' +
+                        '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-rose-600 font-bold p-1.5">🗑️</button>' +
+                    '</div>';
+                    lista.appendChild(tarjeta);
+                    return;
+                }
 
                 const proximaTomaMs = med.ultimaToma + (med.frecuencia * 3600000);
                 const fechaProximaToma = new Date(proximaTomaMs);
@@ -1955,9 +2237,9 @@
 
                 const horas = Math.floor(Math.abs(tiempoRestante) / 3600000);
                 const mins = Math.floor((Math.abs(tiempoRestante) % 3600000) / 60000);
-                const textoReloj = tiempoRestante <= 0 ? ('Atrasado: ' + horas + 'h ' + mins + 'm') : ('Faltan: ' + horas + 'h ' + mins + 'm');
+                const textoReloj = tiempoRestante <= 0 ? ('Dosis vencida hace: ' + horas + 'h ' + mins + 'm') : ('Próxima en: ' + horas + 'h ' + mins + 'm');
 
-                const btnAjustarGlobal = alertaSin ? ('<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-2xl font-bold text-[11px] shadow-sm mt-1 transition">🛡️ Ajustar horarios generales a turno con personal</button>') : '';
+                const btnAjustarGlobal = alertaSin ? ('<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-2xl font-bold text-[11px] shadow-sm mt-1 transition">🛡️ Sincronizar ciclo completo con guardia activa</button>') : '';
 
                 tarjeta.innerHTML = '<div class="flex justify-between items-start">' +
                     '<div>' +
@@ -1968,19 +2250,61 @@
                         '</div>' +
                     '</div>' +
                     '<div class="flex items-center gap-1">' +
-                        '<button onclick="abrirModalEditarHorarioMed(\'' + med.id + '\')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-[11px] transition" title="Editar horario">✏️ Hora</button>' +
+                        '<button onclick="abrirModalEditarHorarioMed(\'' + med.id + '\')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-[11px] transition" title="Editar horario">✏️ Pauta</button>' +
                         '<button onclick="eliminar(\'' + med.id + '\')" class="text-slate-400 hover:text-rose-600 font-bold p-1.5">🗑️</button>' +
                     '</div>' +
                 '</div>' +
-                (alertaSin ? ('<div class="bg-rose-500 text-white font-bold p-2.5 rounded-2xl text-center text-[11px]">⚠️ Cae en horario sin personal ' + btnAjustarGlobal + '</div>') : '') +
+                (alertaSin ? ('<div class="bg-rose-500 text-white font-bold p-2.5 rounded-2xl text-center text-[11px]">⚠️ Horario sin cobertura de enfermería ' + btnAjustarGlobal + '</div>') : '') +
                 '<div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex justify-between items-center font-mono font-bold text-slate-800">' +
-                    '<span>Próxima: ' + fechaProximaToma.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
+                    '<span>Siguiente dosis: ' + fechaProximaToma.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>' +
                     '<span class="' + (tiempoRestante <= 0 ? 'text-rose-600' : 'text-blue-600') + '">' + textoReloj + '</span>' +
                 '</div>' +
-                '<button onclick="administrarAhora(\'' + med.id + '\')" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-2xl text-xs shadow-md shadow-blue-500/20 hover:bg-blue-700 transition">✅ Registrar Toma</button>';
+                '<button onclick="administrarAhora(\'' + med.id + '\')" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-2xl text-xs shadow-md shadow-blue-500/20 hover:bg-blue-700 transition">✅ Confirmar Ministración de Dosis</button>';
                 
                 lista.appendChild(tarjeta);
             });
+            window.renderizarBitacoraMinistraciones();
+        };
+
+        window.renderizarBitacoraMinistraciones = function() {
+            const cont = document.getElementById('bitacora-ministraciones');
+            if (!cont) return;
+
+            const registros = [];
+            window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId).forEach(m => {
+                if (m.bitacora && Array.isArray(m.bitacora)) {
+                    m.bitacora.forEach(b => {
+                        registros.push({
+                            medNombre: m.nombre,
+                            via: m.via || 'VO',
+                            dosis: b.dosis || m.dosis || '',
+                            fechaMs: b.fechaMs,
+                            responsable: b.responsable || 'Enfermería'
+                        });
+                    });
+                }
+            });
+
+            registros.sort((a, b) => b.fechaMs - a.fechaMs);
+
+            if (registros.length === 0) {
+                cont.innerHTML = '<p class="text-slate-400 text-xs italic text-center py-2">Aún no se han registrado ministraciones en el turno actual.</p>';
+                return;
+            }
+
+            let html = '';
+            registros.slice(0, 15).forEach(r => {
+                const f = new Date(r.fechaMs);
+                const fechaHoraStr = f.toLocaleDateString() + ' ' + f.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                html += '<div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100 text-[11px]">' +
+                    '<div>' +
+                        '<span class="font-bold text-slate-900">✅ ' + r.medNombre + '</span> <span class="text-slate-500">(' + r.dosis + ')</span>' +
+                        '<p class="text-[10px] text-slate-400">Ministrado por: <b>' + r.responsable + '</b></p>' +
+                    '</div>' +
+                    '<span class="font-mono text-[10px] text-blue-700 bg-blue-50 px-2.5 py-1 rounded-xl font-bold">' + fechaHoraStr + '</span>' +
+                '</div>';
+            });
+            cont.innerHTML = html;
         };
 
         if(perfilActual && rolActual) {
