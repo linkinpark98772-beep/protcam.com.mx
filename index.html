@@ -119,6 +119,17 @@
                 <p class="text-xs text-blue-100">Selecciona una sección para gestionar la atención del paciente.</p>
             </div>
 
+            <!-- Selector de Paciente Activo -->
+            <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-2">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-slate-700 flex items-center gap-1"><span>🧑‍🦱</span> Paciente Activo:</h3>
+                    <button onclick="abrirModalPaciente()" class="text-[11px] bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold px-2.5 py-1 rounded-lg transition">➕ Gestionar Pacientes</button>
+                </div>
+                <select id="select-paciente-activo" onchange="cambiarPacienteActivo(this.value)" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 bg-slate-50 outline-none">
+                    <option value="">-- Selecciona un paciente --</option>
+                </select>
+            </section>
+
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="irANav('horarios')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col items-center text-center gap-2 group">
                     <span class="text-3xl bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition">🧑‍⚕️</span>
@@ -142,6 +153,12 @@
                     <span class="text-3xl bg-indigo-50 p-3 rounded-xl group-hover:bg-indigo-100 transition">📅</span>
                     <span class="font-bold text-slate-700 text-sm">Cronograma 24h</span>
                     <span class="text-[10px] text-slate-400">Línea de tiempo y tomas</span>
+                </button>
+
+                <button onclick="irANav('turnos_guardia')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition col-span-2 flex flex-col items-center text-center gap-2 group">
+                    <span class="text-3xl bg-emerald-100 p-3 rounded-xl group-hover:bg-emerald-200 transition">⏱️</span>
+                    <span class="font-bold text-slate-700 text-sm">Registro de Guardias y Ganancias del Día</span>
+                    <span class="text-[10px] text-slate-400">Entrada, salida y cálculo de sueldo por guardia</span>
                 </button>
 
                 <button onclick="irANav('inventario')" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition col-span-2 flex flex-col items-center text-center gap-2 group">
@@ -228,6 +245,21 @@
             </div>
 
             <div id="contenedor-finanzas" class="space-y-3"></div>
+        </div>
+
+        <!-- ================= VISTA REGISTRO DE GUARDIAS Y GANANCIAS ================= -->
+        <div id="vista-turnos_guardia" class="space-y-4 hidden">
+            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-4 rounded-2xl shadow-md flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold mb-1">⏱️ Registro de Guardias</h2>
+                    <p class="text-xs text-emerald-100">Registra tus horas de entrada/salida y calcula tus ganancias del día.</p>
+                </div>
+                <button onclick="abrirModalGuardia()" class="bg-white text-emerald-800 text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm hover:bg-emerald-50">
+                    ➕ Registrar Guardia
+                </button>
+            </div>
+
+            <div id="contenedor-guardias" class="space-y-3"></div>
         </div>
 
         <!-- ================= VISTA NUEVO MEDICAMENTO ================= -->
@@ -352,6 +384,61 @@
 
     </main>
 
+    <!-- Modal Gestión de Pacientes -->
+    <div id="modal-paciente" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-sm font-bold text-slate-800">🧑‍🦱 Gestión de Pacientes</h3>
+                <button onclick="cerrarModalPaciente()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <div class="space-y-3">
+                <div class="flex gap-2">
+                    <input type="text" id="nuevo-paciente-nombre" placeholder="Nombre y Apellido del Paciente" class="flex-1 p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 font-semibold">
+                    <button onclick="agregarPaciente()" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg text-xs hover:bg-blue-700">Agregar</button>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold text-slate-600 mb-2">Pacientes Registrados:</h4>
+                    <div id="lista-pacientes-modal" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                </div>
+            </div>
+            <button onclick="cerrarModalPaciente()" class="w-full bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Guardia y Horas -->
+    <div id="modal-guardia" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-sm font-bold text-slate-800">⏱️ Registrar Turno de Guardia</h3>
+                <button onclick="cerrarModalGuardia()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Seleccionar Enfermero</label>
+                    <select id="guardia-enf-select" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-white outline-none font-medium"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Fecha de la Guardia</label>
+                    <input type="date" id="guardia-fecha" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Hora de Entrada</label>
+                        <input type="time" id="guardia-hora-ini" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Hora de Salida</label>
+                        <input type="time" id="guardia-hora-fin" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none">
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="cerrarModalGuardia()" class="flex-1 bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl">Cancelar</button>
+                <button onclick="guardarGuardia()" class="flex-1 bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl shadow-md hover:bg-emerald-700">Guardar Guardia</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Editar / Añadir Enfermero -->
     <div id="modal-enfermero" class="fixed inset-0 bg-slate-900 bg-opacity-80 z-50 flex items-center justify-center px-4 hidden">
         <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto space-y-4">
@@ -468,7 +555,13 @@
     <script>
         const diasNombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         
+        window.pacientes = JSON.parse(localStorage.getItem('pacientesClinicosV1')) || [
+            { id: '1', nombre: 'Paciente Principal (Ej. Juan Pérez)' }
+        ];
+        window.pacienteActivoId = localStorage.getItem('pacienteActivoIdV1') || window.pacientes[0].id;
+
         window.medicamentos = JSON.parse(localStorage.getItem('medicamentosPacientesV16')) || [];
+        window.guardias = JSON.parse(localStorage.getItem('guardiasRegistradasV1')) || [];
         
         let enfermerosDefault = [
             { id: '1', nombre: 'Yael', tipoPago: 'hora', pagoHora: 100, sueldoFijo: 0, diaPago: 'Viernes', dias: { 1:{act:true,ini:'07:00',fin:'19:00'}, 2:{act:true,ini:'07:00',fin:'19:00'}, 3:{act:true,ini:'07:00',fin:'19:00'}, 4:{act:true,ini:'07:00',fin:'19:00'}, 5:{act:true,ini:'07:00',fin:'19:00'}, 6:{act:false,ini:'',fin:''}, 0:{act:false,ini:'',fin:''} } }
@@ -483,9 +576,79 @@
         window.pushToCloud = async function() {};
         window.conectarSala = function(codigo) {};
 
+        // --- GESTIÓN DE PACIENTES ---
+        window.actualizarSelectPacientes = function() {
+            const select = document.getElementById('select-paciente-activo');
+            if(!select) return;
+            let html = '';
+            window.pacientes.forEach(p => {
+                const selected = p.id === window.pacienteActivoId ? 'selected' : '';
+                html += '<option value="' + p.id + '" ' + selected + '>🧑‍🦱 ' + p.nombre + '</option>';
+            });
+            select.innerHTML = html;
+        };
+
+        window.cambiarPacienteActivo = function(id) {
+            window.pacienteActivoId = id;
+            localStorage.setItem('pacienteActivoIdV1', id);
+            window.renderizarResumenEnfermeros();
+            window.renderizarListaHome();
+            window.generarCronograma();
+            window.renderizarLista();
+            window.renderizarInventario();
+        };
+
+        window.abrirModalPaciente = function() {
+            window.renderizarListaPacientesModal();
+            document.getElementById('modal-paciente').classList.remove('hidden');
+        };
+
+        window.cerrarModalPaciente = function() {
+            document.getElementById('modal-paciente').classList.add('hidden');
+        };
+
+        window.renderizarListaPacientesModal = function() {
+            const container = document.getElementById('lista-pacientes-modal');
+            if(!container) return;
+            let html = '';
+            window.pacientes.forEach(p => {
+                html += '<div class="flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-200">' +
+                    '<span class="text-xs font-bold text-slate-700">🧑‍🦱 ' + p.nombre + '</span>' +
+                    (window.pacientes.length > 1 ? '<button onclick="eliminarPaciente(\'' + p.id + '\')" class="text-red-500 text-xs font-bold hover:underline">Eliminar</button>' : '') +
+                '</div>';
+            });
+            container.innerHTML = html;
+        };
+
+        window.agregarPaciente = function() {
+            const input = document.getElementById('nuevo-paciente-nombre');
+            const nombre = input.value.trim();
+            if(!nombre) return;
+            const nuevo = { id: Date.now().toString(), nombre: nombre };
+            window.pacientes.push(nuevo);
+            localStorage.setItem('pacientesClinicosV1', JSON.stringify(window.pacientes));
+            input.value = '';
+            window.actualizarSelectPacientes();
+            window.renderizarListaPacientesModal();
+            window.pushToCloud();
+        };
+
+        window.eliminarPaciente = function(id) {
+            if(window.pacientes.length <= 1) return;
+            window.pacientes = window.pacientes.filter(p => p.id !== id);
+            if(window.pacienteActivoId === id) {
+                window.pacienteActivoId = window.pacientes[0].id;
+            }
+            localStorage.setItem('pacientesClinicosV1', JSON.stringify(window.pacientes));
+            window.actualizarSelectPacientes();
+            window.renderizarListaPacientesModal();
+            window.cambiarPacienteActivo(window.pacienteActivoId);
+            window.pushToCloud();
+        };
+
         // --- NAVEGACIÓN ---
         window.irANav = function(vistaId) {
-            ['home', 'horarios', 'finanzas', 'medicamentos', 'calendario', 'inventario', 'admin'].forEach(v => {
+            ['home', 'horarios', 'finanzas', 'medicamentos', 'calendario', 'inventario', 'admin', 'turnos_guardia'].forEach(v => {
                 const el = document.getElementById('vista-' + v);
                 if(el) el.classList.add('hidden');
             });
@@ -510,6 +673,7 @@
                 if(vistaId === 'medicamentos') { tituloHeader.innerText = 'Registrar Medicamento'; window.setHoraActualDefecto(); window.actualizarOpcionesStockEnFormulario(); }
                 if(vistaId === 'calendario') { tituloHeader.innerText = 'Cronograma 24h'; window.generarCronograma(); window.renderizarLista(); }
                 if(vistaId === 'inventario') { tituloHeader.innerText = 'Inventario y Stock'; window.renderizarInventario(); }
+                if(vistaId === 'turnos_guardia') { tituloHeader.innerText = 'Guardias y Ganancias'; window.renderizarGuardias(); }
             }
             window.scrollTo(0, 0);
         };
@@ -520,9 +684,11 @@
 
             let opcionesSelect = '<option value="">-- 📦 Seleccionar de tu inventario o escribir abajo --</option>';
             window.medicamentos.forEach(med => {
-                const stockDisp = med.stock !== undefined ? med.stock : 0;
-                const nombreEscapado = med.nombre.replace(/"/g, '&quot;');
-                opcionesSelect += '<option value="' + nombreEscapado + '">📦 ' + med.nombre + ' (Stock: ' + stockDisp + ')</option>';
+                if(med.pacienteId === window.pacienteActivoId) {
+                    const stockDisp = med.stock !== undefined ? med.stock : 0;
+                    const nombreEscapado = med.nombre.replace(/"/g, '&quot;');
+                    opcionesSelect += '<option value="' + nombreEscapado + '">📦 ' + med.nombre + ' (Stock: ' + stockDisp + ')</option>';
+                }
             });
             selectEl.innerHTML = opcionesSelect;
         };
@@ -539,7 +705,7 @@
         };
 
         window.autocompletarViaPorNombre = function(nombreMed) {
-            const med = window.medicamentos.find(m => m.nombre.toLowerCase() === nombreMed.trim().toLowerCase());
+            const med = window.medicamentos.find(m => m.pacienteId === window.pacienteActivoId && m.nombre.toLowerCase() === nombreMed.trim().toLowerCase());
             if (med && med.via) {
                 const selectVia = document.getElementById('via');
                 for (let i = 0; i < selectVia.options.length; i++) {
@@ -634,6 +800,7 @@
                 window.conectarSala(window.currentRoom);
             }
 
+            window.actualizarSelectPacientes();
             window.renderizarResumenEnfermeros();
             window.renderizarListaHome();
         };
@@ -654,6 +821,118 @@
 
         window.cerrarModalPrueba = function() {
             document.getElementById('modal-bienvenida-prueba').classList.add('hidden');
+        };
+
+        // --- GESTIÓN DE GUARDIAS Y GANANCIAS ---
+        window.abrirModalGuardia = function() {
+            const selectEnf = document.getElementById('guardia-enf-select');
+            let htmlOpts = '';
+            if(window.enfermeros.length === 0) {
+                htmlOpts = '<option value="">No hay personal registrado</option>';
+            } else {
+                window.enfermeros.forEach(e => {
+                    htmlOpts += '<option value="' + e.id + '">💉 ' + e.nombre + ' (' + (e.tipoPago === 'fijo' ? 'Fijo' : '$' + e.pagoHora + '/hr') + ')</option>';
+                });
+            }
+            selectEnf.innerHTML = htmlOpts;
+
+            const hoyStr = new Date().toISOString().slice(0, 10);
+            document.getElementById('guardia-fecha').value = hoyStr;
+            document.getElementById('guardia-hora-ini').value = '07:00';
+            document.getElementById('guardia-hora-fin').value = '19:00';
+            document.getElementById('modal-guardia').classList.remove('hidden');
+        };
+
+        window.cerrarModalGuardia = function() {
+            document.getElementById('modal-guardia').classList.add('hidden');
+        };
+
+        window.guardarGuardia = function() {
+            const enfId = document.getElementById('guardia-enf-select').value;
+            const fecha = document.getElementById('guardia-fecha').value;
+            const horaIni = document.getElementById('guardia-hora-ini').value;
+            const horaFin = document.getElementById('guardia-hora-fin').value;
+
+            if(!enfId || !fecha || !horaIni || !horaFin) return;
+
+            const enf = window.enfermeros.find(e => e.id === enfId);
+            if(!enf) return;
+
+            const mIni = parseInt(horaIni.split(':')[0]) * 60 + parseInt(horaIni.split(':')[1]);
+            const mFin = parseInt(horaFin.split(':')[0]) * 60 + parseInt(horaFin.split(':')[1]);
+            const diffMins = mFin >= mIni ? (mFin - mIni) : (1440 - mIni + mFin);
+            const horasTrabajadas = diffMins / 60;
+
+            let pagoGanado = 0;
+            if(enf.tipoPago === 'fijo') {
+                pagoGanado = (enf.sueldoFijo || 0) / 7; // Aproximado diario basado en semanal
+            } else {
+                pagoGanado = horasTrabajadas * (enf.pagoHora || 100);
+            }
+
+            const nuevaGuardia = {
+                id: Date.now().toString(),
+                enfermeroId: enfId,
+                enfermeroNombre: enf.nombre,
+                fecha: fecha,
+                horaIni: horaIni,
+                horaFin: horaFin,
+                horas: horasTrabajadas.toFixed(1),
+                ganancia: pagoGanado.toFixed(2)
+            };
+
+            window.guardias.push(nuevaGuardia);
+            localStorage.setItem('guardiasRegistradasV1', JSON.stringify(window.guardias));
+            window.cerrarModalGuardia();
+            window.renderizarGuardias();
+            window.pushToCloud();
+        };
+
+        window.eliminarGuardia = function(id) {
+            if(confirm('¿Eliminar este registro de guardia?')) {
+                window.guardias = window.guardias.filter(g => g.id !== id);
+                localStorage.setItem('guardiasRegistradasV1', JSON.stringify(window.guardias));
+                window.renderizarGuardias();
+                window.pushToCloud();
+            }
+        };
+
+        window.renderizarGuardias = function() {
+            const contenedor = document.getElementById('contenedor-guardias');
+            if(!contenedor) return;
+
+            if(window.guardias.length === 0) {
+                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6 bg-white rounded-xl border">No hay guardias registradas. Usa el botón "+ Registrar Guardia".</p>';
+                return;
+            }
+
+            let html = '';
+            window.guardias.forEach(g => {
+                html += '<div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">' +
+                    '<div class="flex justify-between items-start">' +
+                        '<div>' +
+                            '<h3 class="font-bold text-sm text-slate-800">💉 ' + g.enfermeroNombre + '</h3>' +
+                            '<span class="text-[10px] text-slate-500">📅 Fecha: ' + g.fecha + '</span>' +
+                        '</div>' +
+                        '<button onclick="eliminarGuardia(\'' + g.id + '\')" class="text-slate-400 hover:text-red-600 text-xs">🗑️</button>' +
+                    '</div>' +
+                    '<div class="grid grid-cols-3 gap-2 text-center text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-100">' +
+                        '<div>' +
+                            '<span class="text-[10px] text-slate-400 block">Horario</span>' +
+                            '<b class="text-slate-700">' + g.horaIni + ' - ' + g.horaFin + '</b>' +
+                        '</div>' +
+                        '<div>' +
+                            '<span class="text-[10px] text-slate-400 block">Duración</span>' +
+                            '<b class="text-slate-700">' + g.horas + ' hrs</b>' +
+                        '</div>' +
+                        '<div class="bg-emerald-50 p-1 rounded border border-emerald-200">' +
+                            '<span class="text-[10px] text-emerald-600 block">Ganancia</span>' +
+                            '<b class="text-emerald-800">$' + g.ganancia + '</b>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            });
+            contenedor.innerHTML = html;
         };
 
         // --- GESTIÓN DE PERSONAL ---
@@ -1025,13 +1304,14 @@
             const nombreVal = document.getElementById('nombre').value.trim();
             const viaVal = document.getElementById('via').value;
 
-            const existenteIdx = window.medicamentos.findIndex(m => m.nombre.toLowerCase() === nombreVal.toLowerCase());
+            const existenteIdx = window.medicamentos.findIndex(m => m.pacienteId === window.pacienteActivoId && m.nombre.toLowerCase() === nombreVal.toLowerCase());
             const stockConservado = existenteIdx !== -1 ? (window.medicamentos[existenteIdx].stock || 0) : 0;
 
             let nuevoMed;
             if (momentoSel !== 'Horario Fijo') {
                 nuevoMed = {
                     id: existenteIdx !== -1 ? window.medicamentos[existenteIdx].id : Date.now().toString(),
+                    pacienteId: window.pacienteActivoId,
                     nombre: nombreVal,
                     dosis: dosisVal,
                     via: viaVal,
@@ -1047,6 +1327,7 @@
                 }
                 nuevoMed = {
                     id: existenteIdx !== -1 ? window.medicamentos[existenteIdx].id : Date.now().toString(),
+                    pacienteId: window.pacienteActivoId,
                     nombre: nombreVal,
                     dosis: dosisVal,
                     via: viaVal,
@@ -1090,7 +1371,7 @@
             const cant = parseFloat(document.getElementById('nuevo-stock-cant').value) || 0;
             if(!nombre) return;
 
-            const existente = window.medicamentos.find(m => m.nombre.toLowerCase() === nombre.toLowerCase());
+            const existente = window.medicamentos.find(m => m.pacienteId === window.pacienteActivoId && m.nombre.toLowerCase() === nombre.toLowerCase());
 
             if (existente) {
                 existente.stock = (existente.stock || 0) + cant;
@@ -1098,6 +1379,7 @@
             } else {
                 window.medicamentos.push({
                     id: Date.now().toString(),
+                    pacienteId: window.pacienteActivoId,
                     nombre: nombre,
                     dosis: 'Segun indicación',
                     via: via,
@@ -1113,6 +1395,7 @@
 
         window.guardarYRenderizar = function() {
             window.medicamentos.sort((a, b) => {
+                if(a.pacienteId !== b.pacienteId) return a.pacienteId.localeCompare(b.pacienteId);
                 if(!a.esFijo) return 1;
                 if(!b.esFijo) return -1;
                 const proxA = a.ultimaToma + (a.frecuencia * 3600000);
@@ -1120,6 +1403,7 @@
                 return proxA - proxB;
             });
             localStorage.setItem('medicamentosPacientesV16', JSON.stringify(window.medicamentos));
+            window.renderizarResumenEnfermeros();
             window.renderizarListaHome();
             window.generarCronograma();
             window.renderizarLista();
@@ -1182,12 +1466,14 @@
             if(!contenedor) return;
             contenedor.innerHTML = '';
 
-            if (window.medicamentos.length === 0) {
-                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6 bg-white rounded-xl border">No hay fármacos en el inventario. Usa el botón "+ Añadir Stock" para registrar existencias.</p>';
+            const medsPaciente = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId);
+
+            if (medsPaciente.length === 0) {
+                contenedor.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6 bg-white rounded-xl border">No hay fármacos para este paciente en el inventario. Usa el botón "+ Añadir Stock".</p>';
                 return;
             }
 
-            window.medicamentos.forEach(med => {
+            medsPaciente.forEach(med => {
                 const stockVal = med.stock !== undefined ? med.stock : 0;
                 const esCritico = stockVal <= 5;
 
@@ -1239,7 +1525,7 @@
             const tomasProyectadas = [];
 
             window.medicamentos.forEach(med => {
-                if(!med.esFijo) return;
+                if(med.pacienteId !== window.pacienteActivoId || !med.esFijo) return;
                 let proximaMs = med.ultimaToma + (med.frecuencia * 3600000);
                 while (proximaMs <= limite24h) {
                     if (proximaMs > ahora) { 
@@ -1280,16 +1566,16 @@
                     '</div>' +
                 '</div>';
             });
-            contenedor.innerHTML = htmlCronograma || '<p class="text-slate-500 text-xs italic">No hay tomas programadas en las próximas 24 hrs.</p>';
+            contenedor.innerHTML = htmlCronograma || '<p class="text-slate-500 text-xs italic">No hay tomas programadas en las próximas 24 hrs para este paciente.</p>';
         };
 
         window.renderizarListaHome = function() {
             const listaHome = document.getElementById('lista-medicamentos-home');
             if(!listaHome) return;
             listaHome.innerHTML = '';
-            const fijos = window.medicamentos.filter(m => m.esFijo);
+            const fijos = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId && m.esFijo);
             if (fijos.length === 0) {
-                listaHome.innerHTML = '<p class="text-slate-400 text-xs text-center py-2">No hay medicamentos con horario activo.</p>';
+                listaHome.innerHTML = '<p class="text-slate-400 text-xs text-center py-2">No hay medicamentos con horario activo para este paciente.</p>';
                 return;
             }
 
@@ -1320,9 +1606,9 @@
             const lista = document.getElementById('lista-medicamentos');
             if(!lista) return;
             lista.innerHTML = '';
-            const programados = window.medicamentos.filter(m => m.esFijo);
+            const programados = window.medicamentos.filter(m => m.pacienteId === window.pacienteActivoId && m.esFijo);
             if (programados.length === 0) {
-                lista.innerHTML = '<p class="text-slate-400 text-xs text-center py-4 bg-white rounded-xl border">No hay horarios de medicamentos registrados.</p>';
+                lista.innerHTML = '<p class="text-slate-400 text-xs text-center py-4 bg-white rounded-xl border">No hay horarios de medicamentos registrados para este paciente.</p>';
                 return;
             }
 
@@ -1374,6 +1660,7 @@
             document.getElementById('app-main').classList.add('hidden');
         }
 
+        window.actualizarSelectPacientes();
         window.renderizarResumenEnfermeros();
         window.setHoraActualDefecto();
         
@@ -1443,14 +1730,12 @@
 
                 if (!snap.exists()) {
                     await setDoc(userRef, licenciaData);
-                    // Mostrar modal de bienvenida de 15 días para nuevo usuario
                     document.getElementById('modal-bienvenida-prueba').classList.remove('hidden');
                 } else {
                     licenciaData = snap.data();
                     await updateDoc(userRef, { ultimoAcceso: new Date().toISOString() });
                 }
 
-                // Verificar si expiró la licencia (si no es admin)
                 if (!isAdmin && licenciaData.expira) {
                     const expTime = new Date(licenciaData.expira).getTime();
                     if (expTime < Date.now() || licenciaData.activo === false) {
@@ -1589,8 +1874,10 @@
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'salas', window.currentRoom);
             try {
                 await setDoc(docRef, {
+                    pacientes: window.pacientes,
                     medicamentos: window.medicamentos,
                     enfermeros: window.enfermeros,
+                    guardias: window.guardias,
                     notas: window.notasFijas
                 });
             } catch(e) { console.error("Error al subir datos:", e); }
@@ -1652,22 +1939,28 @@
             unsub = onSnapshot(docRef, function(docSnap) {
                 if(docSnap.exists()) {
                     const data = docSnap.data();
+                    window.pacientes = data.pacientes || window.pacientes;
                     window.medicamentos = data.medicamentos || [];
                     window.enfermeros = data.enfermeros || window.enfermeros;
+                    window.guardias = data.guardias || [];
                     window.notasFijas = data.notas || '';
                     
+                    localStorage.setItem('pacientesClinicosV1', JSON.stringify(window.pacientes));
                     localStorage.setItem('medicamentosPacientesV16', JSON.stringify(window.medicamentos));
                     localStorage.setItem('enfermerosConfigV8', JSON.stringify(window.enfermeros));
+                    localStorage.setItem('guardiasRegistradasV1', JSON.stringify(window.guardias));
                     localStorage.setItem('notasFijas', window.notasFijas);
 
                     const txtN = document.getElementById('notas-fijas');
                     if(txtN) txtN.value = window.notasFijas;
 
+                    window.actualizarSelectPacientes();
                     window.renderizarResumenEnfermeros();
                     window.renderizarListaHome();
                     window.generarCronograma();
                     window.renderizarLista();
                     window.renderizarInventario();
+                    window.renderizarGuardias();
                     window.actualizarOpcionesStockEnFormulario();
                     
                     const cloudStatus = document.getElementById('cloud-status');
