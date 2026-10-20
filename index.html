@@ -18,7 +18,7 @@
         }
         .animate-fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
-        /* Animaciones fluidas avanzadas para todos los botones de la página */
+        /* Animaciones fluidas avanzadas para todos los botones */
         button, .btn-anim {
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -37,7 +37,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12 font-sans selection:bg-blue-100 selection:text-blue-700">
 
-    <!-- Pantalla Intro / Video Animado con Estética Moderna -->
     <div id="intro-overlay" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center transition-opacity duration-700 px-4">
         <div class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mb-6 overflow-hidden rounded-3xl shadow-2xl shadow-blue-500/20 border border-slate-800">
             <video autoplay muted playsinline class="absolute inset-0 w-full h-full object-cover opacity-90">
@@ -50,7 +49,6 @@
         <p class="text-blue-200 text-[11px] sm:text-xs tracking-widest uppercase mt-2 opacity-75 font-semibold text-center">Plataforma Clínica Inteligente</p>
     </div>
 
-    <!-- Header Superior Minimalista Responsivo -->
     <header class="bg-white/90 backdrop-blur-md border-b border-slate-100 text-slate-800 px-4 sm:px-8 py-3.5 shadow-sm sticky top-0 z-20 flex justify-between items-center max-w-4xl mx-auto rounded-b-3xl">
         <div class="flex items-center gap-2.5">
             <button onclick="irANav('home')" id="btn-home-back" class="text-slate-600 font-bold p-2 rounded-xl hover:bg-slate-100 transition hidden text-xs flex items-center gap-1 shadow-sm"><span>⬅️</span> Volver</button>
@@ -66,7 +64,6 @@
         </div>
     </header>
 
-    <!-- Modal de Autenticación Moderno y Minimalista -->
     <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-40 flex flex-col items-center justify-center px-4 transition-all">
         
         <div class="text-center mb-6 space-y-2 animate-fade-in max-w-sm">
@@ -138,7 +135,6 @@
         </div>
     </div>
 
-    <!-- Contenido Principal de la App -->
     <main id="app-main" class="max-w-xl mx-auto mt-4 px-4 sm:px-0 space-y-5 hidden">
 
         <!-- Barra de Sincronización en la Nube (Solo visible para Creador / Admin) -->
@@ -1548,7 +1544,7 @@
             if (!med || !med.esFijo) return;
             let proximaMs = med.ultimaToma + (med.frecuencia * 3600000);
             let intentos = 0;
-            while (window.caeEnHorarioSinEnfermero(new Date(proximaMs)) && intentos < 24) {
+            while (window.caeEnHorarioSinEnfermero(new Date(proximaMs)) && intentos < 48) {
                 proximaMs += 3600000;
                 intentos++;
             }
@@ -1566,7 +1562,6 @@
             window.medicamentos.forEach(med => {
                 if(med.pacienteId !== window.pacienteActivoId || !med.esFijo) return;
                 
-                // Verificar si ya expiró por los días de duración
                 if (med.duracionDias) {
                     const diasMs = med.duracionDias * 24 * 3600000;
                     const fechaFin = med.ultimaToma + diasMs;
@@ -1578,6 +1573,7 @@
                     if (proximaMs > ahora) {
                         if (!med.duracionDias || proximaMs <= (med.ultimaToma + (med.duracionDias * 24 * 3600000))) {
                             tomasProyectadas.push({
+                                medId: med.id,
                                 medNombre: med.nombre,
                                 dosis: med.dosis || '',
                                 via: med.via || 'Oral 💊',
@@ -1604,7 +1600,10 @@
                 const warningIcon = alerta ? '⚠️' : '✅';
                 const dosisBadge = toma.dosis ? (' • <b>[' + toma.dosis + ']</b>') : '';
                 
-                const btnAgregarPersonal = alerta ? ('<div class="mt-2"><button onclick="irANav(\'horarios\')" class="bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl shadow-sm hover:bg-rose-700 transition">➕ Agregar Personal a Turno</button></div>') : '';
+                const btnAccionesAlerta = alerta ? ('<div class="mt-2 flex gap-2 flex-wrap">' +
+                    '<button onclick="irANav(\'horarios\')" class="bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl shadow-sm hover:bg-rose-700 transition">➕ Agregar Personal</button>' +
+                    '<button onclick="ajustarAlSiguienteEnfermero(\'' + toma.medId + '\')" class="bg-indigo-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl shadow-sm hover:bg-indigo-700 transition">🛡️ Ajustar a Turno con Personal</button>' +
+                '</div>') : '';
 
                 htmlCronograma += '<div class="relative mb-3 transition-all">' +
                     '<div class="absolute -left-[25px] top-2 w-3 h-3 rounded-full ring-4 ' + dotColor + '"></div>' +
@@ -1614,7 +1613,7 @@
                             '<span>' + warningIcon + '</span>' +
                         '</div>' +
                         '<div class="text-[10px] text-slate-500 font-medium mt-1">' + toma.via + '</div>' +
-                        btnAgregarPersonal +
+                        btnAccionesAlerta +
                     '</div>' +
                 '</div>';
             });
@@ -1646,7 +1645,10 @@
                 let estadoClase = 'bg-white border-slate-200';
                 if(tiempoRestante <= 0) estadoClase = 'bg-rose-50 border-rose-300 parpadeo';
 
-                const btnAgregarPersonalHome = alerta ? ('<div class="mt-2"><button onclick="irANav(\'horarios\')" class="bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl shadow-sm hover:bg-rose-700 transition">➕ Agregar Personal a Turno</button></div>') : '';
+                const btnAccionesHomeAlerta = alerta ? ('<div class="mt-2 flex gap-2 flex-wrap">' +
+                    '<button onclick="irANav(\'horarios\')" class="bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl shadow-sm hover:bg-rose-700 transition">➕ Agregar Personal</button>' +
+                    '<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="bg-indigo-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-xl shadow-sm hover:bg-indigo-700 transition">🛡️ Ajustar a Turno con Personal</button>' +
+                '</div>') : '';
 
                 listaHome.innerHTML += '<div class="p-4 rounded-2xl border ' + estadoClase + ' shadow-sm text-xs space-y-1.5">' +
                     '<div class="flex justify-between font-bold text-slate-900">' +
@@ -1657,7 +1659,7 @@
                         '<span>' + med.via + ' • Cada ' + med.frecuencia + 'h</span>' +
                         (alerta ? '<span class="text-rose-600 font-bold">⚠️ Sin personal</span>' : '<span class="text-emerald-600 font-bold">Cubierto ✅</span>') +
                     '</div>' +
-                    btnAgregarPersonalHome +
+                    btnAccionesHomeAlerta +
                 '</div>';
             });
         };
@@ -1696,7 +1698,7 @@
                 const mins = Math.floor((Math.abs(tiempoRestante) % 3600000) / 60000);
                 const textoReloj = tiempoRestante <= 0 ? ('Atrasado: ' + horas + 'h ' + mins + 'm') : ('Faltan: ' + horas + 'h ' + mins + 'm');
 
-                const btnAjustar = alertaSin ? ('<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="w-full bg-rose-600 text-white py-2.5 rounded-2xl font-bold text-[11px] shadow-sm mt-1">🛡️ Ajustar al siguiente turno con personal</button>') : '';
+                const btnAjustar = alertaSin ? ('<button onclick="ajustarAlSiguienteEnfermero(\'' + med.id + '\')" class="w-full bg-indigo-600 text-white py-2.5 rounded-2xl font-bold text-[11px] shadow-sm mt-1">🛡️ Ajustar al siguiente turno con personal</button>') : '';
                 const btnAgregarPersonalLista = alertaSin ? ('<div class="mt-1"><button onclick="irANav(\'horarios\')" class="w-full bg-rose-700 text-white py-2 rounded-2xl font-bold text-[11px] shadow-sm">➕ Ir a Agregar Personal</button></div>') : '';
 
                 tarjeta.innerHTML = '<div class="flex justify-between items-start">' +
@@ -1736,7 +1738,6 @@
         }, 1000);
     </script>
 
-    <!-- Script de Firebase y Sincronización en Tiempo Real -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
